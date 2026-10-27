@@ -50,7 +50,7 @@ Telapak kaki menapak, raih ke arah lutut sambil mengangkat bahu, lalu turun perl
 Naik ke kursi atau anak tangga yang kokoh, berdiri tegak, lalu turun lagi.
 ---
 [workout_tip_squats]
-Kaki selebar pinggul. Dorong pinggul ke belakang dan ke bawah, dada tegak, lalu berdiri.
+Kaki selebar pinggul, lengan lurus ke depan. Dorong pinggul ke belakang dan ke bawah, dada tegak, lalu berdiri.
 ---
 [workout_tip_triceps_dips]
 Tangan di tepi kursi yang kokoh. Tekuk siku untuk turun, lalu dorong ke atas.
@@ -111,6 +111,18 @@ Plank samping. Tahan.
 ---
 [workout_say_switch]
 Ganti sisi.
+---
+[workout_say_count_3]
+Tiga.
+---
+[workout_say_count_2]
+Dua.
+---
+[workout_say_count_1]
+Satu.
+---
+[workout_say_go]
+Mulai!
 ---
 [workout_say_next_wall_sit]
 Istirahat. Berikutnya: duduk di dinding.

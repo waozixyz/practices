@@ -50,7 +50,7 @@ Füße flach, greif Richtung Knie, während sich die Schultern heben, dann langs
 Steig auf einen stabilen Stuhl oder eine Stufe, richte dich auf und steig wieder hinunter.
 ---
 [workout_tip_squats]
-Füße hüftbreit. Schieb die Hüfte nach hinten und unten, Brust aufrecht, dann aufstehen.
+Füße hüftbreit, Arme gestreckt nach vorn. Schieb die Hüfte nach hinten und unten, Brust aufrecht, dann aufstehen.
 ---
 [workout_tip_triceps_dips]
 Hände auf die Kante eines stabilen Stuhls. Beug die Ellbogen zum Absenken und drück dich wieder hoch.
@@ -111,6 +111,18 @@ Seitstütz. Halten.
 ---
 [workout_say_switch]
 Seite wechseln.
+---
+[workout_say_count_3]
+Drei.
+---
+[workout_say_count_2]
+Zwei.
+---
+[workout_say_count_1]
+Eins.
+---
+[workout_say_go]
+Los!
 ---
 [workout_say_next_wall_sit]
 Pause. Als Nächstes: Wandsitzen.

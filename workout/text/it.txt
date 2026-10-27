@@ -50,7 +50,7 @@ Piedi a terra, allunga le mani verso le ginocchia mentre sollevi le spalle, poi 
 Sali su una sedia stabile o un gradino, distenditi e poi scendi.
 ---
 [workout_tip_squats]
-Piedi alla larghezza dei fianchi. Porta il bacino indietro e in basso, petto in alto, poi risali.
+Piedi alla larghezza dei fianchi, braccia tese in avanti. Porta il bacino indietro e in basso, petto in alto, poi risali.
 ---
 [workout_tip_triceps_dips]
 Mani sul bordo di una sedia stabile. Piega i gomiti per scendere, poi spingi in su.
@@ -111,6 +111,18 @@ Plank laterale. Tieni.
 ---
 [workout_say_switch]
 Cambia lato.
+---
+[workout_say_count_3]
+Tre.
+---
+[workout_say_count_2]
+Due.
+---
+[workout_say_count_1]
+Uno.
+---
+[workout_say_go]
+Via!
 ---
 [workout_say_next_wall_sit]
 Riposo. Ora: sedia al muro.

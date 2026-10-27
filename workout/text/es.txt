@@ -50,7 +50,7 @@ Pies apoyados; lleva las manos hacia las rodillas mientras subes los hombros y b
 Sube a una silla firme o a un escalón, estírate del todo y vuelve a bajar.
 ---
 [workout_tip_squats]
-Pies a la anchura de la cadera. Lleva la cadera atrás y abajo, pecho arriba, y vuelve a subir.
+Pies a la anchura de la cadera, brazos estirados al frente. Lleva la cadera atrás y abajo, pecho arriba, y vuelve a subir.
 ---
 [workout_tip_triceps_dips]
 Manos en el borde de una silla firme. Dobla los codos para bajar y empuja para subir.
@@ -111,6 +111,18 @@ Plancha lateral. Mantén.
 ---
 [workout_say_switch]
 Cambia de lado.
+---
+[workout_say_count_3]
+Tres.
+---
+[workout_say_count_2]
+Dos.
+---
+[workout_say_count_1]
+Uno.
+---
+[workout_say_go]
+¡Ya!
 ---
 [workout_say_next_wall_sit]
 Descansa. Ahora viene: sentadilla en la pared.

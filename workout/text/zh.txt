@@ -50,7 +50,7 @@
 踏上结实的椅子或台阶，站直，再踩下来。
 ---
 [workout_tip_squats]
-双脚与髋同宽。臀部向后向下坐，挺胸，然后站起。
+双脚与髋同宽，双臂向前伸直。臀部向后向下坐，挺胸，然后站起。
 ---
 [workout_tip_triceps_dips]
 双手撑在结实椅子的边缘。屈肘下降，再撑起。
@@ -111,6 +111,18 @@
 ---
 [workout_say_switch]
 换边。
+---
+[workout_say_count_3]
+三。
+---
+[workout_say_count_2]
+二。
+---
+[workout_say_count_1]
+一。
+---
+[workout_say_go]
+开始！
 ---
 [workout_say_next_wall_sit]
 休息。下一个：靠墙静蹲。

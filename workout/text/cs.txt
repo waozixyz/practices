@@ -50,7 +50,7 @@ Chodidla na zemi, natahuj ruce ke kolenům, zatímco zvedáš ramena, pak pomalu
 Vystup na pevnou židli nebo schod, napřim se a zase sestup.
 ---
 [workout_tip_squats]
-Chodidla na šířku boků. Posaď se pánví dozadu a dolů, hrudník vzhůru, pak se postav.
+Chodidla na šířku boků, paže natažené před sebou. Posaď se pánví dozadu a dolů, hrudník vzhůru, pak se postav.
 ---
 [workout_tip_triceps_dips]
 Ruce na okraji pevné židle. Pokrč lokty a spusť se, pak se vytlač nahoru.
@@ -111,6 +111,18 @@ Boční prkno. Vydrž.
 ---
 [workout_say_switch]
 Vyměň strany.
+---
+[workout_say_count_3]
+Tři.
+---
+[workout_say_count_2]
+Dva.
+---
+[workout_say_count_1]
+Jedna.
+---
+[workout_say_go]
+Start!
 ---
 [workout_say_next_wall_sit]
 Odpočinek. Další: sed u zdi.

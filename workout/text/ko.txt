@@ -50,7 +50,7 @@
 튼튼한 의자나 계단에 올라가 몸을 펴고 다시 내려오세요.
 ---
 [workout_tip_squats]
-발을 골반 너비로 벌리고 엉덩이를 뒤로 낮추며 가슴을 세운 뒤 일어나세요.
+발을 골반 너비로 벌리고 팔은 앞으로 곧게 뻗으세요. 엉덩이를 뒤로 낮추며 가슴을 세운 뒤 일어나세요.
 ---
 [workout_tip_triceps_dips]
 튼튼한 의자 가장자리에 손을 짚고 팔꿈치를 굽혀 내려갔다가 밀어 올리세요.
@@ -111,6 +111,18 @@
 ---
 [workout_say_switch]
 방향을 바꾸세요.
+---
+[workout_say_count_3]
+셋.
+---
+[workout_say_count_2]
+둘.
+---
+[workout_say_count_1]
+하나.
+---
+[workout_say_go]
+시작!
 ---
 [workout_say_next_wall_sit]
 휴식. 다음은 월싯입니다.
