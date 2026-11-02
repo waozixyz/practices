@@ -17,6 +17,13 @@ commit its `ziran.lock`. Breeze's generators (narration, Sun Salutation
 characters, the Tai Chi exporter) write into this checkout when Breeze's
 ignored `ziran.local.toml` maps `practices` to it.
 
+The seven practices' `banner-dark.webp` and `banner-light.webp` images use
+photo WebP at quality 80. The RGBA diagrams `meditation/1.webp`,
+`whm/1.webp` and `whm/2.webp` use lossless WebP with exact RGBA preservation.
+Keep these encodings and extensions when replacing or generating this media;
+consumers must stage and reference the `.webp` paths. Other media formats in
+this repository retain their existing paths.
+
 The files came from Breeze's `assets/practices/` on 2026-10-24; their earlier
 history is in Breeze.
 
