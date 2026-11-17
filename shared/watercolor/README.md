@@ -1,6 +1,6 @@
 # Shared watercolor practice figure
 
-The native Tai Chi, Workout and astral painters share this continuous CC0 MakeHuman surface. Attribution and pinned original source metadata are beside the mesh. The paper, pigment and luminous-wash images are the actual generated bitmap textures used by the reviewed Three.js prototype; generation provenance is in Breeze design/astral-projection/three/assets/README.md.
+The native Tai Chi, Workout and astral painters share this continuous CC0 MakeHuman surface, skinned with MakeHuman's own CC0 default rig weights folded onto 46 bones. Clothing hems are cut exactly along their planes, so each region keeps clean painted edges while the skin stays continuous. Attribution and pinned original source metadata are beside the mesh. The paper, pigment and luminous-wash images are the actual generated bitmap textures used by the reviewed Three.js prototype; generation provenance is in Breeze design/astral-projection/three/assets/README.md.
 
 Regenerate from the canonical Breeze checkout:
 
