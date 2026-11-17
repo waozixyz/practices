@@ -1,0 +1,23 @@
+# The shared practice figure: one anatomical character, its rig and its
+# watercolor look, drawn by every practice from that practice's own poses.
+# The media it reads stays in shared/watercolor/.
+[package]
+name = "practices"
+module_roots = ["figure", "tests"]
+# Only for building this package's own tests; consumers declare their own.
+links = ["EGL", "GLESv2", "GLX", "X11", "z", "m", "pthread"]
+
+[toolchain]
+git = "https://github.com/ziranlang/ziran.git"
+ref = "2313b49cb005610853faeec46447fc38578a2a15"
+
+[dependencies.kryon]
+git = "https://github.com/kryonlabs/kryon.git"
+ref = "199b51c97c2aba67367308c3dc98126692b476a8"
+
+[exports]
+figure_math = "figure/figure_math.zi"
+figure_anatomy = "figure/figure_anatomy.zi"
+figure_joints = "figure/figure_joints.zi"
+figure_skin = "figure/figure_skin.zi"
+figure_paint = "figure/figure_paint.zi"

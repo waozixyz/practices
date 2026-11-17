@@ -1,0 +1,484 @@
+// Paints the practice figure as a watercolor: the posed surface is shaded
+// in two washes split by an uneven, pigment-driven edge, granulated by the
+// pigment texture, laid on paper grain, then finished by Kryon's brush,
+// pooling and pencil contour pass. The caller owns the clock, the pose and
+// where the picture goes; the result is straight RGBA in painter.pixels.
+#import "figure_math"
+#import "figure_anatomy"
+#import "figure_joints"
+#import "figure_skin"
+#import "kryon/scene"
+#import "kryon/scene_skin"
+#import "kryon/scene_render"
+#import "kryon/scene_gpu"
+#import "kryon/watercolor"
+#import "kryon/shader"
+#import "kryon/image_pixels"
+#import "std/file"
+#import "std/math"
+#import "std/vec"
+Raster :: #import "std/image";
+
+// Linear-light washes are chosen from these sRGB colours (0xRRGGBB).
+FigureLook :: struct {
+    skin: u32
+    top: u32
+    trousers: u32
+    hair: u32
+}
+
+FigureJade :: () -> FigureLook {
+    return .{skin = 0xe6bb98, top = 0x5f8f7c, trousers = 0x34495e, hair = 0x3a2a24}
+}
+
+// An orthographic camera turned YAW about the vertical (0 looks at her
+// front) and PITCH above the horizon, showing HEIGHT metres around CENTER.
+FigureView :: struct {
+    yaw: float64
+    pitch: float64
+    height: float64
+    center: Vector3
+}
+
+FigureStyle :: struct {
+    watercolor: bool
+    finish: WatercolorSettings
+    // A glowing translucent double: lighter washes and a blue rim.
+    luminous: bool
+    opacity: float64
+    // A soft wash on the floor under her, so she stands on something.
+    shadow: bool
+}
+
+FigureStyleDefault :: () -> FigureStyle {
+    return .{watercolor = true, opacity = 1.0, shadow = true, finish = .{brush_radius = 1, brush_strength = 0.42,
+        grain_strength = 0.30, edge_strength = 0.20, pooling_strength = 0.60, contour_strength = 0.70}}
+}
+
+// Moves the whole body rigidly, for an astral double rising or rolling out
+// of the physical one: OFFSET, then ROLL radians about the pelvis-height
+// PIVOT in the picture plane.
+FigureEffect :: struct {
+    offset: Vector3
+    pivot: Vector3
+    roll: float64
+}
+
+FigureMedia :: struct {
+    anatomy: FigureAnatomy
+    paper: Raster.Image
+    pigment: Raster.Image
+}
+
+FigureMediaRelease :: (media: *FigureMedia) {
+    FigureAnatomyRelease(*media.anatomy)
+    VecFree(media.paper.pixels)
+    VecFree(media.pigment.pixels)
+    media.paper.width = 0
+    media.paper.height = 0
+    media.pigment.width = 0
+    media.pigment.height = 0
+}
+
+// DIRECTORY holds anatomy.bin, paper.webp and pigment.webp (practices'
+// shared/watercolor). Anything missing or invalid gives empty media.
+FigureMediaLoad :: (directory: string) -> FigureMedia {
+    media: FigureMedia
+    path: [1024]u8
+    bytes, found := ReadEntireFile(FigurePath(path[:], directory, "/anatomy.bin"))
+    if found && FigureAnatomyRead(*media.anatomy, bytes) {
+        media.paper = LoadImagePixels(FigurePath(path[:], directory, "/paper.webp"))
+        media.pigment = LoadImagePixels(FigurePath(path[:], directory, "/pigment.webp"))
+    }
+    if !FigureMediaReady(*media) {
+        FigureMediaRelease(*media)
+    }
+    return media
+}
+
+FigureMediaReady :: (media: *FigureMedia) -> bool {
+    return media.anatomy.bones.count > 0 && Raster.ImageValid(*media.paper) && Raster.ImageValid(*media.pigment)
+}
+
+FigurePainter :: struct {
+    scene: Scene
+    skin: SceneSkin
+    blend: FigureSkin
+    poses: Vec(FigureBonePose)
+    gpu: SceneGpuContext
+    watercolor: ShaderProgram
+    plain: ShaderProgram
+    uniforms: [6]ShaderValue
+    samplers: [2]ShaderSampler
+    pixels: Raster.Image
+    scratch: Raster.Image
+    // The floor shadow: an ellipse on the floor at FLOOR height.
+    shadow_center: Vector3
+    shadow_radii: Vector3
+    look: FigureLook
+    ready: bool
+    colored: bool
+    // Whether the last picture came from the GPU, and why not, for the
+    // caller's status.
+    accelerated: bool
+    diagnostic: string
+}
+
+FigurePainterRelease :: (painter: *FigurePainter) {
+    SceneSkinRelease(*painter.skin)
+    SceneFree(*painter.scene)
+    FigureSkinRelease(*painter.blend)
+    VecFree(painter.poses)
+    SceneGpuRelease(*painter.gpu)
+    ShaderFree(*painter.watercolor)
+    ShaderFree(*painter.plain)
+    VecFree(painter.pixels.pixels)
+    VecFree(painter.scratch.pixels)
+    painter.pixels.width = 0
+    painter.pixels.height = 0
+    painter.scratch.width = 0
+    painter.scratch.height = 0
+    painter.ready = false
+    painter.colored = false
+}
+
+// Draws the figure at JOINTS into a WIDTH by HEIGHT picture with a
+// transparent background.
+FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoints,
+    look: FigureLook, view: FigureView, style: FigureStyle, effect: FigureEffect,
+    width: s32, height: s32) -> bool {
+    if width < 1 || height < 1 || width > 4096 || height > 4096 || media.anatomy.bones.count == 0 ||
+    !Finite64(style.opacity) || style.opacity <= 0.0 || style.opacity > 1.0 ||
+    !Finite64(view.height) || view.height <= 0.0 || !Finite64(effect.roll) {
+        return false
+    }
+    if !painter.ready && !FigurePainterPrepare(painter, media) {
+        return false
+    }
+    if !FigurePose(*media.anatomy, joints, *painter.poses) ||
+    !FigureSkinDeform(*painter.scene, *painter.skin, *painter.blend, painter.poses[:]) {
+        return false
+    }
+    if !painter.colored || painter.look.skin != look.skin || painter.look.top != look.top ||
+    painter.look.trousers != look.trousers || painter.look.hair != look.hair {
+        lips := FigureLinear(look.skin)
+        rose := FigureLinear(0xb24f5a)
+        palette: [8]Vector3 = .[FigureLinear(look.skin), FigureLinear(look.top),
+            FigureLinear(look.trousers), FigureLinear(look.hair), FigureLinear(0x3b2b25),
+            FigureLinear(0xeee8de), FigureLerp(lips, rose, 0.55), FigureLerp(FigureLinear(look.hair), FigureLinear(look.skin), 0.18)]
+        for index: 0..media.anatomy.regions.count - 1 {
+            SetVertexColor(*painter.scene, painter.skin.node, cast(s32)index,
+                palette[media.anatomy.regions[index]])
+        }
+        painter.look = look
+        painter.colored = true
+    }
+    cosine := Cos(effect.roll)
+    sine := Sin(effect.roll)
+    SetRotation(*painter.scene, painter.skin.node, 0.0, 0.0, effect.roll)
+    SetPosition(*painter.scene, painter.skin.node,
+        effect.offset.x + effect.pivot.x - cosine * effect.pivot.x + sine * effect.pivot.y,
+        effect.offset.y + effect.pivot.y - sine * effect.pivot.x - cosine * effect.pivot.y,
+        effect.offset.z)
+    FigureShadow(painter, joints)
+    material := painter.scene.meshes[painter.scene.nodes[painter.skin.node].mesh].material
+    material.shader = ifx style.watercolor then *painter.watercolor else *painter.plain
+    material.opacity = style.opacity
+    material.transparent = style.opacity < 1.0
+    SetMaterial(*painter.scene, painter.skin.node, material)
+    toward := FigureV3(Sin(view.yaw) * Cos(view.pitch), Sin(view.pitch), Cos(view.yaw) * Cos(view.pitch))
+    half_height := view.height / 2.0
+    half_width := half_height * cast(float64)width / cast(float64)height
+    camera := OrthographicCamera(-half_width, half_width, half_height, -half_height, 0.05, 30.0)
+    camera.target = view.center
+    camera.position = FigureAddScaled(view.center, toward, 8.0)
+    camera.up = FigureV3(0.0, 1.0, 0.0)
+    if FigureAbs(Sin(view.pitch)) > 0.98 {
+        camera.up = FigureV3(-Sin(view.yaw), 0.0, -Cos(view.yaw))
+    }
+    // Light from her upper left and in front, turning with the camera so
+    // the washes read the same from every side.
+    light := FigureRotate(FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), view.yaw), FigureV3(-0.45, 0.75, 0.55))
+    painter.uniforms[1] = .{light.x, light.y, light.z, 0.0}
+    painter.uniforms[2] = .{toward.x, toward.y, toward.z, 0.0}
+    painter.uniforms[3] = .{0.05, 0.06, 0.06, 0.0}
+    painter.uniforms[4] = .{0.70, 0.66, 0.80, 1.0}
+    painter.uniforms[5] = .{1.04, 1.0, 0.94, 1.0}
+    if style.luminous {
+        painter.uniforms[3] = .{0.22, 0.52, 0.75, 0.0}
+        painter.uniforms[4] = .{0.80, 0.86, 1.0, 1.0}
+        painter.uniforms[5] = .{1.12, 1.14, 1.18, 1.0}
+    }
+    if painter.pixels.width != width || painter.pixels.height != height {
+        if !VecResize(painter.pixels.pixels, cast(s64)width * height * 4) {
+            return false
+        }
+        painter.pixels.width = width
+        painter.pixels.height = height
+    }
+    result := SceneGpuRenderOrCPU(*painter.gpu, *painter.scene, camera, *painter.pixels)
+    painter.accelerated = result.accelerated
+    painter.diagnostic = result.diagnostic
+    if !result.ok {
+        return false
+    }
+    if style.watercolor {
+        finish := style.finish
+        if style.luminous {
+            finish.contour_strength *= 0.35
+        }
+        if !WatercolorFinish(*painter.pixels, *painter.scratch, *media.paper, finish) {
+            return false
+        }
+    }
+    if style.shadow && !style.luminous {
+        FigureShadowUnder(painter, *media.paper, camera, view)
+    }
+    return true
+}
+
+FigureLinear :: (value: u32) -> Vector3 {
+    return .{FigureChannel((value >> 16) & 255), FigureChannel((value >> 8) & 255), FigureChannel(value & 255)}
+}
+
+#scope_file
+// Spreads the shadow under the joints that rest lowest: her feet when she
+// stands, her whole length when she lies down.
+FigureShadow :: (painter: *FigurePainter, joints: *FigureJoints) {
+    points: [9]Vector3 = .[joints.pelvis, joints.ankles[0], joints.ankles[1], joints.toes[0],
+        joints.toes[1], joints.wrists[0], joints.wrists[1], joints.neck, joints.knees[0]]
+    floor: float64 = 1000.0
+    for point: points {
+        floor = FigureMin(floor, point.y)
+    }
+    low: Vector3 = .{1000.0, 0.0, 1000.0}
+    high: Vector3 = .{-1000.0, 0.0, -1000.0}
+    for point: points {
+        // Only what is near the floor casts onto it.
+        if point.y < floor + 0.35 {
+            low = .{FigureMin(low.x, point.x), 0.0, FigureMin(low.z, point.z)}
+            high = .{FigureMax(high.x, point.x), 0.0, FigureMax(high.z, point.z)}
+        }
+    }
+    painter.shadow_center = .{(low.x + high.x) * 0.5, floor - 0.03, (low.z + high.z) * 0.5}
+    painter.shadow_radii = .{(high.x - low.x) * 0.5 + 0.22, 0.0, (high.z - low.z) * 0.5 + 0.18}
+}
+
+// Lays the floor shadow under the finished picture: each pixel's ray meets
+// the floor, and a soft ellipse of grey wash, grained by the paper, shows
+// where the figure's own paint does not cover it.
+FigureShadowUnder :: (painter: *FigurePainter, paper: *Raster.Image, camera: SceneCamera, view: FigureView) {
+    look := FigureNormalize(FigureSub(camera.target, camera.position))
+    if FigureAbs(look.y) < 0.03 {
+        return
+    }
+    right := FigureNormalize(FigureCross(look, camera.up))
+    up := FigureCross(right, look)
+    image := *painter.pixels
+    scale := cast(float64)image.height / view.height
+    center := painter.shadow_center
+    radii := painter.shadow_radii
+    for y: cast(s32)0..image.height - 1 {
+        for x: cast(s32)0..image.width - 1 {
+            across := (cast(float64)x + 0.5 - cast(float64)image.width * 0.5) / scale
+            rise := (cast(float64)image.height * 0.5 - cast(float64)y - 0.5) / scale
+            plane := FigureAddScaled(FigureAddScaled(camera.target, right, across), up, rise)
+            t := (center.y - plane.y) / look.y
+            hit := FigureAddScaled(plane, look, t)
+            dx := (hit.x - center.x) / radii.x
+            dz := (hit.z - center.z) / radii.z
+            distance := Sqrt(dx * dx + dz * dz)
+            if distance >= 1.0 {
+                continue
+            }
+            at := (cast(s64)y * image.width + x) * 4
+            grain := cast(float64)paper.pixels[((cast(s64)y % paper.height) * paper.width + x % paper.width) * 4] / 255.0
+            shade := 0.30 * (1.0 - FigureSmooth(distance, 0.35, 1.0)) * (0.8 + 0.4 * grain)
+            cover := cast(float64)image.pixels[at + 3] / 255.0
+            total := cover + shade * (1.0 - cover)
+            if total <= 0.0 {
+                continue
+            }
+            tone: [3]float64 = .[96.0, 84.0, 74.0]
+            for channel: 0..2 {
+                value := (cast(float64)image.pixels[at + channel] * cover + tone[channel] * shade * (1.0 - cover)) / total
+                image.pixels[at + channel] = cast(u8)(value + 0.5)
+            }
+            image.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+        }
+    }
+}
+
+FigurePath :: (buffer: []u8, directory: string, name: string) -> string {
+    if directory.count + name.count > buffer.count {
+        return ""
+    }
+    for index: 0..directory.count - 1 {
+        buffer[index] = directory[index]
+    }
+    for index: 0..name.count - 1 {
+        buffer[directory.count + index] = name[index]
+    }
+    return TextView(buffer[0:directory.count + name.count])
+}
+
+FigureChannel :: (channel: u32) -> float64 {
+    value := cast(float64)channel / 255.0
+    if value <= 0.04045 {
+        return value / 12.92
+    }
+    return Pow((value + 0.055) / 1.055, 2.4)
+}
+
+FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
+    if !FigureWatercolorCompile(*painter.watercolor).ok || !FigurePlainCompile(*painter.plain).ok {
+        return false
+    }
+    painter.samplers[0] = .{width = media.paper.width, height = media.paper.height,
+        pixels = media.paper.pixels[:], repeat = true}
+    painter.samplers[1] = .{width = media.pigment.width, height = media.pigment.height,
+        pixels = media.pigment.pixels[:], repeat = true}
+    painter.uniforms[0] = .{0.7, 0.7, 0.0, 0.0}
+    SceneInit(*painter.scene)
+    painter.scene.background = .{0, 0, 0, 0}
+    material := UnlitMaterial(.{255, 255, 255, 255})
+    material.vertex_colors = true
+    material.shader = *painter.watercolor
+    material.shader_uniforms = painter.uniforms[:]
+    material.shader_samplers = painter.samplers[:]
+    anatomy := *media.anatomy
+    if !SceneSkinCreate(*painter.scene, *painter.skin, cast(s32)anatomy.bones.count,
+        anatomy.positions[:], anatomy.normals[:], anatomy.uvs[:], anatomy.indices[:],
+        anatomy.influences[:], material) {
+        return false
+    }
+    painter.ready = true
+    painter.colored = false
+    return true
+}
+
+FigureCode :: struct {
+    code: [128]ShaderInstruction
+    count: s32
+}
+
+FigureOp :: (code: *FigureCode, op: ShaderOp, dest: s32, a: s32, b: s32) {
+    code.code[code.count] = .{op = op, dest = dest, a = a, b = b}
+    code.count += 1
+}
+
+FigureMix :: (code: *FigureCode, dest: s32, a: s32, b: s32, t: s32) {
+    code.code[code.count] = .{op = .ShaderMix, dest = dest, a = a, b = b, c = t}
+    code.count += 1
+}
+
+FigureSlot :: (code: *FigureCode, op: ShaderOp, dest: s32, a: s32, slot: s32) {
+    code.code[code.count] = .{op = op, dest = dest, a = a, slot = slot}
+    code.count += 1
+}
+
+FigureLiteral :: (code: *FigureCode, dest: s32, x: float64, y: float64, z: float64, w: float64) {
+    code.code[code.count] = .{op = .ShaderLiteral, dest = dest, value = .{x, y, z, w}}
+    code.count += 1
+}
+
+// dest = a * scale + offset, leaving alpha at a's alpha times ALPHA_SCALE
+// plus ALPHA_OFFSET.
+FigureAffine :: (code: *FigureCode, dest: s32, a: s32, scale: float64, offset: float64) {
+    FigureLiteral(code, 30, scale, scale, scale, 0.0)
+    FigureOp(code, .ShaderMultiply, dest, a, 30)
+    FigureLiteral(code, 30, offset, offset, offset, 1.0)
+    FigureOp(code, .ShaderAdd, dest, dest, 30)
+}
+
+// Registers: 0 vertex colour, 1 position, 2 normal, 3 UV. Uniforms: 0 UV
+// repeat, 1 light, 2 view, 3 rim RGB, 4 shadow wash tint, 5 lit wash tint.
+// Samplers: 0 paper, 1 pigment.
+FigureWatercolorCompile :: (program: *ShaderProgram) -> ShaderDiagnostic {
+    code: FigureCode
+    FigureSlot(*code, .ShaderUniform, 4, 0, 0)
+    FigureOp(*code, .ShaderMultiply, 5, 3, 4)
+    FigureSlot(*code, .ShaderSample, 6, 5, 0)
+    // Pigment texture as grey: its own blue wash must not tint the paint.
+    FigureSlot(*code, .ShaderSample, 7, 5, 1)
+    FigureLiteral(*code, 12, 0.3333, 0.3333, 0.3333, 0.0)
+    FigureOp(*code, .ShaderDot, 7, 7, 12)
+    // A broad, slow pigment field for blooms and the uneven wash edge.
+    FigureLiteral(*code, 8, 0.37, 0.37, 0.0, 0.0)
+    FigureOp(*code, .ShaderMultiply, 8, 5, 8)
+    FigureSlot(*code, .ShaderSample, 9, 8, 1)
+    FigureOp(*code, .ShaderDot, 9, 9, 12)
+    FigureSlot(*code, .ShaderUniform, 10, 0, 1)
+    FigureSlot(*code, .ShaderNormalize, 10, 10, 0)
+    FigureOp(*code, .ShaderDot, 11, 2, 10)
+    // The wash boundary: lambert shifted by the bloom field, sharpened.
+    FigureAffine(*code, 12, 9, 0.55, -0.275)
+    FigureOp(*code, .ShaderAdd, 11, 11, 12)
+    FigureAffine(*code, 11, 11, 2.8, 0.22)
+    FigureLiteral(*code, 12, 0.0, 0.0, 0.0, 0.0)
+    FigureOp(*code, .ShaderMax, 11, 11, 12)
+    FigureLiteral(*code, 12, 1.0, 1.0, 1.0, 1.0)
+    FigureOp(*code, .ShaderMin, 11, 11, 12)
+    FigureSlot(*code, .ShaderUniform, 15, 0, 4)
+    FigureOp(*code, .ShaderMultiply, 15, 0, 15)
+    FigureSlot(*code, .ShaderUniform, 16, 0, 5)
+    FigureOp(*code, .ShaderMultiply, 16, 0, 16)
+    FigureMix(*code, 17, 15, 16, 11)
+    // A wet edge: pigment gathers where the shadow wash dried against the
+    // light one.
+    FigureAffine(*code, 25, 11, 2.0, -1.0)
+    FigureAffine(*code, 26, 11, -2.0, 1.0)
+    FigureOp(*code, .ShaderMax, 25, 25, 26)
+    FigureAffine(*code, 25, 25, -1.0, 1.0)
+    FigureOp(*code, .ShaderMultiply, 25, 25, 25)
+    FigureAffine(*code, 25, 25, -0.24, 1.0)
+    FigureOp(*code, .ShaderMultiply, 17, 17, 25)
+    // Where the light falls fullest the paper shows through the wash.
+    FigureSlot(*code, .ShaderUniform, 10, 0, 1)
+    FigureSlot(*code, .ShaderNormalize, 10, 10, 0)
+    FigureOp(*code, .ShaderDot, 27, 2, 10)
+    FigureAffine(*code, 27, 27, 3.0, -2.4)
+    FigureLiteral(*code, 12, 0.0, 0.0, 0.0, 0.0)
+    FigureOp(*code, .ShaderMax, 27, 27, 12)
+    // Broken by the bloom field, as paper left dry in a wash.
+    FigureOp(*code, .ShaderMultiply, 27, 27, 9)
+    FigureLiteral(*code, 12, 0.16, 0.16, 0.16, 0.0)
+    FigureOp(*code, .ShaderMin, 27, 27, 12)
+    FigureAffine(*code, 27, 27, 2.6, 1.0)
+    FigureOp(*code, .ShaderMultiply, 17, 17, 27)
+    // Broken colour from the bloom field, granulation and paper grain.
+    FigureAffine(*code, 18, 9, 0.16, 0.92)
+    FigureOp(*code, .ShaderMultiply, 17, 17, 18)
+    FigureAffine(*code, 19, 7, 0.24, 0.80)
+    FigureOp(*code, .ShaderMultiply, 17, 17, 19)
+    FigureAffine(*code, 20, 6, 0.18, 0.84)
+    FigureOp(*code, .ShaderMultiply, 17, 17, 20)
+    // A thin rim where the surface turns away.
+    FigureSlot(*code, .ShaderUniform, 21, 0, 2)
+    FigureSlot(*code, .ShaderNormalize, 21, 21, 0)
+    FigureOp(*code, .ShaderDot, 22, 2, 21)
+    FigureAffine(*code, 22, 22, -1.0, 1.0)
+    FigureLiteral(*code, 12, 0.0, 0.0, 0.0, 0.0)
+    FigureOp(*code, .ShaderMax, 22, 22, 12)
+    FigureOp(*code, .ShaderMultiply, 23, 22, 22)
+    FigureOp(*code, .ShaderMultiply, 22, 23, 22)
+    FigureSlot(*code, .ShaderUniform, 24, 0, 3)
+    FigureOp(*code, .ShaderMultiply, 22, 22, 24)
+    FigureOp(*code, .ShaderAdd, 17, 17, 22)
+    FigureSlot(*code, .ShaderOutput, 0, 17, 0)
+    return ShaderCompile(program, code.code[0:code.count])
+}
+
+// The plain look for judging the surface: one soft light, no paint.
+FigurePlainCompile :: (program: *ShaderProgram) -> ShaderDiagnostic {
+    code: FigureCode
+    FigureSlot(*code, .ShaderUniform, 10, 0, 1)
+    FigureSlot(*code, .ShaderNormalize, 10, 10, 0)
+    FigureOp(*code, .ShaderDot, 11, 2, 10)
+    FigureLiteral(*code, 12, 0.0, 0.0, 0.0, 0.0)
+    FigureOp(*code, .ShaderMax, 11, 11, 12)
+    FigureAffine(*code, 11, 11, 0.5, 0.5)
+    FigureOp(*code, .ShaderMultiply, 17, 0, 11)
+    FigureSlot(*code, .ShaderOutput, 0, 17, 0)
+    return ShaderCompile(program, code.code[0:code.count])
+}

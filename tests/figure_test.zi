@@ -1,0 +1,253 @@
+// The shared figure's surface, rig and skinning. Run from the repository
+// root so shared/watercolor/anatomy.bin resolves.
+#import "figure_math"
+#import "figure_anatomy"
+#import "figure_joints"
+#import "figure_skin"
+#import "kryon/scene"
+#import "kryon/scene_skin"
+#import "std/file"
+#import "std/math"
+#import "std/text"
+#import "std/vec"
+
+Check :: (value: bool, label: string) -> s32 {
+    if value {
+        return 0
+    }
+    print("figure: %\n", label)
+    return 1
+}
+
+Posed :: struct {
+    scene: Scene
+    skin: SceneSkin
+    blend: FigureSkin
+    poses: Vec(FigureBonePose)
+}
+
+PosedRelease :: (posed: *Posed) {
+    SceneSkinRelease(*posed.skin)
+    SceneFree(*posed.scene)
+    FigureSkinRelease(*posed.blend)
+    VecFree(posed.poses)
+}
+
+Deform :: (anatomy: *FigureAnatomy, posed: *Posed, joints: *FigureJoints) -> bool {
+    if !posed.skin.ready {
+        SceneInit(*posed.scene)
+        if !SceneSkinCreate(*posed.scene, *posed.skin, cast(s32)anatomy.bones.count,
+            anatomy.positions[:], anatomy.normals[:], anatomy.uvs[:], anatomy.indices[:],
+            anatomy.influences[:], UnlitMaterial(.{255, 255, 255, 255})) {
+            return false
+        }
+    }
+    return FigurePose(anatomy, joints, *posed.poses) &&
+    FigureSkinDeform(*posed.scene, *posed.skin, *posed.blend, posed.poses[:])
+}
+
+BoneOf :: (anatomy: *FigureAnatomy, role: s32, side: s32) -> s32 {
+    for index: 0..anatomy.bones.count - 1 {
+        bone := anatomy.bones[index]
+        if bone.role == role && bone.side == side {
+            return cast(s32)index
+        }
+    }
+    return -1
+}
+
+// Weight of BONE in a vertex's influence.
+WeightOf :: (influence: SkinInfluence, bone: s32) -> float64 {
+    total: float64
+    for lane: 0..3 {
+        if influence.joints[lane] == bone {
+            total += influence.weights[lane]
+        }
+    }
+    return total
+}
+
+FingerShare :: (anatomy: *FigureAnatomy, influence: SkinInfluence) -> float64 {
+    total: float64
+    for lane: 0..3 {
+        if anatomy.bones[influence.joints[lane]].role == 7 {
+            total += influence.weights[lane]
+        }
+    }
+    return total
+}
+
+// Mean distance from the line through A along DIRECTION, posed over rest,
+// for vertices blended between bones FIRST and SECOND.
+RingRatio :: (anatomy: *FigureAnatomy, posed: *Posed, first: s32, second: s32,
+    rest_a: Vector3, rest_direction: Vector3, a: Vector3, direction: Vector3) -> float64 {
+    rest_total: float64
+    posed_total: float64
+    for index: 0..anatomy.positions.count - 1 {
+        influence := anatomy.influences[index]
+        if WeightOf(influence, first) < 0.25 || WeightOf(influence, second) < 0.25 {
+            continue
+        }
+        rest := FigureSub(anatomy.positions[index], rest_a)
+        rest_total += FigureLength(FigureAddScaled(rest, rest_direction, -FigureDot(rest, rest_direction)))
+        moved := FigureSub(posed.scene.positions[index], a)
+        posed_total += FigureLength(FigureAddScaled(moved, direction, -FigureDot(moved, direction)))
+    }
+    if rest_total <= 0.0 {
+        return 0.0
+    }
+    return posed_total / rest_total
+}
+
+// Mean distance from the point A, posed over rest, for the same ring.
+JointRatio :: (anatomy: *FigureAnatomy, posed: *Posed, first: s32, second: s32,
+    rest_a: Vector3, a: Vector3) -> float64 {
+    rest_total: float64
+    posed_total: float64
+    for index: 0..anatomy.positions.count - 1 {
+        influence := anatomy.influences[index]
+        if WeightOf(influence, first) < 0.25 || WeightOf(influence, second) < 0.25 {
+            continue
+        }
+        rest_total += FigureDistance(anatomy.positions[index], rest_a)
+        posed_total += FigureDistance(posed.scene.positions[index], a)
+    }
+    if rest_total <= 0.0 {
+        return 0.0
+    }
+    return posed_total / rest_total
+}
+
+// Turns POINT about the axis through CENTER.
+Around :: (point: Vector3, center: Vector3, turn: FigureQuat) -> Vector3 {
+    return FigureAdd(center, FigureRotate(turn, FigureSub(point, center)))
+}
+
+main :: () -> s32 {
+    bytes, found := ReadEntireFile("shared/watercolor/anatomy.bin")
+    anatomy: FigureAnatomy
+    defer FigureAnatomyRelease(*anatomy)
+    fail := Check(found && FigureAnatomyRead(*anatomy, bytes), "the shared anatomy loads")
+    if fail != 0 {
+        return fail
+    }
+    fail += Check(anatomy.bones.count == 46 && anatomy.positions.count > 10000 &&
+        anatomy.indices.count % 3 == 0, "one continuous indexed surface on the full finger rig")
+    invalid: FigureAnatomy
+    defer FigureAnatomyRelease(*invalid)
+    fail += Check(!FigureAnatomyRead(*invalid, bytes[0:bytes.count - 1]) &&
+        invalid.positions.count == 0, "a truncated asset is rejected whole")
+    corrupt: Vec(u8)
+    defer VecFree(corrupt)
+    if !VecResize(corrupt, bytes.count) {
+        return 1
+    }
+    for index: 0..bytes.count - 1 {
+        corrupt[index] = bytes[index]
+    }
+    corrupt[24 + 46 * 32 + 26] = 255
+    fail += Check(!FigureAnatomyRead(*invalid, TextView(corrupt[:])) && invalid.positions.count == 0,
+        "an out-of-range skin joint is rejected whole")
+
+    posed: Posed
+    defer PosedRelease(*posed)
+    rest := FigureRestJoints(*anatomy, anatomy.height)
+    fail += Check(Deform(*anatomy, *posed, *rest), "the rest joints pose the surface")
+    // The rest hand relaxes: its fingers close together and curl a little.
+    worst: float64
+    fingers: float64
+    for index: 0..anatomy.positions.count - 1 {
+        moved := FigureDistance(posed.scene.positions[index], anatomy.positions[index])
+        if FingerShare(*anatomy, anatomy.influences[index]) > 0.0 {
+            fingers = FigureMax(fingers, moved)
+        } else {
+            worst = FigureMax(worst, moved)
+        }
+    }
+    fail += Check(worst < 0.000001, "the rest joints reproduce the bind surface exactly")
+    fail += Check(fingers > 0.002 && fingers < 0.05, "the rest hand relaxes its fingers")
+
+    tall := FigureRestJoints(*anatomy, 1.80)
+    k := 1.80 / anatomy.height
+    fail += Check(Deform(*anatomy, *posed, *tall), "a taller solver rig poses the surface")
+    worst = 0.0
+    for index: 0..anatomy.positions.count - 1 {
+        if FingerShare(*anatomy, anatomy.influences[index]) == 0.0 {
+            worst = FigureMax(worst, FigureDistance(posed.scene.positions[index], FigureScale(anatomy.positions[index], k)))
+        }
+    }
+    fail += Check(worst < 0.000001, "a taller rig scales the surface without distortion")
+
+    // A hand turned 150 degrees about the forearm: the wrist must keep its
+    // girth (a linear blend would pinch it to about a quarter).
+    forearm := BoneOf(*anatomy, 5, 0)
+    hand := BoneOf(*anatomy, 6, 0)
+    twisted := rest
+    axis := FigureNormalize(FigureSub(rest.wrists[0], rest.elbows[0]))
+    turn := FigureAxisAngle(axis, 150.0 * FIGURE_PI / 180.0)
+    twisted.hands[0] = FigureMultiply(turn, rest.hands[0])
+    fail += Check(Deform(*anatomy, *posed, *twisted), "a twisted hand poses the surface")
+    wrist := RingRatio(*anatomy, *posed, forearm, hand, rest.wrists[0], axis, rest.wrists[0], axis)
+    print("figure: wrist girth after a 150 degree turn %\n", wrist)
+    fail += Check(wrist > 0.9, "a turned wrist keeps its girth")
+    elbow := RingRatio(*anatomy, *posed, BoneOf(*anatomy, 4, 0), forearm, rest.elbows[0],
+        FigureNormalize(FigureSub(rest.elbows[0], rest.shoulders[0])), rest.elbows[0],
+        FigureNormalize(FigureSub(rest.elbows[0], rest.shoulders[0])))
+    fail += Check(elbow > 0.9, "the forearm's share of the turn leaves the elbow round")
+
+    // The knee folded 120 degrees, heel toward the buttock.
+    folded := rest
+    knee_turn := FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), 120.0 * FIGURE_PI / 180.0)
+    folded.ankles[0] = Around(rest.ankles[0], rest.knees[0], knee_turn)
+    folded.toes[0] = Around(rest.toes[0], rest.knees[0], knee_turn)
+    folded.feet[0] = knee_turn
+    fail += Check(Deform(*anatomy, *posed, *folded), "a folded knee poses the surface")
+    knee := JointRatio(*anatomy, *posed, BoneOf(*anatomy, 8, 0), BoneOf(*anatomy, 9, 0),
+        rest.knees[0], rest.knees[0])
+    print("figure: knee ring after a 120 degree fold %\n", knee)
+    fail += Check(knee > 0.85, "a deeply bent knee keeps its volume")
+
+    // A forward fold: both thighs flexed 110 degrees at the hip, as in a
+    // standing fold or downward dog seen from the hips.
+    fold := rest
+    hip_turn := FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), -110.0 * FIGURE_PI / 180.0)
+    for side: 0..1 {
+        fold.knees[side] = Around(rest.knees[side], rest.hips[side], hip_turn)
+        fold.ankles[side] = Around(rest.ankles[side], rest.hips[side], hip_turn)
+        fold.toes[side] = Around(rest.toes[side], rest.hips[side], hip_turn)
+        fold.feet[side] = hip_turn
+    }
+    fail += Check(Deform(*anatomy, *posed, *fold), "a hip fold poses the surface")
+    hip := JointRatio(*anatomy, *posed, BoneOf(*anatomy, 0, 0), BoneOf(*anatomy, 8, 0),
+        rest.hips[0], rest.hips[0])
+    print("figure: hip ring after a 110 degree fold %\n", hip)
+    fail += Check(hip > 0.85, "a folded hip keeps the buttock and groin")
+    stretch: float64
+    worst_edge: s32
+    for index: 0..anatomy.indices.count / 3 - 1 {
+        for corner: 0..2 {
+            a := anatomy.indices[index * 3 + corner]
+            b := anatomy.indices[index * 3 + (corner + 1) % 3]
+            before := FigureDistance(anatomy.positions[a], anatomy.positions[b])
+            if before > 0.002 {
+                ratio := FigureDistance(posed.scene.positions[a], posed.scene.positions[b]) / before
+                if ratio > stretch {
+                    stretch = ratio
+                    worst_edge = a
+                }
+            }
+        }
+    }
+    where := anatomy.positions[worst_edge]
+    print("figure: longest edge stretch in the fold % at % % % region %\n", stretch, where.x, where.y, where.z,
+        anatomy.regions[worst_edge])
+    fail += Check(stretch < 2.5, "no surface edge tears open in the fold")
+    first := posed.scene.positions[0]
+    fail += Check(Deform(*anatomy, *posed, *fold) && posed.scene.positions[0].x == first.x &&
+        posed.scene.positions[0].y == first.y && posed.scene.positions[0].z == first.z,
+        "a repeated pose has no drift")
+    if fail == 0 {
+        print("Figure surface, rig and skinning local tests passed\n")
+    }
+    return fail
+}

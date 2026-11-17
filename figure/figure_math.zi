@@ -1,0 +1,207 @@
+// Vector and rotation helpers for the practice figure. Axes match every
+// practice solver: +Y up, the figure faces +Z and her left is +X; lengths are
+// metres.
+#import "kryon/scene"
+#import "std/math"
+
+FIGURE_PI :: 3.141592653589793
+
+FigureQuat :: struct {
+    x: float64
+    y: float64
+    z: float64
+    w: float64
+}
+
+FigureV3 :: (x: float64, y: float64, z: float64) -> Vector3 {
+    return .{x, y, z}
+}
+
+FigureAdd :: (a: Vector3, b: Vector3) -> Vector3 {
+    return .{a.x + b.x, a.y + b.y, a.z + b.z}
+}
+
+FigureSub :: (a: Vector3, b: Vector3) -> Vector3 {
+    return .{a.x - b.x, a.y - b.y, a.z - b.z}
+}
+
+FigureScale :: (a: Vector3, k: float64) -> Vector3 {
+    return .{a.x * k, a.y * k, a.z * k}
+}
+
+FigureAddScaled :: (a: Vector3, b: Vector3, k: float64) -> Vector3 {
+    return .{a.x + b.x * k, a.y + b.y * k, a.z + b.z * k}
+}
+
+FigureDot :: (a: Vector3, b: Vector3) -> float64 {
+    return a.x * b.x + a.y * b.y + a.z * b.z
+}
+
+FigureCross :: (a: Vector3, b: Vector3) -> Vector3 {
+    return .{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}
+}
+
+FigureLength :: (a: Vector3) -> float64 {
+    return Sqrt(a.x * a.x + a.y * a.y + a.z * a.z)
+}
+
+FigureDistance :: (a: Vector3, b: Vector3) -> float64 {
+    return FigureLength(FigureSub(a, b))
+}
+
+FigureNormalize :: (a: Vector3) -> Vector3 {
+    size := FigureLength(a)
+    if size < 0.000000001 {
+        return .{0.0, 0.0, 0.0}
+    }
+    return FigureScale(a, 1.0 / size)
+}
+
+FigureLerp :: (a: Vector3, b: Vector3, u: float64) -> Vector3 {
+    return .{a.x + (b.x - a.x) * u, a.y + (b.y - a.y) * u, a.z + (b.z - a.z) * u}
+}
+
+FigureFinite :: (a: Vector3) -> bool {
+    return Finite64(a.x) && Finite64(a.y) && Finite64(a.z)
+}
+
+FigureAbs :: (value: float64) -> float64 {
+    return ifx value < 0.0 then -value else value
+}
+
+FigureMin :: (a: float64, b: float64) -> float64 {
+    return ifx a < b then a else b
+}
+
+FigureMax :: (a: float64, b: float64) -> float64 {
+    return ifx a > b then a else b
+}
+
+FigureClamp :: (value: float64, low: float64, high: float64) -> float64 {
+    if value < low {
+        return low
+    }
+    if value > high {
+        return high
+    }
+    return value
+}
+
+FigureSmooth :: (value: float64, from: float64, to: float64) -> float64 {
+    if to == from {
+        return ifx value < from then 0.0 else 1.0
+    }
+    u := FigureClamp((value - from) / (to - from), 0.0, 1.0)
+    return u * u * (3.0 - 2.0 * u)
+}
+
+FigureIdentity :: () -> FigureQuat {
+    return .{0.0, 0.0, 0.0, 1.0}
+}
+
+FigureAxisAngle :: (axis: Vector3, angle: float64) -> FigureQuat {
+    unit := FigureNormalize(axis)
+    s := Sin(angle / 2.0)
+    return .{unit.x * s, unit.y * s, unit.z * s, Cos(angle / 2.0)}
+}
+
+// a then b in the frame of a.
+FigureMultiply :: (a: FigureQuat, b: FigureQuat) -> FigureQuat {
+    return .{a.x * b.w + a.w * b.x + a.y * b.z - a.z * b.y,
+        a.y * b.w + a.w * b.y + a.z * b.x - a.x * b.z,
+        a.z * b.w + a.w * b.z + a.x * b.y - a.y * b.x,
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z}
+}
+
+FigureConjugate :: (q: FigureQuat) -> FigureQuat {
+    return .{-q.x, -q.y, -q.z, q.w}
+}
+
+FigureRotate :: (q: FigureQuat, v: Vector3) -> Vector3 {
+    tx := 2.0 * (q.y * v.z - q.z * v.y)
+    ty := 2.0 * (q.z * v.x - q.x * v.z)
+    tz := 2.0 * (q.x * v.y - q.y * v.x)
+    return .{v.x + q.w * tx + q.y * tz - q.z * ty,
+        v.y + q.w * ty + q.z * tx - q.x * tz,
+        v.z + q.w * tz + q.x * ty - q.y * tx}
+}
+
+FigureAxis :: (q: FigureQuat, x: float64, y: float64, z: float64) -> Vector3 {
+    return FigureRotate(q, .{x, y, z})
+}
+
+FigureQuatNormalize :: (q: FigureQuat) -> FigureQuat {
+    size := Sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w)
+    if size < 0.000000001 || !Finite64(size) {
+        return FigureIdentity()
+    }
+    return .{q.x / size, q.y / size, q.z / size, q.w / size}
+}
+
+FigureQuatDot :: (a: FigureQuat, b: FigureQuat) -> float64 {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+}
+
+FigureQuatFinite :: (q: FigureQuat) -> bool {
+    return Finite64(q.x) && Finite64(q.y) && Finite64(q.z) && Finite64(q.w)
+}
+
+// Normalized linear blend on the shorter arc; exact enough for the small
+// steps the rig takes between a straight limb and a bent one.
+FigureBlend :: (a: FigureQuat, b: FigureQuat, t: float64) -> FigureQuat {
+    sign := ifx FigureQuatDot(a, b) < 0.0 then -1.0 else 1.0
+    return FigureQuatNormalize(.{a.x + (b.x * sign - a.x) * t, a.y + (b.y * sign - a.y) * t,
+        a.z + (b.z * sign - a.z) * t, a.w + (b.w * sign - a.w) * t})
+}
+
+// The shortest rotation carrying unit direction FROM onto unit direction TO.
+FigureSwing :: (from: Vector3, to: Vector3) -> FigureQuat {
+    a := FigureNormalize(from)
+    b := FigureNormalize(to)
+    cosine := FigureDot(a, b)
+    if cosine < -0.999999 {
+        side := FigureCross(.{1.0, 0.0, 0.0}, a)
+        if FigureLength(side) < 0.000001 {
+            side = FigureCross(.{0.0, 1.0, 0.0}, a)
+        }
+        return FigureAxisAngle(side, FIGURE_PI)
+    }
+    axis := FigureCross(a, b)
+    return FigureQuatNormalize(.{axis.x, axis.y, axis.z, 1.0 + cosine})
+}
+
+// The rotation whose local axes are x, y and z.
+FigureFromBasis :: (x: Vector3, y: Vector3, z: Vector3) -> FigureQuat {
+    trace := x.x + y.y + z.z
+    q: FigureQuat
+    if trace > 0.0 {
+        s := 0.5 / Sqrt(trace + 1.0)
+        q = .{(y.z - z.y) * s, (z.x - x.z) * s, (x.y - y.x) * s, 0.25 / s}
+    } else if x.x > y.y && x.x > z.z {
+        s := 2.0 * Sqrt(1.0 + x.x - y.y - z.z)
+        q = .{0.25 * s, (y.x + x.y) / s, (z.x + x.z) / s, (y.z - z.y) / s}
+    } else if y.y > z.z {
+        s := 2.0 * Sqrt(1.0 + y.y - x.x - z.z)
+        q = .{(y.x + x.y) / s, 0.25 * s, (z.y + y.z) / s, (z.x - x.z) / s}
+    } else {
+        s := 2.0 * Sqrt(1.0 + z.z - x.x - y.y)
+        q = .{(z.x + x.z) / s, (z.y + y.z) / s, 0.25 * s, (x.y - y.x) / s}
+    }
+    return FigureQuatNormalize(q)
+}
+
+// A frame whose +Y follows Y_AXIS and whose +Z leans toward Z_HINT (or
+// FALLBACK when the hint lies along the axis).
+FigureFrame :: (y_axis: Vector3, z_hint: Vector3, fallback: Vector3) -> FigureQuat {
+    y := FigureNormalize(y_axis)
+    z := FigureAddScaled(z_hint, y, -FigureDot(z_hint, y))
+    if FigureDot(z, z) < 0.00000001 {
+        z = FigureAddScaled(fallback, y, -FigureDot(fallback, y))
+    }
+    if FigureDot(z, z) < 0.00000001 {
+        z = ifx FigureAbs(y.x) < 0.9 then FigureV3(1.0, 0.0, 0.0) else FigureV3(0.0, 0.0, 1.0)
+        z = FigureAddScaled(z, y, -FigureDot(z, y))
+    }
+    z = FigureNormalize(z)
+    return FigureFromBasis(FigureNormalize(FigureCross(y, z)), y, z)
+}

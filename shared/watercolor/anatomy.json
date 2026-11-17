@@ -1,10 +1,10 @@
 {
   "format": "PFIG0001",
-  "vertices": 14724,
-  "triangles": 28262,
+  "vertices": 15310,
+  "triangles": 29378,
   "bones": 46,
-  "bytes": 760028,
-  "sha256": "d86a957fc53c037faf48ce0847c2ebb2fd55014b1483a3b442e7e194167ce134",
+  "bytes": 790164,
+  "sha256": "742f779432e05c5cd04ca6bfa17c7b5322b43a94669f79ae402db03ed9717a3a",
   "source": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj",
   "license": "CC0-1.0",
   "bone_names": [

@@ -1,0 +1,83 @@
+// Paints the shared figure from the real media. Run from the repository root
+// with a private or no display; the GPU path falls back to the CPU.
+#import "figure_math"
+#import "figure_anatomy"
+#import "figure_joints"
+#import "figure_paint"
+#import "kryon/scene"
+#import "std/math"
+
+Check :: (value: bool, label: string) -> s32 {
+    if value {
+        return 0
+    }
+    print("figure paint: %\n", label)
+    return 1
+}
+
+Alpha :: (painter: *FigurePainter, x: s32, y: s32) -> s32 {
+    return cast(s32)painter.pixels.pixels[(cast(s64)y * painter.pixels.width + x) * 4 + 3]
+}
+
+Opaque :: (painter: *FigurePainter) -> s64 {
+    count: s64
+    for index: 0..cast(s64)painter.pixels.width * painter.pixels.height - 1 {
+        if painter.pixels.pixels[index * 4 + 3] > 200 {
+            count += 1
+        }
+    }
+    return count
+}
+
+main :: () -> s32 {
+    media := FigureMediaLoad("shared/watercolor")
+    defer FigureMediaRelease(*media)
+    fail := Check(FigureMediaReady(*media), "the anatomy, paper and pigment load")
+    if fail != 0 {
+        return fail
+    }
+    painter: FigurePainter
+    defer FigurePainterRelease(*painter)
+    joints := FigureRestJoints(*media.anatomy, 1.65)
+    view: FigureView = .{yaw = 0.3, pitch = 0.15, height = 2.0, center = .{0.0, 0.85, 0.0}}
+    still: FigureEffect
+    style := FigureStyleDefault()
+    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320),
+        "the watercolor figure paints")
+    painted := Opaque(*painter)
+    print("figure paint: % opaque pixels, gpu=%\n", painted, painter.accelerated)
+    fail += Check(painted > 3000 && painted < 40000, "she covers a plausible share of the picture")
+    fail += Check(Alpha(*painter, 4, 4) == 0 && Alpha(*painter, 235, 4) == 0, "the background stays clear")
+    // Under her feet, beside them, the floor shadow is a faint wash.
+    shadow := 0
+    for x: cast(s32)20..219 {
+        alpha := Alpha(*painter, x, 300)
+        if alpha > 0 && alpha < 160 {
+            shadow += 1
+        }
+    }
+    fail += Check(shadow > 10, "a soft shadow lies on the floor")
+    style.shadow = false
+    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320),
+        "the figure paints without a shadow")
+    without := 0
+    for x: cast(s32)20..219 {
+        if Alpha(*painter, x, 300) > 0 && Alpha(*painter, x, 300) < 160 {
+            without += 1
+        }
+    }
+    fail += Check(without < shadow, "turning the shadow off removes it")
+    style.watercolor = false
+    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320) &&
+        Opaque(*painter) > 3000, "the bare surface paints for judging the shape")
+    glow := FigureStyleDefault()
+    glow.luminous = true
+    glow.opacity = 0.5
+    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, glow, still, 240, 320),
+        "a translucent double paints")
+    fail += Check(Opaque(*painter) < 500, "the double stays translucent")
+    if fail == 0 {
+        print("Figure painting local tests passed\n")
+    }
+    return fail
+}

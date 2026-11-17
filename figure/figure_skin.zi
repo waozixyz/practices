@@ -1,0 +1,99 @@
+// Dual-quaternion skinning for the figure. A linear blend of bone matrices
+// collapses a joint as it bends or twists: a folded hip loses its buttock, a
+// turned wrist wrings like a sweet wrapper and a raised arm pinches the
+// shoulder. Blending the bones' rigid motions as dual quaternions keeps that
+// volume. Each bone's stretch is blended first, in bind space, so a solver
+// whose limbs are longer or shorter than the surface's still fits it.
+#import "figure_math"
+#import "figure_joints"
+#import "kryon/scene"
+#import "kryon/scene_skin"
+#import "std/math"
+#import "std/vec"
+
+FigureSkin :: struct {
+    real: Vec(FigureQuat)
+    dual: Vec(FigureQuat)
+}
+
+FigureSkinRelease :: (blend: *FigureSkin) {
+    VecFree(blend.real)
+    VecFree(blend.dual)
+}
+
+// Writes the deformed positions and normals of SKIN's mesh in SCENE from
+// its immutable bind surface. Invalid input leaves the scene unchanged.
+FigureSkinDeform :: (scene: *Scene, skin: *SceneSkin, blend: *FigureSkin,
+    poses: []FigureBonePose) -> bool {
+    if scene == null || skin == null || blend == null || !skin.ready || skin.node < 0 ||
+    skin.node >= scene.nodes.count || poses.count != skin.bone_count || scene.failed {
+        return false
+    }
+    mesh_index := scene.nodes[skin.node].mesh
+    if mesh_index < 0 || mesh_index >= scene.meshes.count {
+        return false
+    }
+    mesh := scene.meshes[mesh_index]
+    if mesh.vertex_count != skin.positions.count || mesh.first_vertex < 0 ||
+    mesh.first_vertex + cast(s64)mesh.vertex_count > scene.positions.count ||
+    !VecResize(blend.real, poses.count) || !VecResize(blend.dual, poses.count) {
+        return false
+    }
+    for index: 0..poses.count - 1 {
+        pose := poses[index]
+        if !FigureFinite(pose.origin) || !FigureFinite(pose.rest_origin) || !FigureFinite(pose.axis) ||
+        !FigureQuatFinite(pose.turn) || !Finite64(pose.width) || !Finite64(pose.length) ||
+        pose.width <= 0.0 || pose.length <= 0.0 {
+            return false
+        }
+        real := FigureQuatNormalize(pose.turn)
+        // x -> real x + t, with the bind joint carried to the posed joint.
+        t := FigureSub(pose.origin, FigureRotate(real, pose.rest_origin))
+        dual := FigureMultiply(.{t.x, t.y, t.z, 0.0}, real)
+        blend.real[index] = real
+        blend.dual[index] = .{dual.x * 0.5, dual.y * 0.5, dual.z * 0.5, dual.w * 0.5}
+    }
+    for index: 0..skin.positions.count - 1 {
+        point := skin.positions[index]
+        influence := skin.influences[index]
+        stretched: Vector3
+        real: FigureQuat
+        dual: FigureQuat
+        reference := -1
+        for lane: 0..3 {
+            weight := influence.weights[lane]
+            if weight == 0.0 {
+                continue
+            }
+            joint := influence.joints[lane]
+            pose := poses[joint]
+            local := FigureSub(point, pose.rest_origin)
+            along := FigureDot(local, pose.axis)
+            moved := FigureAdd(pose.rest_origin, FigureAddScaled(FigureScale(local, pose.width),
+                pose.axis, along * (pose.length - pose.width)))
+            stretched = FigureAddScaled(stretched, moved, weight)
+            sign := weight
+            if reference < 0 {
+                reference = joint
+            } else if FigureQuatDot(blend.real[reference], blend.real[joint]) < 0.0 {
+                sign = -weight
+            }
+            r := blend.real[joint]
+            d := blend.dual[joint]
+            real = .{real.x + r.x * sign, real.y + r.y * sign, real.z + r.z * sign, real.w + r.w * sign}
+            dual = .{dual.x + d.x * sign, dual.y + d.y * sign, dual.z + d.z * sign, dual.w + d.w * sign}
+        }
+        size := Sqrt(FigureQuatDot(real, real))
+        if size < 0.000000001 {
+            return false
+        }
+        real = .{real.x / size, real.y / size, real.z / size, real.w / size}
+        dual = .{dual.x / size, dual.y / size, dual.z / size, dual.w / size}
+        moved := FigureMultiply(dual, FigureConjugate(real))
+        translation := FigureV3(moved.x * 2.0, moved.y * 2.0, moved.z * 2.0)
+        scene.positions[mesh.first_vertex + index] = FigureAdd(FigureRotate(real, stretched), translation)
+        scene.normals[mesh.first_vertex + index] = FigureNormalize(FigureRotate(real, skin.normals[index]))
+    }
+    scene.geometry_frozen = false
+    return true
+}
