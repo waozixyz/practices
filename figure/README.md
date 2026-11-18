@@ -1,12 +1,12 @@
 # The practice figure
 
-The figure model is pending. The MakeHuman-based characters were removed on
-2026-11-18 at the owner's request and must not come back, in any form
-(MakeHuman, MPFB, Anny, MB-Lab or CharMorph). A new model, under a licence
-that allows a commercial app, will be chosen by the owner; the candidates
-are in Breeze's `plans/2026-11-18-figure-model-candidates.md`.
+The practice figures are pixiv's CC0 VRoid sample models, a young woman (the
+default) and a young man, in `shared/figure/woman.vrm` and `man.vrm`
+(licence and source in `shared/figure/MODELS.md`). The owner chose them on
+2026-11-18. MakeHuman-based bodies (MakeHuman, MPFB, Anny, MB-Lab,
+CharMorph) were removed and must not come back.
 
-What stays here does not depend on a model and serves the next one:
+The modules:
 
 - `figure_math`: vectors and quaternions.
 - `figure_joints`: `FigureJoints`, the solver-neutral pose every practice
@@ -25,7 +25,7 @@ What stays here does not depend on a model and serves the next one:
   point where the solver's joints are, keeping the model's own
   proportions, scales the model so its legs match the solver's and stands
   its ankles on the solver's ankles. `FigureModelToon` gives it a
-  cel-shaded look on its own textures and can turn a hair material black.
+  cel-shaded look on its own textures.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.

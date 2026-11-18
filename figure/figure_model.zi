@@ -37,7 +37,7 @@ FIGURE_SIDE_BONES :: 8
 FIGURE_FINGERS :: 22
 FIGURE_BONES :: 52
 
-FIGURE_TOON_UNIFORMS :: 7
+FIGURE_TOON_UNIFORMS :: 5
 
 FigureModel :: struct {
     model: GltfModel
@@ -54,10 +54,11 @@ FigureModel :: struct {
     // Turns the model to face +Z with its left at +X.
     facing: FigureQuat
     yaw: float64
-    // The toon look: a shader, and per scene mesh its uniforms and texture.
+    // The toon look: a shader, and per scene mesh its uniforms. Each mesh
+    // keeps the importer's own base colour texture, which the renderer
+    // uploads once and samples into the shader's vertex data.
     toon: ShaderProgram
     uniforms: Vec(ShaderValue)
-    samplers: Vec(ShaderSampler)
     toon_nodes: Vec(s32)
     ready: bool
 }
@@ -71,7 +72,6 @@ FigureModelRelease :: (figure: *FigureModel) {
     VecFree(figure.turn)
     VecFree(figure.role_of)
     VecFree(figure.uniforms)
-    VecFree(figure.samplers)
     VecFree(figure.toon_nodes)
     ShaderFree(*figure.toon)
     figure.ready = false
@@ -262,53 +262,29 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) 
 }
 
 // Gives every mesh a cel-shaded look on its own base colour texture: light
-// and shade split softly at the terminator, with a rim light. A material
-// whose name holds DARKEN (such as "Hair") is turned black-brown.
-FigureModelToon :: (figure: *FigureModel, scene: *Scene, darken: string) -> bool {
+// and shade split softly at the terminator, with a rim light.
+FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
     if !figure.ready || !FigureToonCompile(*figure.toon).ok {
         return false
     }
     meshes := figure.instance.meshes.count
-    if !VecResize(figure.uniforms, meshes * FIGURE_TOON_UNIFORMS) || !VecResize(figure.samplers, meshes) ||
-    !VecResize(figure.toon_nodes, meshes) {
+    if !VecResize(figure.uniforms, meshes * FIGURE_TOON_UNIFORMS) || !VecResize(figure.toon_nodes, meshes) {
         return false
     }
     for at: 0..meshes - 1 {
         placed := *figure.instance.meshes[at]
         figure.toon_nodes[at] = placed.scene_node
-        primitive := *figure.model.meshes[placed.mesh_index].primitives[placed.primitive_index]
         material := scene.meshes[scene.nodes[placed.scene_node].mesh].material
-        base: GltfColor = .{1.0, 1.0, 1.0, 1.0}
-        dark := false
-        figure.samplers[at] = .{width = 1, height = 1, pixels = FIGURE_WHITE[:]}
-        if primitive.material >= 0 && primitive.material < figure.model.materials.count {
-            source := *figure.model.materials[primitive.material]
-            base = source.base_color_factor
-            dark = darken.count > 0 && FigureContains(TextView(source.name[:]), darken)
-            texture := source.base_color_texture.index
-            if texture >= 0 && texture < figure.model.textures.count {
-                image := figure.model.textures[texture].source
-                if image >= 0 && image < figure.model.images.count {
-                    picture := *figure.model.images[image].image
-                    if picture.width > 0 && picture.height > 0 && picture.pixels.count >= cast(s64)picture.width * picture.height * 4 {
-                        figure.samplers[at] = .{width = picture.width, height = picture.height, pixels = picture.pixels[:],
-                            repeat = true}
-                    }
-                }
-            }
-        }
         first := at * FIGURE_TOON_UNIFORMS
-        figure.uniforms[first] = .{base.r, base.g, base.b, base.a}
+        figure.uniforms[first] = .{1.0, 1.0, 1.0, 1.0}
         figure.uniforms[first + 1] = .{-0.45, 0.75, 0.55, 0.0}
         figure.uniforms[first + 2] = .{0.70, 0.64, 0.78, 1.0}
         figure.uniforms[first + 3] = .{0.0, 0.0, 1.0, 0.0}
-        figure.uniforms[first + 4] = .{0.16, 0.14, 0.17, 0.0}
-        figure.uniforms[first + 5] = ifx dark then ShaderValue.{0.92, 0.92, 0.92, 0.0} else ShaderValue.{0.0, 0.0, 0.0, 0.0}
-        figure.uniforms[first + 6] = .{0.18, 0.20, 0.26, 0.0}
+        figure.uniforms[first + 4] = .{0.18, 0.20, 0.26, 0.0}
         material.kind = .MaterialUnlit
+        material.vertex_colors = false
         material.shader = *figure.toon
         material.shader_uniforms = figure.uniforms[first:first + FIGURE_TOON_UNIFORMS]
-        material.shader_samplers = figure.samplers[at:at + 1]
         SetMaterial(scene, placed.scene_node, material)
     }
     return true
@@ -325,7 +301,6 @@ FigureModelLight :: (figure: *FigureModel, light: Vector3, view: Vector3) {
 }
 
 #scope_file
-FIGURE_WHITE: [4]u8 = .[255, 255, 255, 255];
 
 // Moves FROM's contents into TO, leaving FROM with TO's old ones.
 FigureTakeModel :: (to: *GltfModel, from: *GltfModel) {
@@ -431,29 +406,6 @@ FigureModelPosed :: (figure: *FigureModel, node: s32) -> Vector3 {
     return position
 }
 
-FigureContains :: (text: string, part: string) -> bool {
-    if part.count == 0 || part.count > text.count {
-        return false
-    }
-    for start: 0..text.count - part.count {
-        same := true
-        for at: 0..part.count - 1 {
-            a := text[start + at]
-            b := part[at]
-            if a >= 65 && a <= 90 { a += 32 }
-            if b >= 65 && b <= 90 { b += 32 }
-            if a != b {
-                same = false
-                break
-            }
-        }
-        if same {
-            return true
-        }
-    }
-    return false
-}
-
 // The role a node's NAME names, or -1. VRoid (J_Bip_C_Hips, J_Bip_L_UpperArm,
 // J_Bip_L_Index1), Mixamo (mixamorig:LeftArm, mixamorig:LeftHandIndex1) and
 // Blender (upper_arm.L, forearm.L, thigh.L, shin.L) names.
@@ -511,25 +463,22 @@ FigureNamed2 :: (name: string, before: string, middle: string, digit: string) ->
     return FigureNamed(name, before, middle, digit)
 }
 
-// The toon look. Registers: 0 vertex data, 1 position, 2 normal, 3 UV.
-// Uniforms: 0 base colour factor, 1 light direction, 2 shade tint, 3 view
-// direction, 4 a darkening tint, 5 how far to darken (hair) in every lane
-// but alpha, 6 the rim light's colour. Sampler 0 is the base colour texture.
+// The toon look. Registers: 0 the material's colour times its texture, in
+// linear light, 1 position, 2 normal, 3 UV. Uniforms: 0 a colour factor, 1
+// light direction, 2 shade tint, 3 view direction, 4 the rim light's
+// colour.
 FigureToonCompile :: (program: *ShaderProgram) -> ShaderDiagnostic {
     code: FigureToonCode
-    FigureToonSlot(*code, .ShaderSample, 4, 3, 0)
     FigureToonSlot(*code, .ShaderUniform, 5, 0, 0)
-    FigureToonOp(*code, .ShaderMultiply, 4, 4, 5)
-    // Darken (hair to black): towards its own brightness in the tint.
-    FigureToonLiteral(*code, 6, 0.2126, 0.7152, 0.0722, 0.0)
-    FigureToonOp(*code, .ShaderDot, 6, 4, 6)
-    FigureToonSlot(*code, .ShaderUniform, 7, 0, 4)
-    FigureToonSlot(*code, .ShaderUniform, 9, 0, 5)
-    FigureToonOp(*code, .ShaderMultiply, 10, 6, 7)
-    FigureToonOp(*code, .ShaderAdd, 10, 10, 7)
-    FigureToonMix(*code, 4, 4, 10, 9)
-    // Into linear light, keeping alpha.
-    FigureToonOp(*code, .ShaderMultiply, 11, 4, 4)
+    FigureToonOp(*code, .ShaderMultiply, 4, 0, 5)
+    // The look was tuned on texels squared from sRGB; the renderer decodes
+    // sRGB exactly, so lift its colours back to that curve (c(1.188 -
+    // 0.188c) follows it within about 1%), keeping alpha.
+    FigureToonLiteral(*code, 11, -0.188, -0.188, -0.188, -0.188)
+    FigureToonOp(*code, .ShaderMultiply, 11, 4, 11)
+    FigureToonLiteral(*code, 12, 1.188, 1.188, 1.188, 1.188)
+    FigureToonOp(*code, .ShaderAdd, 11, 11, 12)
+    FigureToonOp(*code, .ShaderMultiply, 11, 4, 11)
     FigureToonLiteral(*code, 12, 1.0, 1.0, 1.0, 0.0)
     FigureToonMix(*code, 4, 4, 11, 12)
     // Light and shade, split softly a little into the shadow side.
@@ -557,7 +506,7 @@ FigureToonCompile :: (program: *ShaderProgram) -> ShaderDiagnostic {
     FigureToonOp(*code, .ShaderAdd, 19, 19, 20)
     FigureToonOp(*code, .ShaderMultiply, 19, 19, 19)
     FigureToonOp(*code, .ShaderMultiply, 19, 19, 19)
-    FigureToonSlot(*code, .ShaderUniform, 21, 0, 6)
+    FigureToonSlot(*code, .ShaderUniform, 21, 0, 4)
     FigureToonOp(*code, .ShaderMultiply, 19, 19, 21)
     FigureToonOp(*code, .ShaderAdd, 17, 17, 19)
     FigureToonSlot(*code, .ShaderOutput, 0, 17, 0)
