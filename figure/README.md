@@ -31,7 +31,9 @@ Import them from a project that depends on this repository:
   `FigurePose`, which turns it into one motion per bone. Limbs start at the
   surface's own shoulder and hip sockets as the trunk carries them, follow
   their bend plane when bent and swing without twisting when straight. The
-  forearm takes half of the hand's turn. Fingers close toward the middle
+  forearm takes half of the hand's turn. Each foot keeps its own size and
+  points down just enough for its toes to reach the solver's toe height, so
+  they stay on the ground. Fingers close toward the middle
   finger; an open hand keeps a slight, even curl and a hook cups the whole
   finger instead of clawing the tips.
 - `figure_skin`: dual-quaternion skinning, so folded hips, deep knees,

@@ -162,13 +162,16 @@ FigurePose :: (anatomy: *FigureAnatomy, joints: *FigureJoints, poses: *Vec(Figur
         hip := FigureBonePoint(poses.*[found[0][0]], anatomy.bones[found[8][side]].origin)
         FigurePoseLimb(anatomy, poses, found[8][side], found[9][side], joints.pelvis_turn,
             hip, joints.knees[side], joints.ankles[side], leg_bend, false, FigureIdentity())
+        // The foot keeps its own size: stretching it to the solver's toe
+        // tip drew it far longer than modelled. Where the solver's toe lies
+        // beyond it, the foot points down just enough for its toes to reach
+        // that toe's height, so they stay on the ground.
         foot_bone := anatomy.bones[found[10][side]]
         foot := *poses.*[found[10][side]]
         foot.origin = joints.ankles[side]
         foot.turn = FigureAim(FigureQuatNormalize(joints.feet[side]), foot.axis,
-            FigureSub(joints.toes[side], joints.ankles[side]))
-        foot.length = FigureDistance(joints.toes[side], joints.ankles[side]) /
-        FigureDistance(foot_bone.tip, foot_bone.origin)
+            FigureFootToward(joints.ankles[side], joints.toes[side],
+            FigureDistance(foot_bone.tip, foot_bone.origin) * width))
     }
     // Fingers bend about the knuckle line from the hand; parents come first.
     // MakeHuman spreads the fingers wide at rest, so each one first closes
@@ -230,6 +233,21 @@ FigureAim :: (base: FigureQuat, axis: Vector3, actual: Vector3) -> FigureQuat {
         return base
     }
     return FigureQuatNormalize(FigureMultiply(FigureSwing(FigureRotate(base, axis), actual), base))
+}
+
+// Where a foot LENGTH long at ANKLE points for the solver's TOE: straight
+// at it when it reaches, otherwise along the same heading and down until
+// the foot's toes are at the toe's height. A toe above the ankle, or too
+// far below to reach, is pointed at directly.
+FigureFootToward :: (ankle: Vector3, toe: Vector3, length: float64) -> Vector3 {
+    toward := FigureSub(toe, ankle)
+    drop := ankle.y - toe.y
+    across := FigureLength(FigureV3(toward.x, 0.0, toward.z))
+    if FigureLength(toward) <= length || drop < 0.0 || drop >= length || across < 0.000001 {
+        return toward
+    }
+    ahead := Sqrt(length * length - drop * drop) / across
+    return FigureV3(toward.x * ahead, -drop, toward.z * ahead)
 }
 
 #scope_file

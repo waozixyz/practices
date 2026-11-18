@@ -1,11 +1,11 @@
 {
   "format": "PFIG0002",
   "character": "female",
-  "vertices": 16444,
-  "triangles": 30932,
+  "vertices": 16450,
+  "triangles": 30944,
   "bones": 46,
-  "bytes": 976400,
-  "sha256": "f3a087b53dd9a9336a09a423187aee1ffc1fb25feaf5465c011640aeb5e7f6ed",
+  "bytes": 976760,
+  "sha256": "6c39d51eb3a835659ae0b1793fb7043aded0ff9ae2361bc26bd2d8a90a93d4f3",
   "regions": [
     "skin",
     "top",
@@ -27,11 +27,36 @@
     "weight": 0.1,
     "muscle": 0.45,
     "height": 0.6,
+    "cup": 0.0,
+    "targets": [
+      [
+        "hip-scale-horiz-decr",
+        0.4
+      ],
+      [
+        "hip-scale-depth-decr",
+        0.45
+      ],
+      [
+        "buttocks-volume-decr",
+        1.0
+      ],
+      [
+        "l-foot-scale-horiz-decr",
+        0.55
+      ],
+      [
+        "r-foot-scale-horiz-decr",
+        0.55
+      ]
+    ],
     "hands": 0.86,
-    "feet": 0.88,
     "neck": 0.006,
     "shoulders": 0.012,
     "jaw": 0.08,
+    "eyes": 0.22,
+    "mouth": 0.1,
+    "chin": 0.07,
     "outfit": "fitted",
     "hair": "bun"
   },
@@ -39,7 +64,7 @@
     "size_metres": 0.22,
     "low": [
       -0.11,
-      1.45145
+      1.45198
     ]
   },
   "source": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj",

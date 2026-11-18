@@ -177,6 +177,24 @@ CheckCharacter :: (path: string) -> s32 {
     fail += Check(worst < 0.000001, "the rest joints reproduce the bind surface exactly")
     fail += Check(fingers > 0.002 && fingers < 0.05, "the rest hand relaxes its fingers")
 
+    // A solver whose toes reach further than the foot: the foot keeps its
+    // own length and points down until its toes are at the toes' height.
+    reaching := rest
+    heading := FigureSub(rest.toes[0], rest.ankles[0])
+    heading.y = 0.0
+    reaching.toes[0] = FigureAddScaled(rest.toes[0], FigureNormalize(heading), 0.05)
+    poses: Vec(FigureBonePose)
+    defer VecFree(poses)
+    foot_index := BoneOf(*anatomy, 10, 0)
+    foot_bone := anatomy.bones[foot_index]
+    fail += Check(FigurePose(*anatomy, *reaching, *poses), "a far toe poses the foot")
+    tip := FigureBonePoint(poses[foot_index], foot_bone.tip)
+    own := FigureDistance(foot_bone.tip, foot_bone.origin)
+    print("figure: foot % m long reaches % m to the toe's height (% off)\n", own,
+        FigureDistance(tip, reaching.ankles[0]), tip.y - reaching.toes[0].y)
+    fail += Check(FigureAbs(FigureDistance(tip, reaching.ankles[0]) - own) < 0.0005 &&
+        FigureAbs(tip.y - reaching.toes[0].y) < 0.001, "a foot keeps its size and its toes stay on the ground")
+
     tall := FigureRestJoints(*anatomy, 1.80)
     k := 1.80 / anatomy.height
     fail += Check(Deform(*anatomy, *posed, *tall), "a taller solver rig poses the surface")
