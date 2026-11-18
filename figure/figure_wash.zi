@@ -22,10 +22,17 @@ FigureWashSettings :: struct {
     granulation: float64
     grain: float64
     contour: float64
+    // Colour strength: 0 grey, 0.5 as painted, 1 twice as vivid.
+    saturation: float64
 }
 
 FigureWashDefault :: () -> FigureWashSettings {
-    return .{bleed = 0.6, edge = 0.6, granulation = 0.55, grain = 0.5, contour = 0.75}
+    return .{bleed = 0.6, edge = 0.6, granulation = 0.55, grain = 0.5, contour = 0.75, saturation = 0.6}
+}
+
+// How many times more vivid than painted SETTINGS make the colours.
+FigureVivid :: (settings: FigureWashSettings) -> float64 {
+    return settings.saturation * 2.0
 }
 
 // A smooth random field, filled once.
@@ -82,7 +89,8 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
     pigment: *Raster.Image, settings: FigureWashSettings) -> bool {
     if !Raster.ImageValid(image) || scratch == image || !noise.ready || !Raster.ImageValid(paper) ||
     !Raster.ImageValid(pigment) || !FigureUnit(settings.bleed) || !FigureUnit(settings.edge) ||
-    !FigureUnit(settings.granulation) || !FigureUnit(settings.grain) || !FigureUnit(settings.contour) {
+    !FigureUnit(settings.granulation) || !FigureUnit(settings.grain) || !FigureUnit(settings.contour) ||
+    !FigureUnit(settings.saturation) {
         return false
     }
     if !FigureCopy(scratch, image) {
@@ -128,6 +136,7 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
     if !FigureCopy(scratch, image) {
         return false
     }
+    vivid := FigureVivid(settings)
     near_x: [12]s32 = .[1, -1, 0, 0, 2, -2, 0, 0, 2, 2, -2, -2]
     near_y: [12]s32 = .[0, 0, 1, -1, 0, 0, 2, -2, 2, -2, 2, -2]
     for y: cast(s32)0..height - 1 {
@@ -183,9 +192,12 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
             }
             gap := FigureClamp((FigureNoiseAt(noise, fx, fy, 26.0 * scale, 5) - 0.2) * 10.0, 0.0, 1.0)
             ink := edge * gap * settings.contour * (0.6 + 0.4 * (1.0 - light))
+            // Colour strength about the pixel's own lightness, so the darks
+            // deepen in hue instead of turning muddy.
+            grey := light * 255.0
             sepia: [3]float64 = .[88.0, 58.0, 40.0]
             for channel: 0..2 {
-                value := cast(float64)scratch.pixels[at + channel] * factor
+                value := (grey + (cast(float64)scratch.pixels[at + channel] - grey) * vivid) * factor
                 value += (sepia[channel] - value) * ink * 0.85
                 image.pixels[at + channel] = cast(u8)(FigureClamp(value, 0.0, 255.0) + 0.5)
             }
@@ -251,9 +263,9 @@ FigureShadowWash :: (image: *Raster.Image, noise: *FigureNoise, paper: *Raster.I
 
 // Fills OUT, WIDTH by HEIGHT, with BACKDROP scaled ZOOM times past just
 // covering it: centred across, and cropped FOCUS of the way down (0 keeps
-// its top, 1 its bottom).
+// its top, 1 its bottom), its colours VIVID times as strong.
 FigureBackdropCover :: (out: *Raster.Image, backdrop: *Raster.Image, width: s32, height: s32,
-    zoom: float64, focus: float64) -> bool {
+    zoom: float64, focus: float64, vivid: float64) -> bool {
     if width < 1 || height < 1 || !Raster.ImageValid(backdrop) ||
     !VecResize(out.pixels, cast(s64)width * height * 4) {
         return false
@@ -268,7 +280,16 @@ FigureBackdropCover :: (out: *Raster.Image, backdrop: *Raster.Image, width: s32,
         sy := (cast(float64)y + 0.5 + top) / scale - 0.5
         for x: cast(s32)0..width - 1 {
             sx := (cast(float64)x + 0.5 + left) / scale - 0.5
-            FigureBilinear(backdrop, sx, sy, out, (cast(s64)y * width + x) * 4)
+            at := (cast(s64)y * width + x) * 4
+            FigureBilinear(backdrop, sx, sy, out, at)
+            if vivid != 1.0 {
+                grey := cast(float64)out.pixels[at] * 0.30 + cast(float64)out.pixels[at + 1] * 0.59 +
+                    cast(float64)out.pixels[at + 2] * 0.11
+                for channel: 0..2 {
+                    value := grey + (cast(float64)out.pixels[at + channel] - grey) * vivid
+                    out.pixels[at + channel] = cast(u8)(FigureClamp(value, 0.0, 255.0) + 0.5)
+                }
+            }
         }
     }
     return true

@@ -232,11 +232,12 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
         uniforms[1] = .{light.x, light.y, light.z, 0.0}
         uniforms[2] = .{toward.x, toward.y, toward.z, 0.0}
         uniforms[3] = .{0.0, 0.0, 0.0, 0.0}
-        uniforms[4] = .{0.56, 0.54, 0.70, 1.0}
+        // Skin shades warm and rosy; cloth and hair take a cool violet shadow.
+        uniforms[4] = ifx region == FIGURE_SKIN then ShaderValue.{0.74, 0.58, 0.60, 1.0} else ShaderValue.{0.52, 0.50, 0.74, 1.0}
         uniforms[5] = .{1.03, 1.0, 0.96, 1.0}
         // Dark hair keeps its colour in the light; skin and cloth let the
         // paper through.
-        through := ifx region == FIGURE_HAIR then 0.10 else 0.30
+        through := ifx region == FIGURE_HAIR then 0.08 else 0.22
         uniforms[6] = .{paper.x * through, paper.y * through, paper.z * through, 0.0}
         uniforms[7] = .{1.0, 1.0, 1.0, FigureRegionAlpha(cast(s32)region)}
         uniforms[8] = .{1.0 - through, 1.0 - through, 1.0 - through, 1.0}

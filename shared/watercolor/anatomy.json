@@ -1,10 +1,10 @@
 {
   "format": "PFIG0002",
-  "vertices": 20220,
+  "vertices": 20195,
   "triangles": 38405,
   "bones": 46,
-  "bytes": 1202486,
-  "sha256": "e839aec1fe5102e2d1cc5a3e2f3b5e2c9bb0c9ec1ff91ebd996b5d52be904de1",
+  "bytes": 1201286,
+  "sha256": "06583b713e64ea55c7b878d02141812915b9c200565c42fa58b99bd7ea74695d",
   "regions": [
     "skin",
     "tunic",

@@ -3,7 +3,7 @@
 One painted watercolor character for every practice. Tai Chi, Sun
 Salutation, the Workout and astral projection each keep their own
 choreography and solver; they report where her joints are, and this package
-turns those joints into the same woman in her loose jade wrap tunic, cream
+turns those joints into the same slender woman in her loose jade wrap tunic, cream
 sash and indigo balloon trousers, painted like the style target in
 `design/reference/style-target.webp` (`character-sheet.webp` beside it shows
 the same character in three poses).
@@ -38,8 +38,10 @@ Import them from a project that depends on this repository:
   contours, and there is no specular light.
 - `figure_wash`: the finish on the rendered picture: wet-on-wet bleeding and
   a wavering silhouette, dark dried edges where washes end, granulation,
-  paper grain, and a sepia ink line on the silhouette and the seams between
-  regions that changes width and breaks off (never along the hairline). It
+  paper grain, colour strength about each pixel's own lightness (so darks
+  deepen instead of turning muddy), and a sepia ink line on the silhouette
+  and the seams between regions that changes width and breaks off (never
+  along the hairline). It
   also paints the ground shadow, covers a picture with a painted backdrop
   (`FigureBackdropCover`) and lays one picture over another (`FigureOver`).
 - `figure_paint`: `FigureMediaLoad`, `FigurePainter` and `FigurePaint`. It

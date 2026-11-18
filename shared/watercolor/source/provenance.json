@@ -1,10 +1,12 @@
 {
   "generated": "2026-11-17",
   "generator": "Harmony generate_image (the owner's configured image model), no reference image",
-  "cleanup": "Offline OCR (PP-OCRv6-small) found no text in ten of the twelve; on the face and the character sheet it returned one low-confidence box covering the whole picture, checked by eye: there is no text, signature or watermark in any of them. Stored as WebP q90. Swatch colour, seamless tiling, the face's colour match and phone sizes are applied by Breeze scripts/prepare-practice-human.py --textures-only.",
+  "cleanup": "Offline OCR (PP-OCRv6-small) found no text in eleven of the twelve; on the character sheet it returned one low-confidence box covering the whole picture, checked by eye: there is no text, signature or watermark in any of them. Stored as WebP q90. Swatch colour, seamless tiling, the face's colour match and fade to skin, the backdrops' colour strength and phone sizes are applied by Breeze scripts/prepare-practice-human.py --textures-only.",
   "not_kept": {
     "32dbeb2a8e2abf508cd7e871a03a51c38959": "Sun Salutation concept (low lunge at sunrise); same character, weaker than the style target",
-    "6d37b34e1bc813af47ca81f8a88ba5e5d95e": "Tai Chi single whip concept; same character, busier"
+    "6d37b34e1bc813af47ca81f8a88ba5e5d95e": "Tai Chi single whip concept; same character, busier",
+    "7d1f09a70761167faf745928ff913605479a": "First face painting (closed eyes, plainer features); replaced on 2026-11-17 by a prettier face for the slender character",
+    "c0b3858bd8ea218345f785d600fdd3a45d14": "Second face painting for the slender character (eyes looking down); the closed-eyes one was chosen"
   },
   "files": {
     "figure/design/reference/style-target.webp": {
@@ -86,9 +88,9 @@
       ]
     },
     "shared/watercolor/source/face.webp": {
-      "request": "7d1f09a70761167faf745928ff913605479a",
-      "prompt": "Watercolor painting of a young woman's face seen exactly from the front, perfectly frontal and symmetric, filling most of a square image: calm closed eyes painted as soft curved sepia lash lines, softly arched brown brows, a small rosy mouth, soft warm blush on both cheeks, a gentle nose suggested with a light sepia line, warm ochre-peach skin (about #E8BC92). Flat even lighting with no strong shadows, hair pulled back tight away from the forehead and ears, plain cream paper background. Same picture-book style as a loose watercolor illustration: granulation, soft blooms, thin warm sepia ink line with gaps. No text, no signature, no watermark.",
-      "original_png_sha256": "1f081f69784a61cf6ead4e05efe7706d1072eb6922c111d8259a953bb002324a",
+      "request": "924c0ef57a336b1787cee1acc6a16749e53a",
+      "prompt": "Watercolor painting of a beautiful young woman's face seen exactly from the front, perfectly frontal and symmetric, filling most of a square image: delicate refined features, gently closed eyes drawn as soft curved lids with long dark lashes, softly arched defined brown brows, a small delicate nose suggested with a fine light line, soft full rosy lips with a calm gentle smile, a delicate narrow jaw and small chin, an oval face, warm peach skin (about #F0C09A) with a soft pink blush on the cheeks. Calm, kind, friendly expression. Flat even lighting with no strong shadows, hair pulled back neatly away from the forehead and ears, plain cream paper background. Loose picture-book watercolor style with granulation, soft blooms and a fine warm sepia ink line with small gaps. No text, no signature, no watermark.",
+      "original_png_sha256": "1d27a18076111a4af2d2fdec4b2425d11b9a38e9b6d92f0ae362fec08ffa3b14",
       "original_size": [
         1254,
         1254
