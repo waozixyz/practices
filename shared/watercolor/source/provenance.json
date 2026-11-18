@@ -1,44 +1,70 @@
 {
   "generated": "2026-11-17",
-  "generator": "Harmony generate_image (the owner's configured image model), no reference image",
-  "cleanup": "Offline OCR (PP-OCRv6-small) found no text in eleven of the twelve; on the character sheet it returned one low-confidence box covering the whole picture, checked by eye: there is no text, signature or watermark in any of them. Stored as WebP q90. Swatch colour, seamless tiling, the face's colour match and fade to skin, the backdrops' colour strength and phone sizes are applied by Breeze scripts/prepare-practice-human.py --textures-only.",
+  "generator": "Harmony generate_image (the owner's configured image model); style targets, face and backdrops use an Inner Breeze practice banner as the style reference",
+  "cleanup": "Offline OCR (PP-OCRv6-small) found no text in the style target, face, hair and backdrops; on the cloud brocade, the navy silk folds, the frog-knot loops and the character sheet it returned only low-confidence boxes spanning large parts of the picture, checked by eye: there is no text, signature or watermark in any of them. Stored as WebP q90. Swatch colour, seamless tiling, the face colour match and fade to skin, the backdrops colour strength and phone sizes are applied by Breeze scripts/prepare-practice-human.py --textures-only.",
   "not_kept": {
-    "32dbeb2a8e2abf508cd7e871a03a51c38959": "Sun Salutation concept (low lunge at sunrise); same character, weaker than the style target",
-    "6d37b34e1bc813af47ca81f8a88ba5e5d95e": "Tai Chi single whip concept; same character, busier",
-    "7d1f09a70761167faf745928ff913605479a": "First face painting (closed eyes, plainer features); replaced on 2026-11-17 by a prettier face for the slender character",
-    "c0b3858bd8ea218345f785d600fdd3a45d14": "Second face painting for the slender character (eyes looking down); the closed-eyes one was chosen"
+    "earlier watercolor set": "The hand-painted watercolor character (wrap tunic, sash, balloon trousers), its textures and watercolor backdrops of 2026-11-17 were replaced the same day by this set in Inner Breeze's own illustration style; see git history."
   },
   "files": {
     "figure/design/reference/style-target.webp": {
-      "request": "02fc633e6c0d5f7bf4bd94df7268027f039c",
-      "prompt": "Hand-painted watercolor illustration on cold-press watercolor paper, full-body view of one young woman doing Tai Chi in a low bow stance (\"brush knee\" posture): front knee bent, back leg long, one palm pushing forward at chest height, the other hand lowered beside the hip. She wears loose practice clothes: a flowing jade-green wrap tunic with wide sleeves, a soft sash at the waist, hem falling over the hips, and wide flowing slate-indigo trousers, barefoot. Dark brown hair in a low bun, calm face with softly painted closed eyes, brows and lips. Background: a misty mountain garden painted wet-on-wet, pale distant peaks, a pine branch, soft blooms of grey-green mist, figure grounded by a loose painted shadow wash. Limited harmonious palette: jade green, indigo, warm ochre skin, sepia, cream paper. Visible paper texture and pigment granulation, dark dried wash edges, loose brush strokes following the form, a warm sepia ink line with varying width and gaps. Two or three values of shading, no gradients, no shine. Artistic picture-book illustration. No text, no signature, no watermark, no frame.",
-      "original_png_sha256": "97fec6d74efca3f33453923415aba8fe1e9533299f09f69c6d8f923e157b9d03",
+      "request": "11f54965b2b6cb1a7ccb525b665dcaad4e6f",
+      "prompt": "Use case: stylized-concept, style-transfer. The reference image is Inner Breeze's Tai Chi practice banner: match its exact illustration style (calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette). Draw ONE slim, graceful, cute young Chinese woman doing a Tai Chi bow stance (brush knee and push) in three-quarter view, full body, portrait 3:4 framing with the whole figure in the centre. Soft round face, gentle almond eyes, small nose and small mouth, calm friendly smile, sleek glossy black hair in a neat high bun. She wears an elegant fitted jade-green silk Tai Chi top with a stand-up mandarin collar and cream frog-knot buttons down the front, hip length with side slits, long sleeves, and flowing deep navy-blue silk trousers, black cloth shoes. Background like the reference: a stone terrace above a calm lake with misty blue mountains, pine trees only at the edges. Strong figure/background contrast. Tasteful, not revealing. No text, logos, watermarks or extra people.",
+      "original_png_sha256": "3557b083f9b07a2e08a0a938a908c90e064cd49e0c7543b6aadfc2dfac6ce6ae",
       "original_size": [
-        1199,
-        1312
+        1086,
+        1448
       ],
       "kept_size": [
-        1199,
-        1312
-      ]
+        1086,
+        1448
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
     },
     "figure/design/reference/character-sheet.webp": {
-      "request": "c5b311badc6c4a0ddc945ff26b4ca8b6073f",
-      "prompt": "Watercolor character sheet on cream cold-press watercolor paper: the same young woman painted three times side by side, full body, consistent design: (1) Tai Chi standing posture with arms raised softly in front, (2) Sun Salutation downward-facing dog seen from the side, (3) a deep Tai Chi side stance with arms open. She wears a flowing jade-green wrap tunic with wide sleeves, a sash at the waist and a hem over the hips, and wide flowing slate-indigo trousers, barefoot, dark brown hair in a low bun, warm ochre skin with soft rosy cheeks, knuckles and knees. Each figure stands on a loose painted shadow wash. Limited harmonious palette: jade, indigo, ochre, sepia. Wet-on-wet colour bleeds inside the shapes, dark dried edges where washes end, granulation pooling in the shadows, two or three values of shading, brush strokes following the folds, a warm sepia ink contour that varies in width and breaks in places, paper texture visible throughout. No text, no labels, no signature, no watermark.",
-      "original_png_sha256": "874ab6f75530b147fbf05bf861ecd28cf87aafda05fa91658ba0bc7ae7d677d8",
+      "request": "94ab6b9045dae3da4771ec5ddd6cdb07a1b5",
+      "prompt": "Use case: stylized-concept, style-transfer, character sheet. The reference image is Inner Breeze's Tai Chi practice banner: match its exact illustration style (calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette). On a plain light cream background, draw the SAME slim, graceful, cute young Chinese woman three times side by side, full body: standing in a calm Tai Chi ready pose, reaching both arms overhead in a sun salutation, and in a deep Tai Chi side stance. Soft round face, gentle almond eyes, small nose and mouth, friendly calm expression, sleek glossy black hair in a neat high bun. Same outfit each time: a fitted jade-green silk mandarin-collar top with cream frog-knot buttons, hip length with side slits, long sleeves, and flowing deep navy-blue silk trousers, black cloth shoes. Tasteful, not revealing. No text, labels, logos, watermarks.",
+      "original_png_sha256": "0efe095baa39442c45d8f36484a42dc81aa7088c2f6b8393bc0db4bb0f8286b1",
       "original_size": [
-        1920,
-        819
+        1774,
+        887
       ],
       "kept_size": [
-        1600,
-        683
+        1774,
+        887
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/watercolor/source/face.webp": {
+      "request": "2b7d61cc68704fe60e34d76d87b57d0623f7",
+      "prompt": "Clean 2D storybook illustration in the style of the reference (Inner Breeze practice banner: softly shaded forms, crisp restrained contours, subtle paper grain): the face of a cute young Chinese woman seen exactly from the front, perfectly frontal and symmetric, filling most of a square image. Soft round face with a delicate small chin, gentle almond-shaped dark brown eyes softly open and looking straight ahead with fine lashes, neat dark brows, a small nose, a small soft rosy mouth with a gentle friendly smile, light warm skin (about #F3D2B8) with a soft pink blush. Flat even lighting with no strong shadows. Sleek black hair pulled back tight away from the forehead and ears. Plain light cream background. No text, logos, watermarks.",
+      "original_png_sha256": "3ea87639e5863d8131a54741fae187884eb10a64b8142490d1794737401ad9cf",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1254,
+        1254
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/watercolor/source/hair.webp": {
+      "request": "71098cacfc427328030c63c47a2ce3118ec8",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border, flat front view, even brightness with no lighting gradient: sleek glossy black hair in a clean 2D storybook illustration style, many fine smooth strands all running top to bottom in gentle parallel waves, deep blue-black base (about #1E1E28) with soft cool blue-grey sheen strands, subtle paper grain. No face, no figure, no text, no watermark.",
+      "original_png_sha256": "b8134808c31047a5cc8147bc5f91febcf4488d89bd26c2fbb258aca5d4c1e093",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
       ]
     },
-    "shared/watercolor/source/tunic.webp": {
-      "request": "29442db1ecb0e164f6633f70d0cd83bdefa4",
-      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of soft sage-jade green linen fabric (base colour about #8FA483), loose vertical brush strokes and long painted fabric folds running top to bottom in slightly darker green, a faint subtle woven pattern, heavy pigment granulation, wet-on-wet blooms, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat front view, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
-      "original_png_sha256": "2d83071bb70b79b0939dca25a174b8634ba9aef8c8c49b958dec6bc80d2fdb6d",
+    "shared/watercolor/source/top.webp": {
+      "request": "0a605fffd360185874f1fa334408489d2d07",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border, flat front view, even brightness with no lighting gradient: jade-green silk fabric (base about #3F9A7E) with a subtle tone-on-tone traditional Chinese auspicious cloud brocade pattern, soft silk sheen, a few gentle vertical fabric folds, in a clean 2D storybook illustration style with subtle paper grain. No objects, no figure, no text, no watermark.",
+      "original_png_sha256": "57218cb5adf807309f4cb5567c270253ec999b9e272a42b008c5393c5048a29d",
       "original_size": [
         1254,
         1254
@@ -49,9 +75,9 @@
       ]
     },
     "shared/watercolor/source/trousers.webp": {
-      "request": "155d6250e3a581d769191e13bd627771c08b",
-      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of slate violet-indigo cotton fabric (base colour about #5E5F86), loose vertical brush strokes and long soft painted folds running top to bottom in deeper indigo, heavy granulating pigment like ultramarine, wet-on-wet blooms and backruns, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat front view, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
-      "original_png_sha256": "e9219fb2a7865a4b4f89edce5fd48a0816e9de8ca0b0016fbdc15ab6309aacf1",
+      "request": "a021b3d69c2348cf89d8f44dca5c7c84d5d2",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border, flat front view, even brightness with no lighting gradient: flowing deep navy-blue silk fabric (base about #24345E) with long soft vertical folds and a gentle silk sheen, clean 2D storybook illustration style with subtle paper grain. No objects, no figure, no text, no watermark.",
+      "original_png_sha256": "1a3637b35a5ebd6b3ac02de9cb013632713562f2c3be4b779007a7cbc6fc86b2",
       "original_size": [
         1254,
         1254
@@ -60,6 +86,75 @@
         1024,
         1024
       ]
+    },
+    "shared/watercolor/source/trim.webp": {
+      "request": "e871e40a651e958f1c9eb257469a057d2540",
+      "prompt": "Seamless vertically tileable texture tile, square, flat front view, even lighting: a vertical band of jade-green silk (about #3F9A7E) with ONE traditional Chinese frog-knot button (pankou) in cream-white silk cord centred in the tile, the knot running horizontally across the band, thin cream piping along both left and right edges; the top and bottom edges match so tiles stack into a column of evenly spaced buttons. Clean 2D storybook illustration style, crisp restrained contours, subtle paper grain. No text, no watermark.",
+      "original_png_sha256": "77d88008f196f23f3c5da6236e96755e52c07c1cca3de5436d4c0c6daa1515b9",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/backdrop-tai-chi.webp": {
+      "request": "2eb6c99d5859c39ebe94514b621faae26df7",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze practice banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette. Landscape 3:2, NO people: a quiet stone terrace in the foreground above a calm blue lake, misty blue mountains in the distance, pine trees only at the far left and right edges, a small part of a temple roof at one edge, soft morning light. Keep the centre and the terrace floor open and quiet for a figure to stand on. No text, logos, watermarks, people or animals.",
+      "original_png_sha256": "aee992b549cbf7c0cf825031591ae1321fb943169ae66b552cbc120788aa03fe",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/watercolor/source/backdrop-sun-salutation.webp": {
+      "request": "a09339f6df46bda6dc51d731e3645b0b8c53",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze Sun Salutation banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, warm clear sunrise palette. Landscape 3:2, NO people: a soft grassy hilltop path in the foreground, layered green and blue hills, a big warm sunrise sun with gentle rays in a pale peach and blue sky, a few soft clouds, a few shrubs at the edges. Keep the centre open for a figure to stand on the path. No text, logos, watermarks, people or animals.",
+      "original_png_sha256": "3994e576ac426ebf8b03d53fdf307f6ecabcc0e9d9eb6abd8c60b113583e2cbc",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/watercolor/source/backdrop-workout.webp": {
+      "request": "05081583458a0d5fd7624de468ddb1c3c8d7",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze practice banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette with jade greens, lake blue and earth browns. Landscape 3:2, NO people: an earth-brown woodland exercise terrace with a wooden deck floor in the foreground, a quiet blue mountain lake and pale misty hills in the distance, pine branches only at the far edges, soft clear daylight. Keep the centre and the deck open for a figure. No text, numbers, clocks, UI, logos, watermarks, people or equipment.",
+      "original_png_sha256": "2e836869213674491947dd0cf34d8e09ec95935a89aeff95417070dfc021eb35",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/watercolor/source/backdrop-astral.webp": {
+      "request": "b893cc7740a463de8efcc43ff6d0b3f1249b",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze Astral Projection banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, deep blue night palette with warm lantern accents. Landscape 3:2, NO people: an open wooden veranda at night with a low wooden floor across the lower half, a calm moonlit lake and dark blue mountains beyond, a crescent moon and a few stars, a potted plant and a warm lantern at the edges. Keep the centre of the floor open and empty for a sleeper to be drawn lying there. No bed, no text, logos, watermarks, people or animals.",
+      "original_png_sha256": "3620b23c2d166e3725096d965e63b0d48e2d9a799018a6f4dac2c8576ab68bcb",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
     },
     "shared/watercolor/source/skin.webp": {
       "request": "d94e365139f879971d880957d99e4b960678",
@@ -71,97 +166,6 @@
       ],
       "kept_size": [
         1024,
-        1024
-      ]
-    },
-    "shared/watercolor/source/hair.webp": {
-      "request": "38a9ff7d1778d3af441aac93eaa7ebe8eb1c",
-      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor hair in warm chestnut brown (base colour about #6B4A35), many loose flowing brush strokes all running top to bottom in gentle waves, darker sepia strands and a few lighter warm strands, granulation, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat, fills the whole square. No face, no figure, no text, no signature, no watermark.",
-      "original_png_sha256": "e9db509bb789c6b053867e84b0c23375f892977d8a29ffb0ed08e55f180b8596",
-      "original_size": [
-        1254,
-        1254
-      ],
-      "kept_size": [
-        1024,
-        1024
-      ]
-    },
-    "shared/watercolor/source/face.webp": {
-      "request": "924c0ef57a336b1787cee1acc6a16749e53a",
-      "prompt": "Watercolor painting of a beautiful young woman's face seen exactly from the front, perfectly frontal and symmetric, filling most of a square image: delicate refined features, gently closed eyes drawn as soft curved lids with long dark lashes, softly arched defined brown brows, a small delicate nose suggested with a fine light line, soft full rosy lips with a calm gentle smile, a delicate narrow jaw and small chin, an oval face, warm peach skin (about #F0C09A) with a soft pink blush on the cheeks. Calm, kind, friendly expression. Flat even lighting with no strong shadows, hair pulled back neatly away from the forehead and ears, plain cream paper background. Loose picture-book watercolor style with granulation, soft blooms and a fine warm sepia ink line with small gaps. No text, no signature, no watermark.",
-      "original_png_sha256": "1d27a18076111a4af2d2fdec4b2425d11b9a38e9b6d92f0ae362fec08ffa3b14",
-      "original_size": [
-        1254,
-        1254
-      ],
-      "kept_size": [
-        1254,
-        1254
-      ]
-    },
-    "shared/watercolor/source/sash.webp": {
-      "request": "365da87b2cb1294d745d66dc1fe61b153de7",
-      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of cream undyed linen sash fabric (base colour about #E6DDBF), soft horizontal brush strokes and gentle painted folds, light granulation, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
-      "original_png_sha256": "c033f5d38b5dfd6f5c8c8afec78c5dfdf66b54be3d7e1295530f38598f10485a",
-      "original_size": [
-        1254,
-        1254
-      ],
-      "kept_size": [
-        1024,
-        1024
-      ]
-    },
-    "shared/watercolor/source/backdrop-tai-chi.webp": {
-      "request": "e3caa1ae7a79f1a11f48ad50c9534c6a2750",
-      "prompt": "Watercolor background plate, no people, landscape 3:2: a misty mountain garden at morning for a Tai Chi scene. Pale layered distant peaks dissolving into cream paper, a gnarled pine branch at one upper corner, a few soft rocks and grasses at the sides, an open pale stone terrace across the lower third where a figure will stand in the middle (keep the centre clear and quiet). Wet-on-wet grey-green, blue-violet and jade washes, granulating pigment, blooms and backruns, dark dried wash edges, lots of white paper left in the middle, warm sepia ink accents with broken lines. Limited palette: jade, indigo, violet-grey, ochre, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
-      "original_png_sha256": "dbe673f563f90f27fc0e17bdabe9a41f0061ab953ed0687df5c2852b547ea9b6",
-      "original_size": [
-        1536,
-        1024
-      ],
-      "kept_size": [
-        1536,
-        1024
-      ]
-    },
-    "shared/watercolor/source/backdrop-sun-salutation.webp": {
-      "request": "330d41178bbcf4835ea163c8e35a76cb7110",
-      "prompt": "Watercolor background plate, no people, landscape 3:2: an early sunrise over a quiet meadow for a Sun Salutation scene. Warm apricot, rose and pale gold sky bleeding wet-on-wet into cream paper, a soft ochre sun disc low on the horizon, gentle distant hills in violet-grey, an open grassy ground across the lower third painted with loose strokes, keep the centre clear and quiet for a figure. Granulating pigment, blooms, dark dried wash edges, white paper left for light, a few warm sepia ink accents with broken lines. Limited palette: apricot, rose, ochre, jade, violet-grey, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
-      "original_png_sha256": "458e8ce30efa0743fbd05a7bf8e10d4f9cd578f255d8edd6bf6cf3e2bf875dfa",
-      "original_size": [
-        1536,
-        1024
-      ],
-      "kept_size": [
-        1536,
-        1024
-      ]
-    },
-    "shared/watercolor/source/backdrop-workout.webp": {
-      "request": "1a93a25edd17331687bd0cd5b9ab35a9c4ca",
-      "prompt": "Watercolor background plate, no people, landscape 3:2: a light airy exercise room for a home workout scene. Tall window on one side with soft daylight and a hint of green leaves outside, pale wooden floor across the lower third with a rolled practice mat at the edge, a potted plant, empty cream walls; keep the centre clear and quiet for a figure. Loose wet-on-wet washes of warm ochre, pale jade and soft blue-grey, granulating pigment, dark dried wash edges, lots of white paper left for light, warm sepia ink lines with varying width and gaps. Limited palette: ochre, jade, blue-grey, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
-      "original_png_sha256": "5140a50a01285f76ccc86fe74f9a1d5a46ef87f98efbddc30054b3d02f550001",
-      "original_size": [
-        1536,
-        1024
-      ],
-      "kept_size": [
-        1536,
-        1024
-      ]
-    },
-    "shared/watercolor/source/backdrop-astral.webp": {
-      "request": "efb032cd4a0aa7b30edd47cc86ebc148a1f1",
-      "prompt": "Watercolor background plate, no people, landscape 3:2: a dim quiet bedroom at night for an astral projection meditation scene. Deep indigo and violet-grey washes, a window with cool moonlight falling across the floor, soft curtains, a bedside lamp glowing faint amber, a few floating motes of pale light; the lower centre stays calm and open (a bed and the sleeper will be drawn there separately). Wet-on-wet blooms and backruns, granulating pigment pooling in the dark corners, dark dried wash edges, pale paper left for moonlight, warm sepia ink lines with gaps. Limited palette: indigo, violet-grey, moonlight blue, amber, sepia. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
-      "original_png_sha256": "dee6c0aea7d806d8975c293ebdf02314a73d65fe1a75a6f405054052c4adb7b1",
-      "original_size": [
-        1536,
-        1024
-      ],
-      "kept_size": [
-        1536,
         1024
       ]
     }

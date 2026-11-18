@@ -27,7 +27,7 @@ FigureWashSettings :: struct {
 }
 
 FigureWashDefault :: () -> FigureWashSettings {
-    return .{bleed = 0.6, edge = 0.6, granulation = 0.55, grain = 0.5, contour = 0.75, saturation = 0.6}
+    return .{bleed = 0.15, edge = 0.25, granulation = 0.25, grain = 0.3, contour = 0.6, saturation = 0.6}
 }
 
 // How many times more vivid than painted SETTINGS make the colours.
@@ -35,10 +35,52 @@ FigureVivid :: (settings: FigureWashSettings) -> float64 {
     return settings.saturation * 2.0
 }
 
-// A smooth random field, filled once.
+// A smooth random field, filled once, and the finish's fields sampled for
+// every pixel of the current picture size, so a frame only looks them up.
+FIGURE_FIELDS :: 9
+
 FigureNoise :: struct {
     values: [16384]float64
     ready: bool
+    fields: Vec(u8)
+    field_width: s32
+    field_height: s32
+}
+
+FigureNoiseRelease :: (noise: *FigureNoise) {
+    VecFree(noise.fields)
+    noise.field_width = 0
+    noise.field_height = 0
+}
+
+// The finish's fields at WIDTH by HEIGHT: bleed across and down, the
+// creeping colour, the ragged edge, the ink's width and gaps, and the
+// shadow's edge, edge detail and grain.
+FigureNoiseFields :: (noise: *FigureNoise, width: s32, height: s32) -> bool {
+    if noise.field_width == width && noise.field_height == height {
+        return true
+    }
+    if !VecResize(noise.fields, cast(s64)width * height * FIGURE_FIELDS) {
+        return false
+    }
+    scale := FigureMax(cast(float64)height / 800.0, 0.25)
+    cells: [FIGURE_FIELDS]float64 = .[14.0, 14.0, 3.0, 3.0, 40.0, 26.0, 18.0, 5.0, 2.0]
+    for y: cast(s32)0..height - 1 {
+        for x: cast(s32)0..width - 1 {
+            at := (cast(s64)y * width + x) * FIGURE_FIELDS
+            for field: cast(s32)0..FIGURE_FIELDS - 1 {
+                value := FigureNoiseAt(noise, cast(float64)x, cast(float64)y, cells[field] * scale, field)
+                noise.fields[at + field] = cast(u8)(FigureClamp(value, 0.0, 1.0) * 255.0 + 0.5)
+            }
+        }
+    }
+    noise.field_width = width
+    noise.field_height = height
+    return true
+}
+
+FigureField :: (noise: *FigureNoise, x: s32, y: s32, field: s32) -> float64 {
+    return cast(float64)noise.fields[(cast(s64)y * noise.field_width + x) * FIGURE_FIELDS + field] / 255.0
 }
 
 FigureNoiseFill :: (noise: *FigureNoise) {
@@ -93,23 +135,23 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
     !FigureUnit(settings.saturation) {
         return false
     }
-    if !FigureCopy(scratch, image) {
+    if !FigureCopy(scratch, image) || !FigureNoiseFields(noise, image.width, image.height) {
         return false
     }
     width := image.width
     height := image.height
     scale := FigureMax(cast(float64)height / 800.0, 0.25)
     reach := 4.0 * settings.bleed * scale
+    // Only the figure and a margin about it change: the rest stays clear.
+    box := FigurePainted(image, cast(s32)reach + 3)
     // Wet-on-wet: each pixel takes colour from a neighbour a few pixels
     // away along a slowly turning field, so seams between washes feather
     // and the silhouette wavers.
-    for y: cast(s32)0..height - 1 {
-        for x: cast(s32)0..width - 1 {
+    for y: box.top..box.bottom {
+        for x: box.left..box.right {
             at := (cast(s64)y * width + x) * 4
-            fx := cast(float64)x
-            fy := cast(float64)y
-            sx := FigureBound(x + cast(s32)FigureRound((FigureNoiseAt(noise, fx, fy, 14.0 * scale, 0) - 0.5) * 2.0 * reach), width)
-            sy := FigureBound(y + cast(s32)FigureRound((FigureNoiseAt(noise, fx, fy, 14.0 * scale, 1) - 0.5) * 2.0 * reach), height)
+            sx := FigureBound(x + cast(s32)FigureRound((FigureField(noise, x, y, 0) - 0.5) * 2.0 * reach), width)
+            sy := FigureBound(y + cast(s32)FigureRound((FigureField(noise, x, y, 1) - 0.5) * 2.0 * reach), height)
             from := (cast(s64)sy * width + sx) * 4
             alpha := cast(float64)scratch.pixels[at + 3]
             other := cast(float64)scratch.pixels[from + 3]
@@ -118,12 +160,12 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
                     for channel: 0..2 {
                         image.pixels[at + channel] = scratch.pixels[from + channel]
                     }
-                    image.pixels[at + 3] = cast(u8)(other * 0.45 * FigureNoiseAt(noise, fx, fy, 3.0 * scale, 2))
+                    image.pixels[at + 3] = cast(u8)(other * 0.45 * FigureField(noise, x, y, 2))
                 }
                 continue
             }
             if other == 0.0 {
-                image.pixels[at + 3] = cast(u8)(alpha * (0.3 + 0.7 * FigureNoiseAt(noise, fx, fy, 3.0 * scale, 3)))
+                image.pixels[at + 3] = cast(u8)(alpha * (0.3 + 0.7 * FigureField(noise, x, y, 3)))
                 continue
             }
             share := 0.65 * other / 255.0
@@ -139,22 +181,20 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
     vivid := FigureVivid(settings)
     near_x: [12]s32 = .[1, -1, 0, 0, 2, -2, 0, 0, 2, 2, -2, -2]
     near_y: [12]s32 = .[0, 0, 1, -1, 0, 0, 2, -2, 2, -2, 2, -2]
-    for y: cast(s32)0..height - 1 {
-        for x: cast(s32)0..width - 1 {
+    for y: box.top..box.bottom {
+        for x: box.left..box.right {
             at := (cast(s64)y * width + x) * 4
             alpha := scratch.pixels[at + 3]
             if alpha == 0 {
                 continue
             }
-            fx := cast(float64)x
-            fy := cast(float64)y
             light := FigureLight(scratch, at)
             // The darker side of a wash boundary holds a dried edge; pigment
             // pools along the silhouette.
             lighter: float64
             outside: float64
             seam: float64
-            reach_ink := ifx FigureNoiseAt(noise, fx, fy, 40.0 * scale, 4) > 0.55 then 12 else 4
+            reach_ink := ifx FigureField(noise, x, y, 4) > 0.55 then 12 else 4
             for near: 0..11 {
                 nx := x + near_x[near]
                 ny := y + near_y[near]
@@ -190,7 +230,7 @@ FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise
             if reach_ink == 4 && outside > 0.0 && outside < 3.0 {
                 edge *= 0.6
             }
-            gap := FigureClamp((FigureNoiseAt(noise, fx, fy, 26.0 * scale, 5) - 0.2) * 10.0, 0.0, 1.0)
+            gap := FigureClamp((FigureField(noise, x, y, 5) - 0.2) * 10.0, 0.0, 1.0)
             ink := edge * gap * settings.contour * (0.6 + 0.4 * (1.0 - light))
             // Colour strength about the pixel's own lightness, so the darks
             // deepen in hue instead of turning muddy.
@@ -223,10 +263,23 @@ FigureOpaque :: (image: *Raster.Image) {
 // granulated and grained like the rest.
 FigureShadowWash :: (image: *Raster.Image, noise: *FigureNoise, paper: *Raster.Image, strength: float64,
     spot: FigureSpot) {
-    scale := FigureMax(cast(float64)image.height / 800.0, 0.25)
+    if !FigureNoiseFields(noise, image.width, image.height) {
+        return
+    }
     tone: [3]float64 = .[96.0, 90.0, 118.0]
-    for y: cast(s32)0..image.height - 1 {
-        for x: cast(s32)0..image.width - 1 {
+    // The ellipse u, v below 1.6 lies within this box of the picture.
+    det := spot.xx * spot.yy - spot.xy * spot.yx
+    if FigureAbs(det) < 0.000000001 {
+        return
+    }
+    half_x := 1.6 * (FigureAbs(spot.yy) + FigureAbs(spot.xy)) / FigureAbs(det)
+    half_y := 1.6 * (FigureAbs(spot.yx) + FigureAbs(spot.xx)) / FigureAbs(det)
+    left := cast(s32)FigureMax(0.0, spot.origin.x - half_x - 1.0)
+    right := cast(s32)FigureMin(cast(float64)image.width - 1.0, spot.origin.x + half_x + 1.0)
+    top := cast(s32)FigureMax(0.0, spot.origin.y - half_y - 1.0)
+    bottom := cast(s32)FigureMin(cast(float64)image.height - 1.0, spot.origin.y + half_y + 1.0)
+    for y: top..bottom {
+        for x: left..right {
             fx := cast(float64)x
             fy := cast(float64)y
             dx := fx + 0.5 - spot.origin.x
@@ -237,8 +290,7 @@ FigureShadowWash :: (image: *Raster.Image, noise: *FigureNoise, paper: *Raster.I
             if !Finite64(distance) || distance > 1.6 {
                 continue
             }
-            distance += (FigureNoiseAt(noise, fx, fy, 18.0 * scale, 6) - 0.5) * 0.5 +
-                (FigureNoiseAt(noise, fx, fy, 5.0 * scale, 7) - 0.5) * 0.12
+            distance += (FigureField(noise, x, y, 6) - 0.5) * 0.5 + (FigureField(noise, x, y, 7) - 0.5) * 0.12
             if distance >= 1.0 {
                 continue
             }
@@ -246,7 +298,7 @@ FigureShadowWash :: (image: *Raster.Image, noise: *FigureNoise, paper: *Raster.I
             paper_at := ((cast(s64)y % paper.height) * paper.width + x % paper.width) * 4
             tooth := cast(float64)paper.pixels[paper_at] / 255.0 - 0.94
             shade := strength * (0.26 + 0.16 * FigureSmooth(distance, 0.78, 0.97) - 0.08 * distance) *
-                (1.0 + tooth * 3.0) * (0.85 + 0.3 * FigureNoiseAt(noise, fx, fy, 2.0 * scale, 8))
+                (1.0 + tooth * 3.0) * (0.85 + 0.3 * FigureField(noise, x, y, 8))
             cover := cast(float64)image.pixels[at + 3] / 255.0
             total := cover + shade * (1.0 - cover)
             if total <= 0.0 {
@@ -295,6 +347,42 @@ FigureBackdropCover :: (out: *Raster.Image, backdrop: *Raster.Image, width: s32,
     return true
 }
 
+// OUT becomes LAYER laid over UNDER, all straight RGBA of the same size.
+FigureOverOnto :: (out: *Raster.Image, under: *Raster.Image, layer: *Raster.Image) -> bool {
+    if under.width != layer.width || under.height != layer.height || !Raster.ImageValid(under) ||
+    !VecResize(out.pixels, under.pixels.count) {
+        return false
+    }
+    out.width = under.width
+    out.height = under.height
+    for index: 0..cast(s64)out.width * out.height - 1 {
+        at := index * 4
+        a := cast(s32)layer.pixels[at + 3]
+        if a == 0 {
+            for channel: 0..3 {
+                out.pixels[at + channel] = under.pixels[at + channel]
+            }
+            continue
+        }
+        if a == 255 {
+            for channel: 0..3 {
+                out.pixels[at + channel] = layer.pixels[at + channel]
+            }
+            continue
+        }
+        share := cast(float64)a / 255.0
+        below := cast(float64)under.pixels[at + 3] / 255.0
+        total := share + below * (1.0 - share)
+        for channel: 0..2 {
+            value := (cast(float64)layer.pixels[at + channel] * share +
+                cast(float64)under.pixels[at + channel] * below * (1.0 - share)) / total
+            out.pixels[at + channel] = cast(u8)(value + 0.5)
+        }
+        out.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+    }
+    return true
+}
+
 // Lays LAYER over OUT, both straight RGBA of the same size, at OPACITY.
 FigureOver :: (out: *Raster.Image, layer: *Raster.Image, opacity: float64) -> bool {
     if out.width != layer.width || out.height != layer.height || !Raster.ImageValid(out) {
@@ -316,6 +404,39 @@ FigureOver :: (out: *Raster.Image, layer: *Raster.Image, opacity: float64) -> bo
         out.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
     }
     return true
+}
+
+// A box of a picture's pixels, edges included.
+FigureBox :: struct {
+    left: s32
+    top: s32
+    right: s32
+    bottom: s32
+}
+
+// The box round IMAGE's painted pixels, grown by MARGIN and kept inside the
+// picture; empty (right below left) when nothing is painted.
+FigurePainted :: (image: *Raster.Image, margin: s32) -> FigureBox {
+    box: FigureBox = .{image.width, image.height, -1, -1}
+    for y: cast(s32)0..image.height - 1 {
+        row := cast(s64)y * image.width * 4
+        for x: cast(s32)0..image.width - 1 {
+            if image.pixels[row + cast(s64)x * 4 + 3] != 0 {
+                box.left = ifx x < box.left then x else box.left
+                box.right = ifx x > box.right then x else box.right
+                box.top = ifx y < box.top then y else box.top
+                box.bottom = y
+            }
+        }
+    }
+    if box.right < 0 {
+        return box
+    }
+    box.left = ifx box.left - margin < 0 then 0 else box.left - margin
+    box.top = ifx box.top - margin < 0 then 0 else box.top - margin
+    box.right = ifx box.right + margin >= image.width then image.width - 1 else box.right + margin
+    box.bottom = ifx box.bottom + margin >= image.height then image.height - 1 else box.bottom + margin
+    return box
 }
 
 #scope_file

@@ -56,7 +56,7 @@ main :: () -> s32 {
     print("figure paint: % opaque pixels, gpu=%\n", painted, painter.accelerated)
     fail += Check(painted > 3000 && painted < 40000, "she covers a plausible share of the picture")
     fail += Check(Alpha(*painter, 4, 4) == 0 && Alpha(*painter, 235, 4) == 0, "the background stays clear")
-    // Each region shows its own painted colour: the green tunic, the
+    // Each region shows its own painted colour: the jade top, the
     // indigo trousers and warm skin.
     green: s64
     indigo: s64
@@ -95,7 +95,7 @@ main :: () -> s32 {
         }
     }
     print("figure paint: % green, % indigo, % warm pixels\n", green, indigo, warm)
-    fail += Check(green > 800 && indigo > 800 && warm > 200, "tunic, trousers and skin take their painted colours")
+    fail += Check(green > 800 && indigo > 800 && warm > 200, "top, trousers and skin take their painted colours")
     fail += Check(edge_count > 0.0 && inner_count > 0.0 && edge_light / edge_count < inner_light / inner_count - 0.05,
         "a dark ink line runs round her silhouette")
     // Under her feet, beside them, the floor shadow is a faint wash.
@@ -136,7 +136,7 @@ main :: () -> s32 {
     }
     waist := FigureBonePoint(painter.poses[0], painter.waist)
     print("figure paint: tipped hem % below the waist\n", waist.y - hem / FigureMax(hems, 1.0))
-    fail += Check(hems > 0.0 && hem / hems < waist.y - 0.12, "the tunic's skirt hangs towards the ground")
+    fail += Check(hems > 0.0 && hem / hems < waist.y - 0.12, "the top's hem hangs towards the ground")
     // A backdrop covers the whole picture.
     picture: Raster.Image
     defer VecFree(picture.pixels)

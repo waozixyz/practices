@@ -13,10 +13,10 @@
 
 // Vertex regions, each painted with its own texture.
 FIGURE_SKIN :: 0
-FIGURE_TUNIC :: 1
+FIGURE_TOP :: 1
 FIGURE_TROUSERS :: 2
 FIGURE_HAIR :: 3
-FIGURE_SASH :: 4
+FIGURE_TRIM :: 4
 FIGURE_REGIONS :: 5
 
 FigureBone :: struct {

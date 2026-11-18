@@ -51,16 +51,16 @@ FigureWashCompile :: (program: *ShaderProgram, kind: s32, inked: bool) -> Shader
         FigureAffine(*code, 8, 8, -0.45, 1.0)
         FigureOp(*code, .ShaderMultiply, 6, 6, 8)
     }
-    // Lambert, its wash edges moved by the bloom field.
+    // Lambert, its shading edges moved a little by the bloom field.
     FigureSlot(*code, .ShaderUniform, 11, 0, 1)
     FigureSlot(*code, .ShaderNormalize, 11, 11, 0)
     FigureOp(*code, .ShaderDot, 12, 2, 11)
-    FigureAffine(*code, 13, 9, 0.6, -0.30)
+    FigureAffine(*code, 13, 9, 0.24, -0.12)
     FigureOp(*code, .ShaderAdd, 12, 12, 13)
     // Shadow to local colour, then local colour to light.
-    FigureAffine(*code, 14, 12, 7.0, 0.35)
+    FigureAffine(*code, 14, 12, 4.5, 0.225)
     FigureClamp(*code, 14)
-    FigureAffine(*code, 15, 12, 7.0, -3.9)
+    FigureAffine(*code, 15, 12, 4.5, -2.5)
     FigureClamp(*code, 15)
     FigureSlot(*code, .ShaderUniform, 16, 0, 4)
     FigureOp(*code, .ShaderMultiply, 16, 6, 16)
@@ -72,8 +72,8 @@ FigureWashCompile :: (program: *ShaderProgram, kind: s32, inked: bool) -> Shader
     FigureOp(*code, .ShaderMultiply, 17, 17, 18)
     FigureMix(*code, 18, 16, 6, 14)
     FigureMix(*code, 18, 18, 17, 15)
-    // Granulation pools in the shadow wash.
-    FigureAffine(*code, 19, 14, -0.34, 0.46)
+    // A light fabric and brush texture, a little stronger in the shadow.
+    FigureAffine(*code, 19, 14, -0.10, 0.16)
     FigureAffine(*code, 20, 10, 2.0, -1.0)
     FigureOp(*code, .ShaderMultiply, 20, 20, 19)
     FigureAffine(*code, 20, 20, 1.0, 1.0)

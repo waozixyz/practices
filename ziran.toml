@@ -9,11 +9,11 @@ links = ["EGL", "GLESv2", "GLX", "X11", "z", "m", "pthread"]
 
 [toolchain]
 git = "https://github.com/ziranlang/ziran.git"
-ref = "2313b49cb005610853faeec46447fc38578a2a15"
+ref = "7fbc8152b0ab18b641a73d16d93ccda1e1c7f863"
 
 [dependencies.kryon]
 git = "https://github.com/kryonlabs/kryon.git"
-ref = "199b51c97c2aba67367308c3dc98126692b476a8"
+ref = "8e44f3f86262924f513b28cc807e67b1138e5e0b"
 
 [exports]
 figure_math = "figure/figure_math.zi"

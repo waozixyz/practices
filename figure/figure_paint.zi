@@ -1,5 +1,5 @@
-// Paints the practice figure as a watercolor. Each region (skin, tunic,
-// trousers, hair, sash) carries its own hand-painted texture on UVs that
+// Paints the practice figure. Each region (skin, top, trousers, hair, the
+// top's trim) carries its own painted texture on UVs that
 // follow the form, and the face painting lies over the face. The light
 // splits them into flat washes (figure_shader), cloth creases where it
 // gathers, and the finish (figure_wash) bleeds, dries, granulates and inks
@@ -22,6 +22,7 @@
 #import "std/math"
 #import "std/vec"
 Raster :: #import "std/image";
+Timer :: #import "std/timer_linux";
 
 // An orthographic camera turned YAW about the vertical (0 looks at her
 // front) and PITCH above the horizon, showing HEIGHT metres around CENTER.
@@ -105,9 +106,19 @@ FigureMediaReady :: (media: *FigureMedia) -> bool {
 }
 
 FigureTextureName :: (index: s32) -> string {
-    names: [FIGURE_TEXTURES]string = .["/skin.webp", "/tunic.webp", "/trousers.webp", "/hair.webp", "/sash.webp",
+    names: [FIGURE_TEXTURES]string = .["/skin.webp", "/top.webp", "/trousers.webp", "/hair.webp", "/trim.webp",
         "/face.webp"]
     return names[index]
+}
+
+// Milliseconds the last picture spent in each step, for profiling.
+FigureTimes :: struct {
+    pose: float64
+    skin: float64
+    cloth: float64
+    render: float64
+    finish: float64
+    shadow: float64
 }
 
 FigurePainter :: struct {
@@ -142,6 +153,7 @@ FigurePainter :: struct {
     shadow_radii: Vector3
     ready: bool
     warmed: bool
+    times: FigureTimes
     // Whether the last picture came from the GPU, and why not, for the
     // caller's status.
     accelerated: bool
@@ -166,6 +178,7 @@ FigurePainterRelease :: (painter: *FigurePainter) {
     }
     FigureImageRelease(*painter.pixels)
     FigureImageRelease(*painter.scratch)
+    FigureNoiseRelease(*painter.noise)
     painter.ready = false
     painter.warmed = false
 }
@@ -182,12 +195,18 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
     if !painter.ready && !FigurePainterPrepare(painter, media) {
         return false
     }
-    if !FigurePose(*media.anatomy, joints, *painter.poses) ||
-    !FigureSkinDeform(*painter.scene, *painter.skin, *painter.blend, painter.poses[:]) {
+    clock := Timer.MonotonicNanoseconds()
+    if !FigurePose(*media.anatomy, joints, *painter.poses) {
         return false
     }
+    painter.times.pose = FigureLap(*clock)
+    if !FigureSkinDeform(*painter.scene, *painter.skin, *painter.blend, painter.poses[:]) {
+        return false
+    }
+    painter.times.skin = FigureLap(*clock)
     FigureHang(painter)
     FigureGather(painter)
+    painter.times.cloth = FigureLap(*clock)
     cosine := Cos(effect.roll)
     sine := Sin(effect.roll)
     for region: cast(s32)0..FIGURE_REGIONS - 1 {
@@ -251,6 +270,7 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
     if !FigureImageSize(*painter.pixels, width, height) {
         return false
     }
+    unused FigureLap(*clock)
     result := SceneGpuRenderOrCPU(*painter.gpu, *painter.scene, camera, *painter.pixels)
     if !painter.warmed {
         // At Kryon 199b51c9 a sampler texture uploaded during a frame can
@@ -264,6 +284,7 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
     if !result.ok {
         return false
     }
+    painter.times.render = FigureLap(*clock)
     if style.watercolor {
         if !FigureWash(*painter.pixels, *painter.scratch, *painter.noise, *media.paper, *media.pigment, style.wash) {
             return false
@@ -277,10 +298,20 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
             painter.pixels.pixels[index * 4 + 3] = cast(u8)(alpha + 0.5)
         }
     }
+    painter.times.finish = FigureLap(*clock)
     if style.shadow && !style.luminous {
         FigureShadowUnder(painter, *media.paper, camera, view, light)
     }
+    painter.times.shadow = FigureLap(*clock)
     return true
+}
+
+// Milliseconds since CLOCK, which moves on to now.
+FigureLap :: (clock: *s64) -> float64 {
+    now := Timer.MonotonicNanoseconds()
+    spent := cast(float64)(now - clock.*) / 1000000.0
+    clock.* = now
+    return spent
 }
 
 FigureLinear :: (value: u32) -> Vector3 {
@@ -344,7 +375,7 @@ FigureGather :: (painter: *FigurePainter) {
     scene.geometry_frozen = false
 }
 
-// The skirt and the sash tails hang towards the ground: when her pelvis
+// The top's lower part hangs towards the ground: when her pelvis
 // tips, as in a fold, a plank or downward dog, they swing about the waist
 // from where the pelvis carries them towards straight down, the more the
 // nearer the hem.
@@ -499,10 +530,8 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
         anatomy.normals[:], anatomy.uvs[:], indices[:], anatomy.influences[:], material) {
         return false
     }
-    // Every region draws its own run of the one surface. The runs share the
-    // surface's vertices from its first, which is also the scene's first:
-    // SceneIndexedMesh stores scene-wide indices and the renderers add a
-    // mesh's first vertex again.
+    // Every region draws its own run of the one surface, so one skin and one
+    // deformation serve them all.
     scene := *painter.scene
     node := scene.nodes[painter.skin.node]
     mesh := scene.meshes[node.mesh]
@@ -538,7 +567,7 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
     !VecResize(painter.hang, count) {
         return false
     }
-    sash: float64
+    ring: float64
     painter.waist = .{}
     for index: 0..count - 1 {
         painter.around[index] = 0.0
@@ -546,15 +575,17 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
         if anatomy.regions[index] != FIGURE_SKIN {
             painter.hang[index] = FigureClamp(anatomy.details[index].x, 0.0, 1.0)
         }
-        if anatomy.regions[index] == FIGURE_SASH && painter.hang[index] == 0.0 {
+        // The waist's middle: the top's hem rows nearest the waist, all
+        // round her.
+        if anatomy.regions[index] == FIGURE_TOP && painter.hang[index] > 0.0 && painter.hang[index] <= 0.2 {
             painter.waist = FigureAdd(painter.waist, anatomy.positions[index])
-            sash += 1.0
+            ring += 1.0
         }
     }
-    if sash == 0.0 {
+    if ring == 0.0 {
         return false
     }
-    painter.waist = FigureScale(painter.waist, 1.0 / sash)
+    painter.waist = FigureScale(painter.waist, 1.0 / ring)
     VecClear(painter.ends)
     VecClear(painter.rest)
     for at: first[1]..first[FIGURE_REGIONS] - 1 {
