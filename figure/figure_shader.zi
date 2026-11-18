@@ -1,153 +1,71 @@
-// The figure's portable shaders. Each region's painted texture is sampled
-// on UVs that wrap the body, so its brush strokes follow the form; the
-// light splits it into three flat washes (a cool shadow, the local colour
-// and a pale light where the paper shows through) along an edge broken by
-// the pigment's bloom field, and pigment granulates most in the shadow.
-// There is no specular light.
+// The figure's surface colour. Each region's clean texture map is sampled
+// on UVs that wrap the body, the face map lies over the face, and the
+// colours are made as vivid as the style asks. Kryon's standard material
+// then lights the result: soft studio key, fill and rim lights over a sky
+// and ground, its own soft shadows, and a gentle sheen.
 //
-// Registers: 0 vertex data, 1 position, 2 normal, 3 UV. The vertex data is
-// the face painting's coordinates and how much of it shows for skin, and
-// how far the cloth is gathered for cloth.
-// Uniforms: 0 UV repeat, 1 light, 2 view, 3 glow colour (a luminous
-// double's rim, black otherwise), 4 shadow wash tint, 5 light wash tint,
-// 6 the paper's colour times how much of it shows in the light wash, 7 a
-// factor for the output (alpha marks the region), 8 how much of the local
-// colour stays in the light wash.
-// Samplers: 0 paper, 1 pigment, 2 the region's painted texture, 3 the face.
+// Registers: 0 vertex data, 1 position, 2 normal, 3 UV. On the skin the
+// vertex data is where the face map lies and how much of it shows; on the
+// hair, how far it fades into the skin at the hairline.
+// Uniforms: 0 UV repeat, 1 colour strength (1 as painted), 2 a glowing
+// double's pale tint and, in its alpha, how far the colours move to it, 3
+// the skin's colour in linear light.
+// Samplers: 0 the region's texture map, 1 the face.
 #import "kryon/shader"
 
 FIGURE_SHADE_SKIN :: 0
 FIGURE_SHADE_CLOTH :: 1
 FIGURE_SHADE_HAIR :: 2
 
-// INKED draws a sepia line where the surface turns away from the eye: the
-// inner contours of sleeves, arms, chin and ears.
-FigureWashCompile :: (program: *ShaderProgram, kind: s32, inked: bool) -> ShaderDiagnostic {
-    code: FigureCode
-    FigureAlbedo(*code, kind)
-    // A broad bloom field and fine granulation, both as grey.
-    FigureLiteral(*code, 30, 0.3333, 0.3333, 0.3333, 0.0)
-    FigureLiteral(*code, 9, 0.37, 0.37, 0.0, 0.0)
-    FigureOp(*code, .ShaderMultiply, 9, 5, 9)
-    FigureSlot(*code, .ShaderSample, 9, 9, 1)
-    FigureOp(*code, .ShaderDot, 9, 9, 30)
-    FigureLiteral(*code, 10, 1.9, 1.9, 0.0, 0.0)
-    FigureOp(*code, .ShaderMultiply, 10, 5, 10)
-    FigureSlot(*code, .ShaderSample, 10, 10, 1)
-    FigureOp(*code, .ShaderDot, 10, 10, 30)
-    if kind == FIGURE_SHADE_CLOTH {
-        // Creases run round the limb where the cloth is gathered, and open
-        // out again as it straightens.
-        FigureLiteral(*code, 8, 0.0, 23.0, 0.0, 0.0)
-        FigureOp(*code, .ShaderDot, 8, 5, 8)
-        FigureAffine(*code, 11, 9, 5.0, 0.0)
-        FigureOp(*code, .ShaderAdd, 8, 8, 11)
-        FigureSlot(*code, .ShaderSin, 8, 8, 0)
-        FigureAffine(*code, 8, 8, 2.4, -1.3)
-        FigureClamp(*code, 8)
-        FigureLiteral(*code, 11, 1.0, 0.0, 0.0, 0.0)
-        FigureOp(*code, .ShaderDot, 11, 0, 11)
-        FigureOp(*code, .ShaderMultiply, 8, 8, 11)
-        FigureAffine(*code, 8, 8, -0.45, 1.0)
-        FigureOp(*code, .ShaderMultiply, 6, 6, 8)
-    }
-    // Lambert, its shading edges moved a little by the bloom field.
-    FigureSlot(*code, .ShaderUniform, 11, 0, 1)
-    FigureSlot(*code, .ShaderNormalize, 11, 11, 0)
-    FigureOp(*code, .ShaderDot, 12, 2, 11)
-    FigureAffine(*code, 13, 9, 0.24, -0.12)
-    FigureOp(*code, .ShaderAdd, 12, 12, 13)
-    // Shadow to local colour, then local colour to light.
-    FigureAffine(*code, 14, 12, 4.5, 0.225)
-    FigureClamp(*code, 14)
-    FigureAffine(*code, 15, 12, 4.5, -2.5)
-    FigureClamp(*code, 15)
-    FigureSlot(*code, .ShaderUniform, 16, 0, 4)
-    FigureOp(*code, .ShaderMultiply, 16, 6, 16)
-    FigureSlot(*code, .ShaderUniform, 17, 0, 8)
-    FigureOp(*code, .ShaderMultiply, 17, 6, 17)
-    FigureSlot(*code, .ShaderUniform, 18, 0, 6)
-    FigureOp(*code, .ShaderAdd, 17, 17, 18)
-    FigureSlot(*code, .ShaderUniform, 18, 0, 5)
-    FigureOp(*code, .ShaderMultiply, 17, 17, 18)
-    FigureMix(*code, 18, 16, 6, 14)
-    FigureMix(*code, 18, 18, 17, 15)
-    // A light fabric and brush texture, a little stronger in the shadow.
-    FigureAffine(*code, 19, 14, -0.10, 0.16)
-    FigureAffine(*code, 20, 10, 2.0, -1.0)
-    FigureOp(*code, .ShaderMultiply, 20, 20, 19)
-    FigureAffine(*code, 20, 20, 1.0, 1.0)
-    FigureOp(*code, .ShaderMultiply, 18, 18, 20)
-    // A luminous double's rim where the surface turns away.
-    FigureSlot(*code, .ShaderUniform, 21, 0, 2)
-    FigureSlot(*code, .ShaderNormalize, 21, 21, 0)
-    FigureOp(*code, .ShaderDot, 22, 2, 21)
-    FigureOp(*code, .ShaderMultiply, 23, 22, 22)
-    FigureAffine(*code, 22, 23, -1.0, 1.0)
-    FigureOp(*code, .ShaderMultiply, 22, 22, 22)
-    FigureSlot(*code, .ShaderUniform, 24, 0, 3)
-    FigureOp(*code, .ShaderMultiply, 22, 22, 24)
-    FigureOp(*code, .ShaderAdd, 18, 18, 22)
-    if inked {
-        FigureAffine(*code, 25, 23, -16.0, 1.3)
-        FigureAffine(*code, 26, 9, 1.2, -0.6)
-        FigureOp(*code, .ShaderAdd, 25, 25, 26)
-        FigureClamp(*code, 25)
-        FigureLiteral(*code, 26, 0.8, 0.8, 0.8, 0.8)
-        FigureOp(*code, .ShaderMultiply, 25, 25, 26)
-        FigureLiteral(*code, 26, 0.10, 0.045, 0.022, 0.0)
-        FigureMix(*code, 18, 18, 26, 25)
-    }
-    FigureOpacity(*code, 18)
-    return ShaderCompile(program, code.code[0:code.count])
-}
+FIGURE_SHADER_UNIFORMS :: 4
+FIGURE_SHADER_SAMPLERS :: 2
 
-// The bare look for judging the surface: the painted texture under one
-// soft light, without washes or granulation.
-FigureBareCompile :: (program: *ShaderProgram, kind: s32) -> ShaderDiagnostic {
+FigureSurfaceCompile :: (program: *ShaderProgram, kind: s32) -> ShaderDiagnostic {
     code: FigureCode
-    FigureAlbedo(*code, kind)
-    FigureSlot(*code, .ShaderUniform, 11, 0, 1)
-    FigureSlot(*code, .ShaderNormalize, 11, 11, 0)
-    FigureOp(*code, .ShaderDot, 12, 2, 11)
-    FigureLiteral(*code, 13, 0.0, 0.0, 0.0, 0.0)
-    FigureOp(*code, .ShaderMax, 12, 12, 13)
-    FigureAffine(*code, 12, 12, 0.5, 0.5)
-    FigureOp(*code, .ShaderMultiply, 18, 6, 12)
-    FigureOpacity(*code, 18)
+    // The texture map, in linear light.
+    FigureSlot(*code, .ShaderUniform, 4, 0, 0)
+    FigureOp(*code, .ShaderMultiply, 5, 3, 4)
+    FigureSlot(*code, .ShaderSample, 6, 5, 0)
+    FigureOp(*code, .ShaderMultiply, 6, 6, 6)
+    if kind == FIGURE_SHADE_SKIN {
+        FigureSlot(*code, .ShaderSample, 7, 0, 1)
+        FigureOp(*code, .ShaderMultiply, 7, 7, 7)
+        FigureLiteral(*code, 8, 0.0, 0.0, 1.0, 0.0)
+        FigureOp(*code, .ShaderDot, 8, 0, 8)
+        FigureMix(*code, 6, 6, 7, 8)
+    }
+    if kind == FIGURE_SHADE_HAIR {
+        // A soft hairline instead of a hard edge.
+        FigureSlot(*code, .ShaderUniform, 7, 0, 3)
+        FigureLiteral(*code, 8, 0.85, 0.0, 0.0, 0.0)
+        FigureOp(*code, .ShaderDot, 8, 0, 8)
+        FigureMix(*code, 6, 6, 7, 8)
+    }
+    // Colour strength: away from the grey of the same brightness.
+    FigureLiteral(*code, 9, 0.2126, 0.7152, 0.0722, 0.0)
+    FigureOp(*code, .ShaderDot, 9, 6, 9)
+    FigureSlot(*code, .ShaderUniform, 10, 0, 1)
+    FigureMix(*code, 6, 9, 6, 10)
+    FigureLiteral(*code, 11, 0.0, 0.0, 0.0, 0.0)
+    FigureOp(*code, .ShaderMax, 6, 6, 11)
+    // A glowing double's pale colours.
+    FigureSlot(*code, .ShaderUniform, 12, 0, 2)
+    FigureLiteral(*code, 13, 0.0, 0.0, 0.0, 1.0)
+    FigureOp(*code, .ShaderDot, 14, 12, 13)
+    FigureLiteral(*code, 15, 1.0, 1.0, 1.0, 0.0)
+    FigureOp(*code, .ShaderMultiply, 14, 14, 15)
+    FigureMix(*code, 6, 6, 12, 14)
+    // Opaque: the material fades a translucent double as a whole.
+    FigureLiteral(*code, 16, 0.0, 0.0, 0.0, 1.0)
+    FigureMix(*code, 6, 6, 16, 16)
+    FigureSlot(*code, .ShaderOutput, 0, 6, 0)
     return ShaderCompile(program, code.code[0:code.count])
 }
 
 #scope_file
 FigureCode :: struct {
-    code: [128]ShaderInstruction
+    code: [64]ShaderInstruction
     count: s32
-}
-
-// Register 6 becomes the region's colour in linear light: its painted
-// texture, and on the face the face painting over it.
-FigureAlbedo :: (code: *FigureCode, kind: s32) {
-    FigureSlot(code, .ShaderUniform, 4, 0, 0)
-    FigureOp(code, .ShaderMultiply, 5, 3, 4)
-    FigureSlot(code, .ShaderSample, 6, 5, 2)
-    FigureOp(code, .ShaderMultiply, 6, 6, 6)
-    if kind == FIGURE_SHADE_SKIN {
-        FigureSlot(code, .ShaderSample, 7, 0, 3)
-        FigureOp(code, .ShaderMultiply, 7, 7, 7)
-        FigureLiteral(code, 8, 0.0, 0.0, 1.0, 0.0)
-        FigureOp(code, .ShaderDot, 8, 0, 8)
-        FigureMix(code, 6, 6, 7, 8)
-    }
-}
-
-// Ends the program with register REGISTER's colour and the material's
-// opacity, which arrives as the vertex data's alpha.
-FigureOpacity :: (code: *FigureCode, register: s32) {
-    FigureLiteral(code, 31, 0.0, 0.0, 0.0, 1.0)
-    FigureMix(code, register, register, 0, 31)
-    FigureSlot(code, .ShaderUniform, 31, 0, 7)
-    FigureOp(code, .ShaderMultiply, register, register, 31)
-    FigureSlot(code, .ShaderOutput, 0, register, 0)
 }
 
 FigureOp :: (code: *FigureCode, op: ShaderOp, dest: s32, a: s32, b: s32) {
@@ -168,19 +86,4 @@ FigureSlot :: (code: *FigureCode, op: ShaderOp, dest: s32, a: s32, slot: s32) {
 FigureLiteral :: (code: *FigureCode, dest: s32, x: float64, y: float64, z: float64, w: float64) {
     code.code[code.count] = .{op = .ShaderLiteral, dest = dest, value = .{x, y, z, w}}
     code.count += 1
-}
-
-// dest = a * scale + offset in every lane.
-FigureAffine :: (code: *FigureCode, dest: s32, a: s32, scale: float64, offset: float64) {
-    FigureLiteral(code, 30, scale, scale, scale, scale)
-    FigureOp(code, .ShaderMultiply, dest, a, 30)
-    FigureLiteral(code, 30, offset, offset, offset, offset)
-    FigureOp(code, .ShaderAdd, dest, dest, 30)
-}
-
-FigureClamp :: (code: *FigureCode, register: s32) {
-    FigureLiteral(code, 30, 0.0, 0.0, 0.0, 0.0)
-    FigureOp(code, .ShaderMax, register, register, 30)
-    FigureLiteral(code, 30, 1.0, 1.0, 1.0, 1.0)
-    FigureOp(code, .ShaderMin, register, register, 30)
 }

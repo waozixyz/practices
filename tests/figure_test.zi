@@ -1,5 +1,5 @@
-// The shared figure's surface, rig and skinning. Run from the repository
-// root so shared/watercolor/anatomy.bin resolves.
+// The shared figures' surfaces, rig and skinning, for each character. Run
+// from the repository root so shared/figure/*/anatomy.bin resolves.
 #import "figure_math"
 #import "figure_anatomy"
 #import "figure_joints"
@@ -124,7 +124,17 @@ Around :: (point: Vector3, center: Vector3, turn: FigureQuat) -> Vector3 {
 }
 
 main :: () -> s32 {
-    bytes, found := ReadEntireFile("shared/watercolor/anatomy.bin")
+    fail := CheckCharacter("shared/figure/female/anatomy.bin")
+    fail += CheckCharacter("shared/figure/male/anatomy.bin")
+    if fail == 0 {
+        print("Figure surface, rig and skinning local tests passed\n")
+    }
+    return fail
+}
+
+CheckCharacter :: (path: string) -> s32 {
+    print("figure: %\n", path)
+    bytes, found := ReadEntireFile(path)
     anatomy: FigureAnatomy
     defer FigureAnatomyRelease(*anatomy)
     fail := Check(found && FigureAnatomyRead(*anatomy, bytes), "the shared anatomy loads")
@@ -246,8 +256,5 @@ main :: () -> s32 {
     fail += Check(Deform(*anatomy, *posed, *fold) && posed.scene.positions[0].x == first.x &&
         posed.scene.positions[0].y == first.y && posed.scene.positions[0].z == first.z,
         "a repeated pose has no drift")
-    if fail == 0 {
-        print("Figure surface, rig and skinning local tests passed\n")
-    }
     return fail
 }

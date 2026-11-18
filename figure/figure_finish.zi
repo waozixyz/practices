@@ -1,0 +1,178 @@
+// Setting the rendered figure into its picture: the practice's backdrop
+// scaled to cover it, her soft contact shadow on the ground, and pictures
+// laid over each other. All pictures are straight RGBA.
+#import "figure_math"
+#import "kryon/scene"
+#import "std/math"
+#import "std/vec"
+Raster :: #import "std/image";
+
+// An ellipse on the ground as it lands in the picture: the picture point P
+// is inside where |M (P - ORIGIN)| < 1.
+FigureSpot :: struct {
+    origin: ShapePoint
+    xx: float64
+    xy: float64
+    yx: float64
+    yy: float64
+}
+
+// Lays a soft shadow, darkest at SPOT's middle and fading smoothly to its
+// edge, under the figure in IMAGE, at most STRENGTH opaque.
+FigureContactShadow :: (image: *Raster.Image, spot: FigureSpot, strength: float64) {
+    // The ellipse's box in the picture: the extent of the unit circle mapped
+    // back through the inverse of M.
+    det := spot.xx * spot.yy - spot.xy * spot.yx
+    if FigureAbs(det) < 0.0000001 || !Finite64(det) || strength <= 0.0 {
+        return
+    }
+    reach_x := Sqrt(spot.yy * spot.yy + spot.xy * spot.xy) / FigureAbs(det)
+    reach_y := Sqrt(spot.yx * spot.yx + spot.xx * spot.xx) / FigureAbs(det)
+    left := FigureBound(cast(s32)(spot.origin.x - reach_x) - 1, image.width)
+    right := FigureBound(cast(s32)(spot.origin.x + reach_x) + 1, image.width)
+    top := FigureBound(cast(s32)(spot.origin.y - reach_y) - 1, image.height)
+    bottom := FigureBound(cast(s32)(spot.origin.y + reach_y) + 1, image.height)
+    shade: [3]float64 = .[38.0, 34.0, 48.0]
+    for y: top..bottom {
+        for x: left..right {
+            dx := cast(float64)x + 0.5 - spot.origin.x
+            dy := cast(float64)y + 0.5 - spot.origin.y
+            u := spot.xx * dx + spot.xy * dy
+            v := spot.yx * dx + spot.yy * dy
+            d := Sqrt(u * u + v * v)
+            if d >= 1.0 {
+                continue
+            }
+            // Smooth all the way: a soft core fading to nothing at the rim.
+            fade := 1.0 - d * d
+            s := strength * fade * fade
+            at := (cast(s64)y * image.width + x) * 4
+            a := cast(float64)image.pixels[at + 3] / 255.0
+            if a >= 1.0 {
+                continue
+            }
+            total := a + s * (1.0 - a)
+            for channel: 0..2 {
+                value := (cast(float64)image.pixels[at + channel] * a + shade[channel] * s * (1.0 - a)) / total
+                image.pixels[at + channel] = cast(u8)(value + 0.5)
+            }
+            image.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+        }
+    }
+}
+
+// Fills OUT, WIDTH by HEIGHT, with BACKDROP scaled ZOOM times past just
+// covering it: centred across, and cropped FOCUS of the way down (0 keeps
+// its top, 1 its bottom), its colours VIVID times as strong.
+FigureBackdropCover :: (out: *Raster.Image, backdrop: *Raster.Image, width: s32, height: s32,
+    zoom: float64, focus: float64, vivid: float64) -> bool {
+    if width < 1 || height < 1 || !Raster.ImageValid(backdrop) ||
+    !VecResize(out.pixels, cast(s64)width * height * 4) {
+        return false
+    }
+    out.width = width
+    out.height = height
+    scale := FigureMax(cast(float64)width / cast(float64)backdrop.width,
+        cast(float64)height / cast(float64)backdrop.height) * FigureMax(zoom, 1.0)
+    left := (cast(float64)backdrop.width * scale - cast(float64)width) * 0.5
+    top := (cast(float64)backdrop.height * scale - cast(float64)height) * FigureClamp(focus, 0.0, 1.0)
+    for y: cast(s32)0..height - 1 {
+        sy := (cast(float64)y + 0.5 + top) / scale - 0.5
+        for x: cast(s32)0..width - 1 {
+            sx := (cast(float64)x + 0.5 + left) / scale - 0.5
+            at := (cast(s64)y * width + x) * 4
+            FigureBilinear(backdrop, sx, sy, out, at)
+            if vivid != 1.0 {
+                grey := cast(float64)out.pixels[at] * 0.30 + cast(float64)out.pixels[at + 1] * 0.59 +
+                    cast(float64)out.pixels[at + 2] * 0.11
+                for channel: 0..2 {
+                    value := grey + (cast(float64)out.pixels[at + channel] - grey) * vivid
+                    out.pixels[at + channel] = cast(u8)(FigureClamp(value, 0.0, 255.0) + 0.5)
+                }
+            }
+        }
+    }
+    return true
+}
+
+// OUT becomes LAYER laid over UNDER, all straight RGBA of the same size.
+FigureOverOnto :: (out: *Raster.Image, under: *Raster.Image, layer: *Raster.Image) -> bool {
+    if under.width != layer.width || under.height != layer.height || !Raster.ImageValid(under) ||
+    !VecResize(out.pixels, under.pixels.count) {
+        return false
+    }
+    out.width = under.width
+    out.height = under.height
+    for index: 0..cast(s64)out.width * out.height - 1 {
+        at := index * 4
+        a := cast(s32)layer.pixels[at + 3]
+        if a == 0 {
+            for channel: 0..3 {
+                out.pixels[at + channel] = under.pixels[at + channel]
+            }
+            continue
+        }
+        if a == 255 {
+            for channel: 0..3 {
+                out.pixels[at + channel] = layer.pixels[at + channel]
+            }
+            continue
+        }
+        share := cast(float64)a / 255.0
+        below := cast(float64)under.pixels[at + 3] / 255.0
+        total := share + below * (1.0 - share)
+        for channel: 0..2 {
+            value := (cast(float64)layer.pixels[at + channel] * share +
+                cast(float64)under.pixels[at + channel] * below * (1.0 - share)) / total
+            out.pixels[at + channel] = cast(u8)(value + 0.5)
+        }
+        out.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+    }
+    return true
+}
+
+// Lays LAYER over OUT, both straight RGBA of the same size, at OPACITY.
+FigureOver :: (out: *Raster.Image, layer: *Raster.Image, opacity: float64) -> bool {
+    if out.width != layer.width || out.height != layer.height || !Raster.ImageValid(out) {
+        return false
+    }
+    for index: 0..cast(s64)out.width * out.height - 1 {
+        at := index * 4
+        a := cast(float64)layer.pixels[at + 3] / 255.0 * opacity
+        if a <= 0.0 {
+            continue
+        }
+        under := cast(float64)out.pixels[at + 3] / 255.0
+        total := a + under * (1.0 - a)
+        for channel: 0..2 {
+            value := (cast(float64)layer.pixels[at + channel] * a +
+                cast(float64)out.pixels[at + channel] * under * (1.0 - a)) / total
+            out.pixels[at + channel] = cast(u8)(value + 0.5)
+        }
+        out.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+    }
+    return true
+}
+
+#scope_file
+FigureBound :: (value: s32, size: s32) -> s32 {
+    return ifx value < 0 then 0 else ifx value >= size then size - 1 else value
+}
+
+FigureBilinear :: (image: *Raster.Image, x: float64, y: float64, out: *Raster.Image, at: s64) {
+    cx := FigureClamp(x, 0.0, cast(float64)image.width - 1.001)
+    cy := FigureClamp(y, 0.0, cast(float64)image.height - 1.001)
+    x0 := cast(s64)cx
+    y0 := cast(s64)cy
+    tx := cx - cast(float64)x0
+    ty := cy - cast(float64)y0
+    for channel: 0..3 {
+        a := cast(float64)image.pixels[(y0 * image.width + x0) * 4 + channel]
+        b := cast(float64)image.pixels[(y0 * image.width + x0 + 1) * 4 + channel]
+        c := cast(float64)image.pixels[((y0 + 1) * image.width + x0) * 4 + channel]
+        d := cast(float64)image.pixels[((y0 + 1) * image.width + x0 + 1) * 4 + channel]
+        top := a + (b - a) * tx
+        bottom := c + (d - c) * tx
+        out.pixels[at + channel] = cast(u8)(top + (bottom - top) * ty + 0.5)
+    }
+}

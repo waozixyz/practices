@@ -1,0 +1,67 @@
+{
+  "generated": "2026-11-17",
+  "generator": "Harmony generate_image (the owner's configured image model); the backdrops use an Inner Breeze practice banner as the style reference",
+  "cleanup": "Offline OCR (PP-OCRv6-small) found no text, signature or watermark in the backdrops. Stored as WebP q90. Their colour strength and phone sizes are applied by Breeze scripts/prepare-practice-human.py --backdrops.",
+  "not_kept": {
+    "earlier watercolor set": "The hand-painted watercolor character (wrap tunic, sash, balloon trousers), its textures and watercolor backdrops of 2026-11-17 were replaced the same day by this set in Inner Breeze's own illustration style; see git history.",
+    "generated character textures": "The slim character's generated face, hair, cloth and skin textures, its style target and character sheet (2026-11-17) were replaced on 2026-11-18 by clean texture maps that scripts/prepare-practice-human.py draws itself, and by the owner's sculpt references in figure/design/reference/; see git history."
+  },
+  "files": {
+    "shared/figure/source/backdrop-tai-chi.webp": {
+      "request": "2eb6c99d5859c39ebe94514b621faae26df7",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze practice banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette. Landscape 3:2, NO people: a quiet stone terrace in the foreground above a calm blue lake, misty blue mountains in the distance, pine trees only at the far left and right edges, a small part of a temple roof at one edge, soft morning light. Keep the centre and the terrace floor open and quiet for a figure to stand on. No text, logos, watermarks, people or animals.",
+      "original_png_sha256": "aee992b549cbf7c0cf825031591ae1321fb943169ae66b552cbc120788aa03fe",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/figure/source/backdrop-sun-salutation.webp": {
+      "request": "a09339f6df46bda6dc51d731e3645b0b8c53",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze Sun Salutation banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, warm clear sunrise palette. Landscape 3:2, NO people: a soft grassy hilltop path in the foreground, layered green and blue hills, a big warm sunrise sun with gentle rays in a pale peach and blue sky, a few soft clouds, a few shrubs at the edges. Keep the centre open for a figure to stand on the path. No text, logos, watermarks, people or animals.",
+      "original_png_sha256": "3994e576ac426ebf8b03d53fdf307f6ecabcc0e9d9eb6abd8c60b113583e2cbc",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/figure/source/backdrop-workout.webp": {
+      "request": "05081583458a0d5fd7624de468ddb1c3c8d7",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze practice banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, clear daylight palette with jade greens, lake blue and earth browns. Landscape 3:2, NO people: an earth-brown woodland exercise terrace with a wooden deck floor in the foreground, a quiet blue mountain lake and pale misty hills in the distance, pine branches only at the far edges, soft clear daylight. Keep the centre and the deck open for a figure. No text, numbers, clocks, UI, logos, watermarks, people or equipment.",
+      "original_png_sha256": "2e836869213674491947dd0cf34d8e09ec95935a89aeff95417070dfc021eb35",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    },
+    "shared/figure/source/backdrop-astral.webp": {
+      "request": "b893cc7740a463de8efcc43ff6d0b3f1249b",
+      "prompt": "Use case: background plate, style-transfer. Match the reference Inner Breeze Astral Projection banner's exact style: calm handmade 2D storybook illustration, subtle paper grain, softly shaded forms, crisp restrained contours, deep blue night palette with warm lantern accents. Landscape 3:2, NO people: an open wooden veranda at night with a low wooden floor across the lower half, a calm moonlit lake and dark blue mountains beyond, a crescent moon and a few stars, a potted plant and a warm lantern at the edges. Keep the centre of the floor open and empty for a sleeper to be drawn lying there. No bed, no text, logos, watermarks, people or animals.",
+      "original_png_sha256": "3620b23c2d166e3725096d965e63b0d48e2d9a799018a6f4dac2c8576ab68bcb",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ],
+      "reference": "the Inner Breeze practice banner named in the prompt (practices <practice>/banner-light.webp)"
+    }
+  }
+}

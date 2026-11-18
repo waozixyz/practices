@@ -1,17 +1,18 @@
-// The practice figure's anatomical surface: a continuous CC0 MakeHuman mesh
-// skinned onto 46 bones and dressed in loose cloth shells, read from
-// shared/watercolor/anatomy.bin (PFIG0002, described in that folder's
-// README). It holds no pose or player state.
+// A practice figure's anatomical surface: a continuous CC0 MakeHuman mesh
+// skinned onto 46 bones and dressed in cloth shells, read from a
+// character's shared/figure/*/anatomy.bin (PFIG0002, described in that
+// folder's README). It holds no pose or player state.
 //
 // Bone roles: 0 pelvis, 1 spine, 2 chest, 3 head, 4 upper arm, 5 forearm,
-// 6 hand, 7 finger segment, 8 thigh, 9 shin, 10 foot. Side 0 is her left.
+// 6 hand, 7 finger segment, 8 thigh, 9 shin, 10 foot. Side 0 is the
+// figure's left.
 #import "kryon/scene"
 #import "kryon/scene_skin"
 #import "std/binary"
 #import "std/math"
 #import "std/vec"
 
-// Vertex regions, each painted with its own texture.
+// Vertex regions, each with its own texture map and material.
 FIGURE_SKIN :: 0
 FIGURE_TOP :: 1
 FIGURE_TROUSERS :: 2

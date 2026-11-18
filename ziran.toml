@@ -1,6 +1,7 @@
-# The shared practice figure: one anatomical character, its rig and its
-# watercolor look, drawn by every practice from that practice's own poses.
-# The media it reads stays in shared/watercolor/.
+# The shared practice figures: a petite young woman and a young man, their
+# rig, clothes and studio-lit look, drawn by every practice from that
+# practice's own poses.
+# The media it reads stays in shared/figure/.
 [package]
 name = "practices"
 module_roots = ["figure", "tests"]
@@ -13,7 +14,7 @@ ref = "7fbc8152b0ab18b641a73d16d93ccda1e1c7f863"
 
 [dependencies.kryon]
 git = "https://github.com/kryonlabs/kryon.git"
-ref = "8e44f3f86262924f513b28cc807e67b1138e5e0b"
+ref = "4b79d9761508068e901879eb6208a22b8c331a63"
 
 [exports]
 figure_math = "figure/figure_math.zi"
@@ -21,5 +22,5 @@ figure_anatomy = "figure/figure_anatomy.zi"
 figure_joints = "figure/figure_joints.zi"
 figure_skin = "figure/figure_skin.zi"
 figure_shader = "figure/figure_shader.zi"
-figure_wash = "figure/figure_wash.zi"
+figure_finish = "figure/figure_finish.zi"
 figure_paint = "figure/figure_paint.zi"

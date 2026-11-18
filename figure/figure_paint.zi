@@ -1,17 +1,18 @@
-// Paints the practice figure. Each region (skin, top, trousers, hair, the
-// top's trim) carries its own painted texture on UVs that
-// follow the form, and the face painting lies over the face. The light
-// splits them into flat washes (figure_shader), cloth creases where it
-// gathers, and the finish (figure_wash) bleeds, dries, granulates and inks
-// the picture and paints her shadow on the ground. The caller owns the
-// clock, the pose and where the picture goes; the result is straight RGBA
-// in painter.pixels with a transparent background.
+// Paints a practice figure: the petite young woman (the default) or the
+// young man, each with clean texture maps on UVs that follow the form and a
+// face map over the face (figure_shader). Kryon's standard material lights
+// them like a sculpture in a soft studio: a warm key light that casts soft
+// shadows, a cool fill, a rim light behind and a sky and ground. Normals
+// are recomputed from the posed surface every frame, so bent joints and
+// swinging cloth shade smoothly. A soft contact shadow lies under her feet.
+// The caller owns the clock, the pose and where the picture goes; the result
+// is straight RGBA in painter.pixels with a transparent background.
 #import "figure_math"
 #import "figure_anatomy"
 #import "figure_joints"
 #import "figure_skin"
 #import "figure_shader"
-#import "figure_wash"
+#import "figure_finish"
 #import "kryon/scene"
 #import "kryon/scene_skin"
 #import "kryon/scene_render"
@@ -24,6 +25,15 @@
 Raster :: #import "std/image";
 Timer :: #import "std/timer_linux";
 
+// The characters, each in its own folder of the figure media.
+FIGURE_FEMALE :: 0
+FIGURE_MALE :: 1
+FIGURE_CHARACTERS :: 2
+
+FigureCharacterName :: (character: s32) -> string {
+    return ifx character == FIGURE_MALE then "male" else "female"
+}
+
 // An orthographic camera turned YAW about the vertical (0 looks at her
 // front) and PITCH above the horizon, showing HEIGHT metres around CENTER.
 FigureView :: struct {
@@ -34,17 +44,23 @@ FigureView :: struct {
 }
 
 FigureStyle :: struct {
-    watercolor: bool
-    wash: FigureWashSettings
-    // A glowing translucent double: lighter washes, a blue rim, no ink.
+    // Colour strength: 0 grey, 0.5 as the texture maps are, 1 twice as
+    // vivid.
+    colour: float64
+    // A glowing translucent double: pale, lit blue from behind.
     luminous: bool
     opacity: float64
-    // Her painted shadow on the ground.
+    // Her shadows: on herself from the key light, and under her feet.
     shadow: bool
 }
 
 FigureStyleDefault :: () -> FigureStyle {
-    return .{watercolor = true, wash = FigureWashDefault(), opacity = 1.0, shadow = true}
+    return .{colour = 0.6, opacity = 1.0, shadow = true}
+}
+
+// How many times more vivid than painted STYLE makes the colours.
+FigureVivid :: (style: FigureStyle) -> float64 {
+    return FigureClamp(style.colour, 0.0, 1.0) * 2.0
 }
 
 // Moves the whole body rigidly, for an astral double rising or rolling out
@@ -56,38 +72,34 @@ FigureEffect :: struct {
     roll: float64
 }
 
-// The painted textures: one per region, then the face.
+// The texture maps: one per region, then the face.
 FIGURE_FACE :: 5
 FIGURE_TEXTURES :: 6
 
 FigureMedia :: struct {
     anatomy: FigureAnatomy
-    paper: Raster.Image
-    pigment: Raster.Image
     textures: [FIGURE_TEXTURES]Raster.Image
 }
 
 FigureMediaRelease :: (media: *FigureMedia) {
     FigureAnatomyRelease(*media.anatomy)
-    FigureImageRelease(*media.paper)
-    FigureImageRelease(*media.pigment)
     for index: 0..FIGURE_TEXTURES - 1 {
         FigureImageRelease(*media.textures[index])
     }
 }
 
-// DIRECTORY holds anatomy.bin, paper.webp, pigment.webp and the painted
-// textures (practices' shared/watercolor). Anything missing or invalid
-// gives empty media.
-FigureMediaLoad :: (directory: string) -> FigureMedia {
+// DIRECTORY (practices' shared/figure) holds a folder for each character
+// with its anatomy.bin and texture maps. Anything missing or invalid gives
+// empty media.
+FigureMediaLoad :: (directory: string, character: s32) -> FigureMedia {
     media: FigureMedia
-    path: [1024]u8
-    bytes, found := ReadEntireFile(FigurePath(path[:], directory, "/anatomy.bin"))
-    if found && FigureAnatomyRead(*media.anatomy, bytes) {
-        media.paper = LoadImagePixels(FigurePath(path[:], directory, "/paper.webp"))
-        media.pigment = LoadImagePixels(FigurePath(path[:], directory, "/pigment.webp"))
+    folder: [1024]u8
+    path: [1100]u8
+    named := FigurePath(folder[:], directory, ifx character == FIGURE_MALE then "/male" else "/female")
+    bytes, found := ReadEntireFile(FigurePath(path[:], named, "/anatomy.bin"))
+    if named.count > 0 && found && FigureAnatomyRead(*media.anatomy, bytes) {
         for index: cast(s32)0..FIGURE_TEXTURES - 1 {
-            loaded := LoadImagePixels(FigurePath(path[:], directory, FigureTextureName(index)))
+            loaded := LoadImagePixels(FigurePath(path[:], named, FigureTextureName(index)))
             FigureImageTake(*media.textures[index], *loaded)
         }
     }
@@ -98,7 +110,7 @@ FigureMediaLoad :: (directory: string) -> FigureMedia {
 }
 
 FigureMediaReady :: (media: *FigureMedia) -> bool {
-    ready := media.anatomy.bones.count > 0 && Raster.ImageValid(*media.paper) && Raster.ImageValid(*media.pigment)
+    ready := media.anatomy.bones.count > 0
     for index: 0..FIGURE_TEXTURES - 1 {
         ready = ready && Raster.ImageValid(*media.textures[index])
     }
@@ -121,6 +133,11 @@ FigureTimes :: struct {
     shadow: float64
 }
 
+// The lights, in the order they are added to the scene.
+FIGURE_KEY :: 0
+FIGURE_FILL :: 1
+FIGURE_RIM :: 2
+
 FigurePainter :: struct {
     scene: Scene
     // One skinned surface; each region is its own node drawing that
@@ -130,29 +147,23 @@ FigurePainter :: struct {
     blend: FigureSkin
     poses: Vec(FigureBonePose)
     gpu: SceneGpuContext
-    inked: [3]ShaderProgram
-    washed: [3]ShaderProgram
-    bare: [3]ShaderProgram
-    uniforms: [FIGURE_REGIONS][9]ShaderValue
-    samplers: [FIGURE_REGIONS][4]ShaderSampler
-    // How far the cloth is gathered: both ends of each cloth triangle edge
-    // and its rest length, and the rest length about each vertex.
-    ends: Vec(s32)
-    rest: Vec(float64)
-    around: Vec(float64)
-    gathered: Vec(float64)
+    programs: [3]ShaderProgram
+    uniforms: [FIGURE_REGIONS][FIGURE_SHADER_UNIFORMS]ShaderValue
+    samplers: [FIGURE_REGIONS][FIGURE_SHADER_SAMPLERS]ShaderSampler
+    // Each vertex's first vertex at the same place at rest, so normals are
+    // smooth across hems and texture seams, and the normals summed there.
+    weld: Vec(s32)
+    summed: Vec(Vector3)
     // How freely each cloth vertex hangs from the waist, and the waist's
-    // middle at rest.
+    // middle at rest; only a jacket with a skirt hangs.
     hang: Vec(float64)
     waist: Vector3
-    noise: FigureNoise
+    hanging: bool
     pixels: Raster.Image
-    scratch: Raster.Image
-    // The ground shadow: an ellipse on the floor at the centre's height.
+    // The contact shadow: an ellipse on the floor under her.
     shadow_center: Vector3
     shadow_radii: Vector3
     ready: bool
-    warmed: bool
     times: FigureTimes
     // Whether the last picture came from the GPU, and why not, for the
     // caller's status.
@@ -162,25 +173,18 @@ FigurePainter :: struct {
 
 FigurePainterRelease :: (painter: *FigurePainter) {
     SceneSkinRelease(*painter.skin)
-    VecFree(painter.ends)
-    VecFree(painter.rest)
-    VecFree(painter.around)
-    VecFree(painter.gathered)
+    VecFree(painter.weld)
+    VecFree(painter.summed)
     VecFree(painter.hang)
     SceneFree(*painter.scene)
     FigureSkinRelease(*painter.blend)
     VecFree(painter.poses)
     SceneGpuRelease(*painter.gpu)
     for kind: 0..2 {
-        ShaderFree(*painter.inked[kind])
-        ShaderFree(*painter.washed[kind])
-        ShaderFree(*painter.bare[kind])
+        ShaderFree(*painter.programs[kind])
     }
     FigureImageRelease(*painter.pixels)
-    FigureImageRelease(*painter.scratch)
-    FigureNoiseRelease(*painter.noise)
     painter.ready = false
-    painter.warmed = false
 }
 
 // Draws the figure at JOINTS into a WIDTH by HEIGHT picture with a
@@ -188,7 +192,7 @@ FigurePainterRelease :: (painter: *FigurePainter) {
 FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoints,
     view: FigureView, style: FigureStyle, effect: FigureEffect, width: s32, height: s32) -> bool {
     if width < 1 || height < 1 || width > 4096 || height > 4096 || !FigureMediaReady(media) ||
-    !Finite64(style.opacity) || style.opacity <= 0.0 || style.opacity > 1.0 ||
+    !Finite64(style.opacity) || style.opacity <= 0.0 || style.opacity > 1.0 || !Finite64(style.colour) ||
     !Finite64(view.height) || view.height <= 0.0 || !Finite64(effect.roll) {
         return false
     }
@@ -204,8 +208,10 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
         return false
     }
     painter.times.skin = FigureLap(*clock)
-    FigureHang(painter)
-    FigureGather(painter)
+    if painter.hanging {
+        FigureHang(painter)
+    }
+    FigureNormals(painter, *media.anatomy)
     painter.times.cloth = FigureLap(*clock)
     cosine := Cos(effect.roll)
     sine := Sin(effect.roll)
@@ -216,21 +222,14 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
             effect.offset.x + effect.pivot.x - cosine * effect.pivot.x + sine * effect.pivot.y,
             effect.offset.y + effect.pivot.y - sine * effect.pivot.x - cosine * effect.pivot.y,
             effect.offset.z)
-        kind := FigureKind(region)
-        material := painter.scene.meshes[painter.scene.nodes[node].mesh].material
-        material.shader = *painter.inked[kind]
-        if !style.watercolor {
-            material.shader = *painter.bare[kind]
-        } else if style.luminous {
-            material.shader = *painter.washed[kind]
-        }
         // A translucent double is painted opaque and faded as a whole, so
         // its cloth and body do not build up where they overlap.
-        material.opacity = 1.0
-        material.transparent = false
+        material := painter.scene.meshes[painter.scene.nodes[node].mesh].material
+        material.glow = .{90, 160, 255, 255}
+        material.glow_strength = ifx style.luminous then 0.35 else 0.0
         SetMaterial(*painter.scene, node, material)
+        SetShadows(*painter.scene, node, style.shadow && !style.luminous, style.shadow && !style.luminous)
     }
-    FigureShadow(painter, joints)
     toward := FigureV3(Sin(view.yaw) * Cos(view.pitch), Sin(view.pitch), Cos(view.yaw) * Cos(view.pitch))
     half_height := view.height / 2.0
     half_width := half_height * cast(float64)width / cast(float64)height
@@ -241,57 +240,25 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
     if FigureAbs(Sin(view.pitch)) > 0.98 {
         camera.up = FigureV3(-Sin(view.yaw), 0.0, -Cos(view.yaw))
     }
-    // Light from her upper left and in front, turning with the camera so
-    // the washes read the same from every side.
-    light := FigureRotate(FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), view.yaw), FigureV3(-0.45, 0.75, 0.55))
-    paper := FigureLinear(0xf4ecdc)
+    FigureLights(painter, view, style)
+    vivid := FigureVivid(style)
     for region: 0..FIGURE_REGIONS - 1 {
         uniforms := painter.uniforms[region][:]
         uniforms[0] = .{1.0, 1.0, 0.0, 0.0}
-        uniforms[1] = .{light.x, light.y, light.z, 0.0}
-        uniforms[2] = .{toward.x, toward.y, toward.z, 0.0}
-        uniforms[3] = .{0.0, 0.0, 0.0, 0.0}
-        // Skin shades warm and rosy; cloth and hair take a cool violet shadow.
-        uniforms[4] = ifx region == FIGURE_SKIN then ShaderValue.{0.74, 0.58, 0.60, 1.0} else ShaderValue.{0.52, 0.50, 0.74, 1.0}
-        uniforms[5] = .{1.03, 1.0, 0.96, 1.0}
-        // Dark hair keeps its colour in the light; skin and cloth let the
-        // paper through.
-        through := ifx region == FIGURE_HAIR then 0.08 else 0.22
-        uniforms[6] = .{paper.x * through, paper.y * through, paper.z * through, 0.0}
-        uniforms[7] = .{1.0, 1.0, 1.0, FigureRegionAlpha(cast(s32)region)}
-        uniforms[8] = .{1.0 - through, 1.0 - through, 1.0 - through, 1.0}
-        if style.luminous {
-            uniforms[3] = .{0.22, 0.52, 0.75, 0.0}
-            uniforms[4] = .{0.80, 0.86, 1.0, 1.0}
-            uniforms[5] = .{1.12, 1.14, 1.18, 1.0}
-            uniforms[7] = .{1.0, 1.0, 1.0, 1.0}
-        }
+        uniforms[1] = .{vivid, vivid, vivid, vivid}
+        uniforms[2] = ifx style.luminous then ShaderValue.{0.80, 0.90, 1.0, 0.55} else ShaderValue.{0.0, 0.0, 0.0, 0.0}
     }
     if !FigureImageSize(*painter.pixels, width, height) {
         return false
     }
     unused FigureLap(*clock)
     result := SceneGpuRenderOrCPU(*painter.gpu, *painter.scene, camera, *painter.pixels)
-    if !painter.warmed {
-        // At Kryon 199b51c9 a sampler texture uploaded during a frame can
-        // take another sampler's unit for that frame: the first picture
-        // shows the face painting on the skin. Paint it once more.
-        painter.warmed = true
-        result = SceneGpuRenderOrCPU(*painter.gpu, *painter.scene, camera, *painter.pixels)
-    }
     painter.accelerated = result.accelerated
     painter.diagnostic = result.diagnostic
     if !result.ok {
         return false
     }
     painter.times.render = FigureLap(*clock)
-    if style.watercolor {
-        if !FigureWash(*painter.pixels, *painter.scratch, *painter.noise, *media.paper, *media.pigment, style.wash) {
-            return false
-        }
-    } else {
-        FigureOpaque(*painter.pixels)
-    }
     if style.opacity < 1.0 {
         for index: 0..cast(s64)width * height - 1 {
             alpha := cast(float64)painter.pixels.pixels[index * 4 + 3] * style.opacity
@@ -300,7 +267,8 @@ FigurePaint :: (painter: *FigurePainter, media: *FigureMedia, joints: *FigureJoi
     }
     painter.times.finish = FigureLap(*clock)
     if style.shadow && !style.luminous {
-        FigureShadowUnder(painter, *media.paper, camera, view, light)
+        FigureShadow(painter, joints)
+        FigureShadowUnder(painter, camera, view)
     }
     painter.times.shadow = FigureLap(*clock)
     return true
@@ -324,6 +292,13 @@ FigureKind :: (region: s32) -> s32 {
         return FIGURE_SHADE_SKIN
     }
     return ifx region == FIGURE_HAIR then FIGURE_SHADE_HAIR else FIGURE_SHADE_CLOTH
+}
+
+// How rough each region's surface is: soft matte skin, a soft sheen on the
+// clothes and a little more on the hair.
+FigureRoughness :: (region: s32) -> float64 {
+    roughness: [FIGURE_REGIONS]float64 = .[0.58, 0.62, 0.72, 0.64, 0.58]
+    return roughness[region]
 }
 
 FigureImageTake :: (to: *Raster.Image, from: *Raster.Image) {
@@ -351,34 +326,108 @@ FigureImageSize :: (image: *Raster.Image, width: s32, height: s32) -> bool {
     return true
 }
 
-// Writes how far each vertex's cloth is gathered, from the edges about it
-// against their rest lengths, into its vertex data for the creases.
-FigureGather :: (painter: *FigurePainter) {
+// The studio lights turn with the camera, so she is lit the same from every
+// side: the key from above her front left, the fill low from the right, the
+// rim from behind on the right, under a pale sky over warm ground. A glowing
+// double is lit cool and bright from behind.
+FigureLights :: (painter: *FigurePainter, view: FigureView, style: FigureStyle) {
+    scene := *painter.scene
+    turn := FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), view.yaw)
+    places: [3]Vector3 = .[FigureV3(-0.42, 0.78, 0.47), FigureV3(0.72, 0.22, 0.66), FigureV3(0.40, 0.52, -0.75)]
+    for light: 0..2 {
+        scene.lights[light].target = view.center
+        scene.lights[light].position = FigureAddScaled(view.center, FigureRotate(turn, FigureNormalize(places[light])), 6.0)
+    }
+    scene.lights[FIGURE_KEY].shadow = style.shadow && !style.luminous
+    scene.lights[FIGURE_KEY].intensity = ifx style.luminous then 1.4 else 2.6
+    scene.lights[FIGURE_FILL].intensity = 0.85
+    scene.lights[FIGURE_RIM].intensity = ifx style.luminous then 3.2 else 1.7
+    scene.lights[FIGURE_RIM].color = .{238, 244, 255, 255}
+    if style.luminous {
+        scene.lights[FIGURE_RIM].color = .{150, 200, 255, 255}
+    }
+    if style.luminous {
+        AddHemisphereLight(scene, .{200, 225, 255, 255}, .{150, 170, 220, 255}, 1.8)
+    } else {
+        AddHemisphereLight(scene, .{222, 231, 247, 255}, .{205, 182, 162, 255}, 1.45)
+    }
+}
+
+// Each vertex's normal from the posed surface: the area-weighted normals of
+// the triangles about it, shared by every vertex at the same place at rest.
+FigureNormals :: (painter: *FigurePainter, anatomy: *FigureAnatomy) {
     scene := *painter.scene
     first := scene.meshes[scene.nodes[painter.skin.node].mesh].first_vertex
-    for index: 0..painter.gathered.count - 1 {
-        painter.gathered[index] = 0.0
+    for index: 0..painter.summed.count - 1 {
+        painter.summed[index] = .{}
     }
-    for edge: 0..painter.rest.count - 1 {
-        a := painter.ends[edge * 2]
-        b := painter.ends[edge * 2 + 1]
-        length := FigureDistance(scene.positions[first + a], scene.positions[first + b])
-        painter.gathered[a] += length
-        painter.gathered[b] += length
+    triangles := anatomy.indices.count / 3
+    for triangle: 0..triangles - 1 {
+        a := anatomy.indices[triangle * 3]
+        b := anatomy.indices[triangle * 3 + 1]
+        c := anatomy.indices[triangle * 3 + 2]
+        pa := scene.positions[first + a]
+        normal := FigureCross(FigureSub(scene.positions[first + b], pa), FigureSub(scene.positions[first + c], pa))
+        wa := painter.weld[a]
+        wb := painter.weld[b]
+        wc := painter.weld[c]
+        painter.summed[wa] = FigureAdd(painter.summed[wa], normal)
+        painter.summed[wb] = FigureAdd(painter.summed[wb], normal)
+        painter.summed[wc] = FigureAdd(painter.summed[wc], normal)
     }
-    for index: 0..painter.gathered.count - 1 {
-        if painter.around[index] > 0.0 {
-            ratio := painter.around[index] / FigureMax(painter.gathered[index], 0.000000001)
-            scene.colors[first + index] = .{FigureClamp((ratio - 1.03) * 5.0, 0.0, 1.0), 0.0, 0.0}
+    for index: 0..painter.weld.count - 1 {
+        summed := painter.summed[painter.weld[index]]
+        length := Sqrt(FigureDot(summed, summed))
+        if length > 0.000000000001 {
+            scene.normals[first + index] = FigureScale(summed, 1.0 / length)
         }
     }
     scene.geometry_frozen = false
 }
 
-// The top's lower part hangs towards the ground: when her pelvis
-// tips, as in a fold, a plank or downward dog, they swing about the waist
-// from where the pelvis carries them towards straight down, the more the
-// nearer the hem.
+// Every vertex's first vertex at the same place at rest, found through a
+// hash of the place to a tenth of a millimetre.
+FigureWeld :: (painter: *FigurePainter, anatomy: *FigureAnatomy) -> bool {
+    count := anatomy.positions.count
+    size: s64 = 1
+    while size < count * 2 {
+        size *= 2
+    }
+    table: Vec(s32)
+    defer VecFree(table)
+    if !VecResize(table, size) || !VecResize(painter.weld, count) || !VecResize(painter.summed, count) {
+        return false
+    }
+    for slot: 0..size - 1 {
+        table[slot] = -1
+    }
+    for index: 0..count - 1 {
+        point := anatomy.positions[index]
+        qx := RoundToInteger(point.x * 10000.0)
+        qy := RoundToInteger(point.y * 10000.0)
+        qz := RoundToInteger(point.z * 10000.0)
+        hash := (cast(u64)qx * 73856093) ^ (cast(u64)qy * 19349663) ^ (cast(u64)qz * 83492791)
+        slot := cast(s64)(hash & cast(u64)(size - 1))
+        painter.weld[index] = cast(s32)index
+        while table[slot] >= 0 {
+            other := anatomy.positions[table[slot]]
+            if RoundToInteger(other.x * 10000.0) == qx && RoundToInteger(other.y * 10000.0) == qy &&
+            RoundToInteger(other.z * 10000.0) == qz {
+                painter.weld[index] = table[slot]
+                break
+            }
+            slot = (slot + 1) & (size - 1)
+        }
+        if painter.weld[index] == cast(s32)index {
+            table[slot] = cast(s32)index
+        }
+    }
+    return true
+}
+
+// The jacket's skirt hangs towards the ground: when his pelvis tips, as in
+// a fold, a plank or downward dog, it swings about the waist from where the
+// pelvis carries it towards straight down, the more the nearer the hem.
 FigureHang :: (painter: *FigurePainter) {
     scene := *painter.scene
     pelvis := painter.poses[0]
@@ -400,19 +449,19 @@ FigureHang :: (painter: *FigurePainter) {
         turn := FigureBlend(FigureIdentity(), swing, hang * 0.85)
         at := first + index
         offset := FigureRotate(turn, FigureSub(scene.positions[at], pivot))
-        // Swung over her back it lies closer on her than it hung from the
+        // Swung over his back it lies closer on him than it hung from the
         // hips.
         axis := FigureRotate(turn, carried)
         along := FigureDot(offset, axis)
         across := FigureAddScaled(offset, axis, -along)
         offset = FigureAddScaled(FigureScale(across, 1.0 - 0.6 * tipped * hang), axis, along)
         scene.positions[at] = FigureAdd(pivot, offset)
-        scene.normals[at] = FigureRotate(turn, scene.normals[at])
     }
 }
 
-// Spreads the shadow under the joints that rest lowest: her feet when she
-// stands, her whole length when she lies down.
+// Spreads the shadow under the joints that rest lowest: the feet when
+// standing, the whole length when lying down, on the floor under the lowest
+// point of the posed surface.
 FigureShadow :: (painter: *FigurePainter, joints: *FigureJoints) {
     points: [9]Vector3 = .[joints.pelvis, joints.ankles[0], joints.ankles[1], joints.toes[0],
         joints.toes[1], joints.wrists[0], joints.wrists[1], joints.neck, joints.knees[0]]
@@ -429,8 +478,14 @@ FigureShadow :: (painter: *FigurePainter, joints: *FigureJoints) {
             high = .{FigureMax(high.x, point.x), 0.0, FigureMax(high.z, point.z)}
         }
     }
-    painter.shadow_center = .{(low.x + high.x) * 0.5, floor - 0.03, (low.z + high.z) * 0.5}
-    painter.shadow_radii = .{(high.x - low.x) * 0.5 + 0.24, 0.0, (high.z - low.z) * 0.5 + 0.20}
+    scene := *painter.scene
+    first := scene.meshes[scene.nodes[painter.skin.node].mesh].first_vertex
+    lowest: float64 = 1000.0
+    for index: 0..painter.weld.count - 1 {
+        lowest = FigureMin(lowest, scene.positions[first + index].y)
+    }
+    painter.shadow_center = .{(low.x + high.x) * 0.5, lowest, (low.z + high.z) * 0.5}
+    painter.shadow_radii = .{(high.x - low.x) * 0.5 + 0.22, 0.0, (high.z - low.z) * 0.5 + 0.18}
 }
 
 FigurePixel :: (point: Vector3, camera: SceneCamera, right: Vector3, up: Vector3, scale: float64,
@@ -440,10 +495,9 @@ FigurePixel :: (point: Vector3, camera: SceneCamera, right: Vector3, up: Vector3
         cast(float64)image.height * 0.5 - FigureDot(offset, up) * scale}
 }
 
-// Paints the ground shadow under the finished picture, cast a little away
-// from LIGHT. The floor ellipse projects to an ellipse in the picture.
-FigureShadowUnder :: (painter: *FigurePainter, paper: *Raster.Image, camera: SceneCamera, view: FigureView,
-    light: Vector3) {
+// Lays the contact shadow under the finished picture. The floor ellipse
+// projects to an ellipse in the picture.
+FigureShadowUnder :: (painter: *FigurePainter, camera: SceneCamera, view: FigureView) {
     look := FigureNormalize(FigureSub(camera.target, camera.position))
     if FigureAbs(look.y) < 0.03 {
         return
@@ -452,8 +506,7 @@ FigureShadowUnder :: (painter: *FigurePainter, paper: *Raster.Image, camera: Sce
     up := FigureCross(right, look)
     image := *painter.pixels
     scale := cast(float64)image.height / view.height
-    away := FigureNormalize(FigureV3(-light.x, 0.0, -light.z))
-    center := FigureAddScaled(painter.shadow_center, away, 0.10)
+    center := painter.shadow_center
     // The floor point centre + s X + t Z lands at pixel origin + s A + t B.
     origin := FigurePixel(center, camera, right, up, scale, image)
     a := FigurePixel(FigureAdd(center, FigureV3(painter.shadow_radii.x, 0.0, 0.0)), camera, right, up, scale, image)
@@ -467,7 +520,7 @@ FigureShadowUnder :: (painter: *FigurePainter, paper: *Raster.Image, camera: Sce
         return
     }
     spot: FigureSpot = .{origin = origin, xx = by / det, xy = -bx / det, yx = -ay / det, yy = ax / det}
-    FigureShadowWash(image, *painter.noise, paper, 1.0, spot)
+    FigureContactShadow(image, spot, 0.42)
 }
 
 FigurePath :: (buffer: []u8, directory: string, name: string) -> string {
@@ -493,15 +546,19 @@ FigureChannel :: (channel: u32) -> float64 {
 
 FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
     for kind: 0..2 {
-        if !FigureWashCompile(*painter.inked[kind], cast(s32)kind, true).ok ||
-        !FigureWashCompile(*painter.washed[kind], cast(s32)kind, false).ok ||
-        !FigureBareCompile(*painter.bare[kind], cast(s32)kind).ok {
+        if !FigureSurfaceCompile(*painter.programs[kind], cast(s32)kind).ok {
             return false
         }
     }
-    FigureNoiseFill(*painter.noise)
     SceneInit(*painter.scene)
     painter.scene.background = .{0, 0, 0, 0}
+    painter.scene.tone_mapping = true
+    // Key, fill and rim, placed each frame; the key casts soft shadows over
+    // a box round her.
+    key := AddDirectionalLight(*painter.scene, .{255, 243, 228, 255}, 2.6, .{0.0, 1.0, 0.0})
+    unused AddDirectionalLight(*painter.scene, .{208, 222, 255, 255}, 0.85, .{1.0, 0.0, 0.0})
+    unused AddDirectionalLight(*painter.scene, .{238, 244, 255, 255}, 1.7, .{0.0, 0.0, -1.0})
+    CastLightShadow(*painter.scene, key, 1.25, 1.25, 0.5, 12.0, 2048, -0.0004, 0.012, 1.4)
     anatomy := *media.anatomy
     // The triangles grouped by region, each region's run starting at FIRST.
     indices: Vec(s32)
@@ -521,9 +578,9 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
         FigureBind(painter, media, region)
     }
     first[FIGURE_REGIONS] = cast(s32)indices.count
-    material := UnlitMaterial(.{255, 255, 255, 255})
+    material := LitMaterial(.{255, 255, 255, 255}, FigureRoughness(FIGURE_SKIN), 0.0)
     material.vertex_colors = true
-    material.shader = *painter.inked[FIGURE_SHADE_SKIN]
+    material.shader = *painter.programs[FIGURE_SHADE_SKIN]
     material.shader_uniforms = painter.uniforms[FIGURE_SKIN][:]
     material.shader_samplers = painter.samplers[FIGURE_SKIN][:]
     if !SceneSkinCreate(*painter.scene, *painter.skin, cast(s32)anatomy.bones.count, anatomy.positions[:],
@@ -544,8 +601,9 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
         run := mesh
         run.first_index = mesh.first_index + first[region]
         run.index_count = first[region + 1] - first[region]
+        run.material.roughness = FigureRoughness(region)
         run.material.double_sided = region != FIGURE_HAIR
-        run.material.shader = *painter.inked[FigureKind(region)]
+        run.material.shader = *painter.programs[FigureKind(region)]
         run.material.shader_uniforms = painter.uniforms[region][:]
         run.material.shader_samplers = painter.samplers[region][:]
         holder := node
@@ -555,67 +613,65 @@ FigurePainterPrepare :: (painter: *FigurePainter, media: *FigureMedia) -> bool {
             return false
         }
     }
+    // The skin's vertex data is where the face map lies and how much of it
+    // shows; the hair's how far it fades into the skin at the hairline.
     for index: 0..anatomy.positions.count - 1 {
         detail := anatomy.details[index]
-        scene.colors[index] = ifx anatomy.regions[index] == FIGURE_SKIN then Vector3.{detail.x, detail.y,
-            anatomy.faces[index]} else Vector3.{}
+        region := anatomy.regions[index]
+        scene.colors[index] = .{}
+        if region == FIGURE_SKIN {
+            scene.colors[index] = .{detail.x, detail.y, anatomy.faces[index]}
+        } else if region == FIGURE_HAIR {
+            scene.colors[index] = .{FigureClamp(detail.x, 0.0, 1.0), 0.0, 0.0}
+        }
     }
     scene.geometry_frozen = false
-    // Cloth edges, for how far it gathers, and how freely it hangs.
+    if !FigureWeld(painter, anatomy) {
+        return false
+    }
+    // How freely the cloth hangs: the waist's middle is the middle of the
+    // skirt's top rows, all round him.
     count := anatomy.positions.count
-    if !VecResize(painter.around, count) || !VecResize(painter.gathered, count) ||
-    !VecResize(painter.hang, count) {
+    if !VecResize(painter.hang, count) {
         return false
     }
     ring: float64
     painter.waist = .{}
     for index: 0..count - 1 {
-        painter.around[index] = 0.0
         painter.hang[index] = 0.0
-        if anatomy.regions[index] != FIGURE_SKIN {
+        if anatomy.regions[index] != FIGURE_SKIN && anatomy.regions[index] != FIGURE_HAIR {
             painter.hang[index] = FigureClamp(anatomy.details[index].x, 0.0, 1.0)
         }
-        // The waist's middle: the top's hem rows nearest the waist, all
-        // round her.
         if anatomy.regions[index] == FIGURE_TOP && painter.hang[index] > 0.0 && painter.hang[index] <= 0.2 {
             painter.waist = FigureAdd(painter.waist, anatomy.positions[index])
             ring += 1.0
         }
     }
-    if ring == 0.0 {
-        return false
-    }
-    painter.waist = FigureScale(painter.waist, 1.0 / ring)
-    VecClear(painter.ends)
-    VecClear(painter.rest)
-    for at: first[1]..first[FIGURE_REGIONS] - 1 {
-        if FigureKind(anatomy.regions[indices[at]]) == FIGURE_SHADE_CLOTH {
-            a := indices[at]
-            b := indices[ifx at % 3 == 2 then at - 2 else at + 1]
-            length := FigureDistance(anatomy.positions[a], anatomy.positions[b])
-            if !VecPush(painter.ends, a) || !VecPush(painter.ends, b) || !VecPush(painter.rest, length) {
-                return false
-            }
-            painter.around[a] += length
-            painter.around[b] += length
-        }
+    painter.hanging = ring > 0.0
+    if painter.hanging {
+        painter.waist = FigureScale(painter.waist, 1.0 / ring)
     }
     painter.ready = true
     return true
 }
 
-// REGION's samplers: paper, pigment, its painted texture and the face.
+// REGION's samplers: its texture map and the face.
 FigureBind :: (painter: *FigurePainter, media: *FigureMedia, region: s32) {
     texture := *media.textures[region]
     face := *media.textures[FIGURE_FACE]
-    painter.samplers[region][0] = .{width = media.paper.width, height = media.paper.height,
-        pixels = media.paper.pixels[:], repeat = true}
-    painter.samplers[region][1] = .{width = media.pigment.width, height = media.pigment.height,
-        pixels = media.pigment.pixels[:], repeat = true}
-    painter.samplers[region][2] = .{width = texture.width, height = texture.height, pixels = texture.pixels[:],
+    painter.samplers[region][0] = .{width = texture.width, height = texture.height, pixels = texture.pixels[:],
         repeat = true}
-    painter.samplers[region][3] = .{width = face.width, height = face.height, pixels = face.pixels[:]}
-    for slot: 0..8 {
+    painter.samplers[region][1] = .{width = face.width, height = face.height, pixels = face.pixels[:]}
+    for slot: 0..FIGURE_SHADER_UNIFORMS - 1 {
         painter.uniforms[region][slot] = .{1.0, 1.0, 1.0, 1.0}
+    }
+    // The skin map is one flat colour: its first texel, in linear light as
+    // the shader squares it.
+    skin := *media.textures[FIGURE_SKIN]
+    if skin.pixels.count >= 4 {
+        r := cast(float64)skin.pixels[0] / 255.0
+        g := cast(float64)skin.pixels[1] / 255.0
+        b := cast(float64)skin.pixels[2] / 255.0
+        painter.uniforms[region][3] = .{r * r, g * g, b * b, 1.0}
     }
 }

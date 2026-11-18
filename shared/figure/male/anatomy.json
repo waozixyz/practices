@@ -1,10 +1,11 @@
 {
   "format": "PFIG0002",
-  "vertices": 17209,
-  "triangles": 32363,
+  "character": "male",
+  "vertices": 16682,
+  "triangles": 31501,
   "bones": 46,
-  "bytes": 1021706,
-  "sha256": "f9b8631fd4f757ad67ce0f32091199339065aaf4c5c099370c071dd42ccebde6",
+  "bytes": 991238,
+  "sha256": "d653cfe2f5540159b198d2eeb8566287c8042428e90d94d0d4849311f299ee0b",
   "regions": [
     "skin",
     "top",
@@ -12,6 +13,35 @@
     "hair",
     "trim"
   ],
+  "shape": {
+    "races": [
+      [
+        "asian",
+        0.9
+      ],
+      [
+        "caucasian",
+        0.1
+      ]
+    ],
+    "weight": 0.4,
+    "muscle": 0.65,
+    "height": 0.6,
+    "hands": 0.98,
+    "feet": 0.98,
+    "neck": 0.004,
+    "shoulders": 0.0,
+    "jaw": 0.0,
+    "outfit": "kungfu",
+    "hair": "short"
+  },
+  "face": {
+    "size_metres": 0.22,
+    "low": [
+      -0.11,
+      1.45152
+    ]
+  },
   "source": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj",
   "license": "CC0-1.0",
   "bone_names": [
