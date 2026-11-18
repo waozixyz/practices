@@ -1,6 +1,7 @@
 // The figure's model-independent parts: dual-quaternion skinning on a
-// Kryon skin, the contact shadow, setting a picture over a backdrop, and a
-// model file that is missing or not humanoid being refused cleanly.
+// Kryon skin, the contact shadow, setting a picture over a backdrop, a
+// model file that is missing or not humanoid being refused cleanly, and
+// the eyes' blinking.
 #import "figure_math"
 #import "figure_joints"
 #import "figure_skin"
@@ -86,6 +87,16 @@ main :: () -> s32 {
     defer FigureModelRelease(*figure)
     fail += Check(!FigureModelLoad(*figure, *model_scene, "tests/no-such-model.glb") && !figure.ready,
         "a missing model file is refused")
+    // Her eyes are open on a still pose and, played, shut briefly every
+    // few seconds: about twenty blinks a minute, open nearly all the time.
+    shut: s32
+    open: s32
+    for frame: 0..1799 {
+        closed := FigureBlink(cast(float64)frame / 30.0)
+        shut += ifx closed > 0.9 then 1 else 0
+        open += ifx closed < 0.01 then 1 else 0
+    }
+    fail += Check(FigureBlink(-1.0) == 0.0 && shut >= 15 && open > 1600, "her eyes blink now and then")
     if fail == 0 {
         print("Figure parts local tests passed\n")
     }

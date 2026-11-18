@@ -6,12 +6,14 @@
 // so the limbs point where the solver's joints are, keeping the model's own
 // proportions; the trunk, head and feet take the solver's turns. The whole
 // model is scaled so its legs match the solver's and placed so its ankles
-// stand on the solver's ankles.
+// stand on the solver's ankles. A VRM model's hair and clothes swing on its
+// spring bones and its eyes blink while the pose is played over time.
 #import "figure_math"
 #import "figure_joints"
 #import "kryon/scene"
 #import "kryon/scene_gltf"
 #import "kryon/scene_skin"
+#import "kryon/scene_vrm"
 #import "kryon/shader"
 #import "std/math"
 #import "std/vec"
@@ -60,6 +62,10 @@ FigureModel :: struct {
     toon: ShaderProgram
     uniforms: Vec(ShaderValue)
     toon_nodes: Vec(s32)
+    // A VRM model's spring bones and expressions, and the practice time of
+    // the last pose played (below zero when none was).
+    avatar: VrmAvatar
+    clock: float64
     ready: bool
 }
 
@@ -74,6 +80,8 @@ FigureModelRelease :: (figure: *FigureModel) {
     VecFree(figure.uniforms)
     VecFree(figure.toon_nodes)
     ShaderFree(*figure.toon)
+    VrmAvatarRelease(*figure.avatar)
+    figure.clock = -1.0
     figure.ready = false
 }
 
@@ -157,12 +165,19 @@ FigureModelLoad :: (figure: *FigureModel, scene: *Scene, path: string) -> bool {
     // keeps its own naming; only the heading is turned.
     figure.yaw = -Atan2(forward.x, forward.z)
     figure.facing = FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), figure.yaw)
+    // A VRM model's springs start from its rest pose.
+    if VrmReadFile(*figure.avatar, path) {
+        unused VrmSpringsReset(*figure.avatar, *figure.model, *figure.instance)
+    }
+    figure.clock = -1.0
     figure.ready = true
     return true
 }
 
-// Poses the loaded model in SCENE at JOINTS.
-FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) -> bool {
+// Poses the loaded model in SCENE at JOINTS. Played at SECONDS of the
+// practice, a VRM model's hair swings from the last pose and its eyes
+// blink; a still pose (no SECONDS) has the hair hanging at rest.
+FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, seconds: float64 = -1.0) -> bool {
     if !figure.ready {
         return false
     }
@@ -258,7 +273,33 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) 
     SetPosition(scene, root, offset.x, offset.y, offset.z)
     SetRotation(scene, root, 0.0, figure.yaw, 0.0)
     SetScale(scene, root, scale, scale, scale)
+    FigureModelLive(figure, offset, scale, seconds)
     return GltfUpdateScene(*figure.model, *figure.instance, scene)
+}
+
+// How closed the eyes are at SECONDS: a blink every two to five seconds,
+// closing quickly and opening a little slower, now and then twice.
+FigureBlink :: (seconds: float64) -> float64 {
+    if seconds < 0.0 {
+        return 0.0
+    }
+    cell := cast(s64)(seconds / FIGURE_BLINK_EVERY)
+    closed: float64
+    for twice: 0..1 {
+        chance := FigureHash(cast(float64)(cell * 2 + twice))
+        if twice == 1 && chance > 0.25 {
+            break
+        }
+        start := cast(float64)cell * FIGURE_BLINK_EVERY + 0.3 + FigureHash(cast(float64)cell + 0.5) * 2.4 +
+            cast(float64)twice * 0.32
+        t := seconds - start
+        if t >= 0.0 && t < 0.07 {
+            closed = FigureMax(closed, FigureSmooth(t / 0.07))
+        } else if t >= 0.07 && t < 0.2 {
+            closed = FigureMax(closed, 1.0 - FigureSmooth((t - 0.07) / 0.13))
+        }
+    }
+    return closed
 }
 
 // Gives every mesh a cel-shaded look on its own base colour texture: light
@@ -301,6 +342,43 @@ FigureModelLight :: (figure: *FigureModel, light: Vector3, view: Vector3) {
 }
 
 #scope_file
+FIGURE_BLINK_EVERY :: 3.2
+
+FigureHash :: (value: float64) -> float64 {
+    wave := Sin(value * 12.9898 + 78.233) * 43758.5453
+    return wave - cast(float64)cast(s64)wave + ifx wave < 0.0 then 1.0 else 0.0
+}
+
+FigureSmooth :: (u: float64) -> float64 {
+    t := FigureClamp(u, 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+}
+
+// The live parts of a VRM model at SECONDS: springs placed in the world as
+// the root is, swinging since the last pose (settled and hung at rest on a
+// still pose, a seek or the first one), and the eyes' blink.
+FigureModelLive :: (figure: *FigureModel, offset: Vector3, scale: float64, seconds: float64) {
+    if !figure.avatar.ready {
+        return
+    }
+    unused VrmSetExpression(*figure.avatar, *figure.model, *figure.instance, "blink", FigureBlink(seconds))
+    if figure.avatar.joints.count == 0 {
+        return
+    }
+    half := figure.yaw * 0.5
+    VrmSetFrame(*figure.avatar, .{0.0, Sin(half), 0.0, Cos(half)}, offset, scale)
+    elapsed := seconds - figure.clock
+    if seconds < 0.0 || figure.clock < 0.0 || elapsed < 0.0 || elapsed > 0.25 {
+        VrmSpringsSettle(*figure.avatar, *figure.model, *figure.instance)
+        for step: 0..29 {
+            VrmSpringsUpdate(*figure.avatar, *figure.model, *figure.instance, 1.0 / 60.0)
+        }
+    } else {
+        VrmSpringsUpdate(*figure.avatar, *figure.model, *figure.instance, elapsed)
+    }
+    figure.clock = seconds
+}
+
 
 // Moves FROM's contents into TO, leaving FROM with TO's old ones.
 FigureTakeModel :: (to: *GltfModel, from: *GltfModel) {

@@ -19,7 +19,11 @@ The modules:
   (`FigureBackdropCover`) and pictures laid over each other (`FigureOver`,
   `FigureOverOnto`).
 - `figure_model`: a figure loaded from a glTF 2.0 or VRM file through
-  Kryon's importer (`kryon/scene_gltf`) and posed from `FigureJoints`. Its
+  Kryon's importer (`kryon/scene_gltf`) and posed from `FigureJoints`.
+  Posed with the practice's time (`FigureModelPose(..., seconds)`), a VRM
+  figure's hair and clothes swing on its spring bones (`kryon/scene_vrm`)
+  as she moves and turns, and her eyes blink every few seconds
+  (`FigureBlink`); a still pose has the hair hanging at rest. Its
   humanoid bones are found by name (VRoid's `J_Bip_*`, Mixamo's
   `mixamorig` and common Blender names). Each pose turns them so the limbs
   point where the solver's joints are, keeping the model's own

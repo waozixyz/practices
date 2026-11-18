@@ -13,7 +13,7 @@ ref = "1934aae05eadec28f3f96ea8c3cfe3a21888487d"
 
 [dependencies.kryon]
 git = "https://github.com/kryonlabs/kryon.git"
-ref = "0ad6f6cf07e0288450f1c6f9a2a7def1962a7a30"
+ref = "ac6c8f47b8d52251213bd416ea373fc60bfd447f"
 
 [exports]
 figure_math = "figure/figure_math.zi"
