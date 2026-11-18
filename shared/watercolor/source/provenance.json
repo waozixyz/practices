@@ -1,0 +1,167 @@
+{
+  "generated": "2026-11-17",
+  "generator": "Harmony generate_image (the owner's configured image model), no reference image",
+  "cleanup": "Offline OCR (PP-OCRv6-small) found no text in ten of the twelve; on the face and the character sheet it returned one low-confidence box covering the whole picture, checked by eye: there is no text, signature or watermark in any of them. Stored as WebP q90. Swatch colour, seamless tiling, the face's colour match and phone sizes are applied by Breeze scripts/prepare-practice-human.py --textures-only.",
+  "not_kept": {
+    "32dbeb2a8e2abf508cd7e871a03a51c38959": "Sun Salutation concept (low lunge at sunrise); same character, weaker than the style target",
+    "6d37b34e1bc813af47ca81f8a88ba5e5d95e": "Tai Chi single whip concept; same character, busier"
+  },
+  "files": {
+    "figure/design/reference/style-target.webp": {
+      "request": "02fc633e6c0d5f7bf4bd94df7268027f039c",
+      "prompt": "Hand-painted watercolor illustration on cold-press watercolor paper, full-body view of one young woman doing Tai Chi in a low bow stance (\"brush knee\" posture): front knee bent, back leg long, one palm pushing forward at chest height, the other hand lowered beside the hip. She wears loose practice clothes: a flowing jade-green wrap tunic with wide sleeves, a soft sash at the waist, hem falling over the hips, and wide flowing slate-indigo trousers, barefoot. Dark brown hair in a low bun, calm face with softly painted closed eyes, brows and lips. Background: a misty mountain garden painted wet-on-wet, pale distant peaks, a pine branch, soft blooms of grey-green mist, figure grounded by a loose painted shadow wash. Limited harmonious palette: jade green, indigo, warm ochre skin, sepia, cream paper. Visible paper texture and pigment granulation, dark dried wash edges, loose brush strokes following the form, a warm sepia ink line with varying width and gaps. Two or three values of shading, no gradients, no shine. Artistic picture-book illustration. No text, no signature, no watermark, no frame.",
+      "original_png_sha256": "97fec6d74efca3f33453923415aba8fe1e9533299f09f69c6d8f923e157b9d03",
+      "original_size": [
+        1199,
+        1312
+      ],
+      "kept_size": [
+        1199,
+        1312
+      ]
+    },
+    "figure/design/reference/character-sheet.webp": {
+      "request": "c5b311badc6c4a0ddc945ff26b4ca8b6073f",
+      "prompt": "Watercolor character sheet on cream cold-press watercolor paper: the same young woman painted three times side by side, full body, consistent design: (1) Tai Chi standing posture with arms raised softly in front, (2) Sun Salutation downward-facing dog seen from the side, (3) a deep Tai Chi side stance with arms open. She wears a flowing jade-green wrap tunic with wide sleeves, a sash at the waist and a hem over the hips, and wide flowing slate-indigo trousers, barefoot, dark brown hair in a low bun, warm ochre skin with soft rosy cheeks, knuckles and knees. Each figure stands on a loose painted shadow wash. Limited harmonious palette: jade, indigo, ochre, sepia. Wet-on-wet colour bleeds inside the shapes, dark dried edges where washes end, granulation pooling in the shadows, two or three values of shading, brush strokes following the folds, a warm sepia ink contour that varies in width and breaks in places, paper texture visible throughout. No text, no labels, no signature, no watermark.",
+      "original_png_sha256": "874ab6f75530b147fbf05bf861ecd28cf87aafda05fa91658ba0bc7ae7d677d8",
+      "original_size": [
+        1920,
+        819
+      ],
+      "kept_size": [
+        1600,
+        683
+      ]
+    },
+    "shared/watercolor/source/tunic.webp": {
+      "request": "29442db1ecb0e164f6633f70d0cd83bdefa4",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of soft sage-jade green linen fabric (base colour about #8FA483), loose vertical brush strokes and long painted fabric folds running top to bottom in slightly darker green, a faint subtle woven pattern, heavy pigment granulation, wet-on-wet blooms, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat front view, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
+      "original_png_sha256": "2d83071bb70b79b0939dca25a174b8634ba9aef8c8c49b958dec6bc80d2fdb6d",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/trousers.webp": {
+      "request": "155d6250e3a581d769191e13bd627771c08b",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of slate violet-indigo cotton fabric (base colour about #5E5F86), loose vertical brush strokes and long soft painted folds running top to bottom in deeper indigo, heavy granulating pigment like ultramarine, wet-on-wet blooms and backruns, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat front view, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
+      "original_png_sha256": "e9219fb2a7865a4b4f89edce5fd48a0816e9de8ca0b0016fbdc15ab6309aacf1",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/skin.webp": {
+      "request": "d94e365139f879971d880957d99e4b960678",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor skin wash in warm ochre-peach (base colour about #E8BC92), soft uneven layered washes with gentle rosy blooms, subtle granulation, slightly darker dried wash edges here and there, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat, fills the whole square. No objects, no features, no figure, no text, no signature, no watermark.",
+      "original_png_sha256": "2f1facd1602cbcfff95e0236c9fc8b17a84e590a85a939c4ccddace5659d7fec",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/hair.webp": {
+      "request": "38a9ff7d1778d3af441aac93eaa7ebe8eb1c",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor hair in warm chestnut brown (base colour about #6B4A35), many loose flowing brush strokes all running top to bottom in gentle waves, darker sepia strands and a few lighter warm strands, granulation, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat, fills the whole square. No face, no figure, no text, no signature, no watermark.",
+      "original_png_sha256": "e9db509bb789c6b053867e84b0c23375f892977d8a29ffb0ed08e55f180b8596",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/face.webp": {
+      "request": "7d1f09a70761167faf745928ff913605479a",
+      "prompt": "Watercolor painting of a young woman's face seen exactly from the front, perfectly frontal and symmetric, filling most of a square image: calm closed eyes painted as soft curved sepia lash lines, softly arched brown brows, a small rosy mouth, soft warm blush on both cheeks, a gentle nose suggested with a light sepia line, warm ochre-peach skin (about #E8BC92). Flat even lighting with no strong shadows, hair pulled back tight away from the forehead and ears, plain cream paper background. Same picture-book style as a loose watercolor illustration: granulation, soft blooms, thin warm sepia ink line with gaps. No text, no signature, no watermark.",
+      "original_png_sha256": "1f081f69784a61cf6ead4e05efe7706d1072eb6922c111d8259a953bb002324a",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1254,
+        1254
+      ]
+    },
+    "shared/watercolor/source/sash.webp": {
+      "request": "365da87b2cb1294d745d66dc1fe61b153de7",
+      "prompt": "Square seamless tileable texture swatch, edge to edge with no border: hand-painted watercolor of cream undyed linen sash fabric (base colour about #E6DDBF), soft horizontal brush strokes and gentle painted folds, light granulation, visible cold-press paper texture. Even overall brightness with no lighting gradient and no vignette, flat, fills the whole square. No objects, no figure, no text, no signature, no watermark.",
+      "original_png_sha256": "c033f5d38b5dfd6f5c8c8afec78c5dfdf66b54be3d7e1295530f38598f10485a",
+      "original_size": [
+        1254,
+        1254
+      ],
+      "kept_size": [
+        1024,
+        1024
+      ]
+    },
+    "shared/watercolor/source/backdrop-tai-chi.webp": {
+      "request": "e3caa1ae7a79f1a11f48ad50c9534c6a2750",
+      "prompt": "Watercolor background plate, no people, landscape 3:2: a misty mountain garden at morning for a Tai Chi scene. Pale layered distant peaks dissolving into cream paper, a gnarled pine branch at one upper corner, a few soft rocks and grasses at the sides, an open pale stone terrace across the lower third where a figure will stand in the middle (keep the centre clear and quiet). Wet-on-wet grey-green, blue-violet and jade washes, granulating pigment, blooms and backruns, dark dried wash edges, lots of white paper left in the middle, warm sepia ink accents with broken lines. Limited palette: jade, indigo, violet-grey, ochre, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
+      "original_png_sha256": "dbe673f563f90f27fc0e17bdabe9a41f0061ab953ed0687df5c2852b547ea9b6",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ]
+    },
+    "shared/watercolor/source/backdrop-sun-salutation.webp": {
+      "request": "330d41178bbcf4835ea163c8e35a76cb7110",
+      "prompt": "Watercolor background plate, no people, landscape 3:2: an early sunrise over a quiet meadow for a Sun Salutation scene. Warm apricot, rose and pale gold sky bleeding wet-on-wet into cream paper, a soft ochre sun disc low on the horizon, gentle distant hills in violet-grey, an open grassy ground across the lower third painted with loose strokes, keep the centre clear and quiet for a figure. Granulating pigment, blooms, dark dried wash edges, white paper left for light, a few warm sepia ink accents with broken lines. Limited palette: apricot, rose, ochre, jade, violet-grey, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
+      "original_png_sha256": "458e8ce30efa0743fbd05a7bf8e10d4f9cd578f255d8edd6bf6cf3e2bf875dfa",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ]
+    },
+    "shared/watercolor/source/backdrop-workout.webp": {
+      "request": "1a93a25edd17331687bd0cd5b9ab35a9c4ca",
+      "prompt": "Watercolor background plate, no people, landscape 3:2: a light airy exercise room for a home workout scene. Tall window on one side with soft daylight and a hint of green leaves outside, pale wooden floor across the lower third with a rolled practice mat at the edge, a potted plant, empty cream walls; keep the centre clear and quiet for a figure. Loose wet-on-wet washes of warm ochre, pale jade and soft blue-grey, granulating pigment, dark dried wash edges, lots of white paper left for light, warm sepia ink lines with varying width and gaps. Limited palette: ochre, jade, blue-grey, sepia, cream paper. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
+      "original_png_sha256": "5140a50a01285f76ccc86fe74f9a1d5a46ef87f98efbddc30054b3d02f550001",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ]
+    },
+    "shared/watercolor/source/backdrop-astral.webp": {
+      "request": "efb032cd4a0aa7b30edd47cc86ebc148a1f1",
+      "prompt": "Watercolor background plate, no people, landscape 3:2: a dim quiet bedroom at night for an astral projection meditation scene. Deep indigo and violet-grey washes, a window with cool moonlight falling across the floor, soft curtains, a bedside lamp glowing faint amber, a few floating motes of pale light; the lower centre stays calm and open (a bed and the sleeper will be drawn there separately). Wet-on-wet blooms and backruns, granulating pigment pooling in the dark corners, dark dried wash edges, pale paper left for moonlight, warm sepia ink lines with gaps. Limited palette: indigo, violet-grey, moonlight blue, amber, sepia. Visible cold-press paper texture. No text, no signature, no watermark, no frame, no figure.",
+      "original_png_sha256": "dee6c0aea7d806d8975c293ebdf02314a73d65fe1a75a6f405054052c4adb7b1",
+      "original_size": [
+        1536,
+        1024
+      ],
+      "kept_size": [
+        1536,
+        1024
+      ]
+    }
+  }
+}

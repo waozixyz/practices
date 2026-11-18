@@ -1,16 +1,23 @@
 // The practice figure's anatomical surface: a continuous CC0 MakeHuman mesh
-// skinned onto 46 bones, read from shared/watercolor/anatomy.bin (PFIG0001,
-// described in that folder's README). It holds no pose or player state.
+// skinned onto 46 bones and dressed in loose cloth shells, read from
+// shared/watercolor/anatomy.bin (PFIG0002, described in that folder's
+// README). It holds no pose or player state.
 //
 // Bone roles: 0 pelvis, 1 spine, 2 chest, 3 head, 4 upper arm, 5 forearm,
 // 6 hand, 7 finger segment, 8 thigh, 9 shin, 10 foot. Side 0 is her left.
-// Vertex regions: 0 skin, 1 top, 2 trousers, 3 hair, 4 iris, 5 eye white,
-// 6 lips, 7 brows.
 #import "kryon/scene"
 #import "kryon/scene_skin"
 #import "std/binary"
 #import "std/math"
 #import "std/vec"
+
+// Vertex regions, each painted with its own texture.
+FIGURE_SKIN :: 0
+FIGURE_TUNIC :: 1
+FIGURE_TROUSERS :: 2
+FIGURE_HAIR :: 3
+FIGURE_SASH :: 4
+FIGURE_REGIONS :: 5
 
 FigureBone :: struct {
     role: s32
@@ -27,7 +34,13 @@ FigureAnatomy :: struct {
     bones: Vec(FigureBone)
     positions: Vec(Vector3)
     normals: Vec(Vector3)
+    // Texture coordinates that wrap the trunk, head and each limb, in
+    // repeats of the region's tileable texture.
     uvs: Vec(ShapePoint)
+    // Where the face painting lies on the face, and how much of it shows
+    // (0 away from the face).
+    details: Vec(ShapePoint)
+    faces: Vec(float64)
     indices: Vec(s32)
     influences: Vec(SkinInfluence)
     regions: Vec(s32)
@@ -41,6 +54,8 @@ FigureAnatomyRelease :: (anatomy: *FigureAnatomy) {
     VecFree(anatomy.positions)
     VecFree(anatomy.normals)
     VecFree(anatomy.uvs)
+    VecFree(anatomy.details)
+    VecFree(anatomy.faces)
     VecFree(anatomy.indices)
     VecFree(anatomy.influences)
     VecFree(anatomy.regions)
@@ -49,7 +64,7 @@ FigureAnatomyRelease :: (anatomy: *FigureAnatomy) {
 
 FigureAnatomyRead :: (anatomy: *FigureAnatomy, bytes: string) -> bool {
     if anatomy == null || anatomy.positions.count != 0 || bytes.count < 24 ||
-    bytes[0:8] != "PFIG0001" {
+    bytes[0:8] != "PFIG0002" {
         return false
     }
     count := cast(s32)ReadU32LE(bytes, 8)
@@ -59,14 +74,15 @@ FigureAnatomyRead :: (anatomy: *FigureAnatomy, bytes: string) -> bool {
     if count < 3 || count > 65535 || index_count < 3 || index_count > 393210 ||
     index_count % 3 != 0 || bone_count < 1 || bone_count > 255 ||
     !Finite64(height) || height < 0.5 || height > 3.0 ||
-    bytes.count != 24 + cast(s64)bone_count * 32 + cast(s64)count * 40 + cast(s64)index_count * 2 {
+    bytes.count != 24 + cast(s64)bone_count * 32 + cast(s64)count * 48 + cast(s64)index_count * 2 {
         return false
     }
     loaded: FigureAnatomy
     loaded.height = height
     if !VecResize(loaded.bones, cast(s64)bone_count) ||
     !VecResize(loaded.positions, cast(s64)count) || !VecResize(loaded.normals, cast(s64)count) ||
-    !VecResize(loaded.uvs, cast(s64)count) || !VecResize(loaded.influences, cast(s64)count) ||
+    !VecResize(loaded.uvs, cast(s64)count) || !VecResize(loaded.details, cast(s64)count) ||
+    !VecResize(loaded.faces, cast(s64)count) || !VecResize(loaded.influences, cast(s64)count) ||
     !VecResize(loaded.regions, cast(s64)count) || !VecResize(loaded.indices, cast(s64)index_count) {
         FigureAnatomyRelease(*loaded)
         return false
@@ -111,22 +127,25 @@ FigureAnatomyRead :: (anatomy: *FigureAnatomy, bytes: string) -> bool {
         loaded.normals[index] = normal
         uv: ShapePoint = .{cast(float64)ReadF32LE(bytes, at + 18), cast(float64)ReadF32LE(bytes, at + 22)}
         loaded.uvs[index] = uv
+        detail: ShapePoint = .{cast(float64)ReadF32LE(bytes, at + 26), cast(float64)ReadF32LE(bytes, at + 30)}
+        loaded.details[index] = detail
         influence: SkinInfluence
         total: u32
         for part: 0..3 {
-            influence.joints[part] = cast(s32)bytes[at + 26 + part]
-            weight := ReadU16LE(bytes, at + 30 + cast(s32)part * 2)
+            influence.joints[part] = cast(s32)bytes[at + 34 + part]
+            weight := ReadU16LE(bytes, at + 38 + cast(s32)part * 2)
             influence.weights[part] = cast(float64)weight / 65535.0
             total += weight
             valid = valid && influence.joints[part] < bone_count
         }
         loaded.influences[index] = influence
-        loaded.regions[index] = cast(s32)bytes[at + 38]
+        loaded.regions[index] = cast(s32)bytes[at + 46]
+        loaded.faces[index] = cast(float64)bytes[at + 47] / 255.0
         length := normal.x * normal.x + normal.y * normal.y + normal.z * normal.z
         valid = valid && SkinFinite(loaded.positions[index]) && SkinFinite(normal) &&
-        Finite64(uv.x) && Finite64(uv.y) && length > 0.9 && length < 1.1 &&
-        total == 65535 && loaded.regions[index] <= 7
-        at += 40
+        Finite64(uv.x) && Finite64(uv.y) && Finite64(detail.x) && Finite64(detail.y) &&
+        length > 0.9 && length < 1.1 && total == 65535 && loaded.regions[index] < FIGURE_REGIONS
+        at += 48
     }
     for index: 0..index_count - 1 {
         loaded.indices[index] = cast(s32)ReadU16LE(bytes, at)
@@ -142,6 +161,8 @@ FigureAnatomyRead :: (anatomy: *FigureAnatomy, bytes: string) -> bool {
     VecSwap(anatomy.positions, loaded.positions)
     VecSwap(anatomy.normals, loaded.normals)
     VecSwap(anatomy.uvs, loaded.uvs)
+    VecSwap(anatomy.details, loaded.details)
+    VecSwap(anatomy.faces, loaded.faces)
     VecSwap(anatomy.indices, loaded.indices)
     VecSwap(anatomy.influences, loaded.influences)
     VecSwap(anatomy.regions, loaded.regions)

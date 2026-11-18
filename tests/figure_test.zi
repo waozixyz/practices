@@ -145,7 +145,7 @@ main :: () -> s32 {
     for index: 0..bytes.count - 1 {
         corrupt[index] = bytes[index]
     }
-    corrupt[24 + 46 * 32 + 26] = 255
+    corrupt[24 + 46 * 32 + 34] = 255
     fail += Check(!FigureAnatomyRead(*invalid, TextView(corrupt[:])) && invalid.positions.count == 0,
         "an out-of-range skin joint is rejected whole")
 

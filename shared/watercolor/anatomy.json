@@ -1,10 +1,17 @@
 {
-  "format": "PFIG0001",
-  "vertices": 15310,
-  "triangles": 29378,
+  "format": "PFIG0002",
+  "vertices": 20220,
+  "triangles": 38405,
   "bones": 46,
-  "bytes": 790164,
-  "sha256": "742f779432e05c5cd04ca6bfa17c7b5322b43a94669f79ae402db03ed9717a3a",
+  "bytes": 1202486,
+  "sha256": "e839aec1fe5102e2d1cc5a3e2f3b5e2c9bb0c9ec1ff91ebd996b5d52be904de1",
+  "regions": [
+    "skin",
+    "tunic",
+    "trousers",
+    "hair",
+    "sash"
+  ],
   "source": "https://github.com/makehumancommunity/makehuman/blob/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj",
   "license": "CC0-1.0",
   "bone_names": [

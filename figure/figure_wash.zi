@@ -1,0 +1,355 @@
+// The watercolor finish laid over the rendered figure: colours bleed into
+// each other wet-on-wet and creep past the silhouette, washes dry with dark
+// edges where they end, pigment granulates, the paper's grain shows through
+// everything, and a warm sepia ink line follows the silhouette and the
+// seams between regions, changing width and breaking off in places. It also
+// paints her shadow on the ground and sets her into a painted backdrop.
+//
+// The renderer marks each region in the picture's alpha just below opaque
+// (see FigureRegionAlpha), so the ink finds the seams between regions; the
+// finish makes the figure opaque again.
+#import "figure_math"
+#import "kryon/scene"
+#import "std/math"
+#import "std/vec"
+Raster :: #import "std/image";
+
+FigureWashSettings :: struct {
+    // Each 0..1: how far colours wander wet-on-wet, the dried edges and
+    // pooling, granulation, the paper's grain and the ink line.
+    bleed: float64
+    edge: float64
+    granulation: float64
+    grain: float64
+    contour: float64
+}
+
+FigureWashDefault :: () -> FigureWashSettings {
+    return .{bleed = 0.6, edge = 0.6, granulation = 0.55, grain = 0.5, contour = 0.75}
+}
+
+// A smooth random field, filled once.
+FigureNoise :: struct {
+    values: [16384]float64
+    ready: bool
+}
+
+FigureNoiseFill :: (noise: *FigureNoise) {
+    state: u64 = 0x9e3779b97f4a7c15
+    for index: 0..16383 {
+        state = state * 6364136223846793005 + 1442695040888963407
+        noise.values[index] = cast(float64)(state >> 40) / 16777216.0
+    }
+    noise.ready = true
+}
+
+// 0..1, varying over about CELL pixels; each SEED is an unrelated field.
+FigureNoiseAt :: (noise: *FigureNoise, x: float64, y: float64, cell: float64, seed: s32) -> float64 {
+    fx := FigureMax(x, 0.0) / cell + cast(float64)seed * 37.0
+    fy := FigureMax(y, 0.0) / cell + cast(float64)seed * 53.0
+    ix := cast(s64)fx
+    iy := cast(s64)fy
+    tx := fx - cast(float64)ix
+    ty := fy - cast(float64)iy
+    tx = tx * tx * (3.0 - 2.0 * tx)
+    ty = ty * ty * (3.0 - 2.0 * ty)
+    x0 := ix % 128
+    x1 := (ix + 1) % 128
+    y0 := (iy % 128) * 128
+    y1 := ((iy + 1) % 128) * 128
+    top := noise.values[y0 + x0] + (noise.values[y0 + x1] - noise.values[y0 + x0]) * tx
+    bottom := noise.values[y1 + x0] + (noise.values[y1 + x1] - noise.values[y1 + x0]) * tx
+    return top + (bottom - top) * ty
+}
+
+// An ellipse in the picture: a pixel's offset from ORIGIN, turned by the
+// matrix, has length below 1 inside it.
+FigureSpot :: struct {
+    origin: ShapePoint
+    xx: float64
+    xy: float64
+    yx: float64
+    yy: float64
+}
+
+// The alpha the renderer gives REGION's opaque paint.
+FigureRegionAlpha :: (region: s32) -> float64 {
+    return 1.0 - cast(float64)region * 3.0 / 255.0
+}
+
+// Finishes IMAGE, the figure on a transparent background, in place.
+FigureWash :: (image: *Raster.Image, scratch: *Raster.Image, noise: *FigureNoise, paper: *Raster.Image,
+    pigment: *Raster.Image, settings: FigureWashSettings) -> bool {
+    if !Raster.ImageValid(image) || scratch == image || !noise.ready || !Raster.ImageValid(paper) ||
+    !Raster.ImageValid(pigment) || !FigureUnit(settings.bleed) || !FigureUnit(settings.edge) ||
+    !FigureUnit(settings.granulation) || !FigureUnit(settings.grain) || !FigureUnit(settings.contour) {
+        return false
+    }
+    if !FigureCopy(scratch, image) {
+        return false
+    }
+    width := image.width
+    height := image.height
+    scale := FigureMax(cast(float64)height / 800.0, 0.25)
+    reach := 4.0 * settings.bleed * scale
+    // Wet-on-wet: each pixel takes colour from a neighbour a few pixels
+    // away along a slowly turning field, so seams between washes feather
+    // and the silhouette wavers.
+    for y: cast(s32)0..height - 1 {
+        for x: cast(s32)0..width - 1 {
+            at := (cast(s64)y * width + x) * 4
+            fx := cast(float64)x
+            fy := cast(float64)y
+            sx := FigureBound(x + cast(s32)FigureRound((FigureNoiseAt(noise, fx, fy, 14.0 * scale, 0) - 0.5) * 2.0 * reach), width)
+            sy := FigureBound(y + cast(s32)FigureRound((FigureNoiseAt(noise, fx, fy, 14.0 * scale, 1) - 0.5) * 2.0 * reach), height)
+            from := (cast(s64)sy * width + sx) * 4
+            alpha := cast(float64)scratch.pixels[at + 3]
+            other := cast(float64)scratch.pixels[from + 3]
+            if alpha == 0.0 {
+                if other > 128.0 {
+                    for channel: 0..2 {
+                        image.pixels[at + channel] = scratch.pixels[from + channel]
+                    }
+                    image.pixels[at + 3] = cast(u8)(other * 0.45 * FigureNoiseAt(noise, fx, fy, 3.0 * scale, 2))
+                }
+                continue
+            }
+            if other == 0.0 {
+                image.pixels[at + 3] = cast(u8)(alpha * (0.3 + 0.7 * FigureNoiseAt(noise, fx, fy, 3.0 * scale, 3)))
+                continue
+            }
+            share := 0.65 * other / 255.0
+            for channel: 0..2 {
+                own := cast(float64)scratch.pixels[at + channel]
+                image.pixels[at + channel] = cast(u8)(own + (cast(float64)scratch.pixels[from + channel] - own) * share + 0.5)
+            }
+        }
+    }
+    if !FigureCopy(scratch, image) {
+        return false
+    }
+    near_x: [12]s32 = .[1, -1, 0, 0, 2, -2, 0, 0, 2, 2, -2, -2]
+    near_y: [12]s32 = .[0, 0, 1, -1, 0, 0, 2, -2, 2, -2, 2, -2]
+    for y: cast(s32)0..height - 1 {
+        for x: cast(s32)0..width - 1 {
+            at := (cast(s64)y * width + x) * 4
+            alpha := scratch.pixels[at + 3]
+            if alpha == 0 {
+                continue
+            }
+            fx := cast(float64)x
+            fy := cast(float64)y
+            light := FigureLight(scratch, at)
+            // The darker side of a wash boundary holds a dried edge; pigment
+            // pools along the silhouette.
+            lighter: float64
+            outside: float64
+            seam: float64
+            reach_ink := ifx FigureNoiseAt(noise, fx, fy, 40.0 * scale, 4) > 0.55 then 12 else 4
+            for near: 0..11 {
+                nx := x + near_x[near]
+                ny := y + near_y[near]
+                if nx < 0 || ny < 0 || nx >= width || ny >= height {
+                    outside += 1.0
+                    continue
+                }
+                there := (cast(s64)ny * width + nx) * 4
+                other := scratch.pixels[there + 3]
+                if other < 40 {
+                    outside += 1.0
+                    continue
+                }
+                lighter = FigureMax(lighter, FigureLight(scratch, there) - light)
+                if near < reach_ink && alpha >= 230 && other >= 230 &&
+                FigureAbs(cast(float64)alpha - cast(float64)other) >= 2.0 &&
+                !FigureHairline(alpha, other) {
+                    seam = 1.0
+                }
+            }
+            dried := FigureClamp((lighter - 0.025) * 8.0, 0.0, 1.0) * settings.edge * 0.30
+            pooled := FigureClamp(outside / 5.0, 0.0, 1.0) * settings.edge * 0.22
+            grain_at := ((cast(s64)y % pigment.height) * pigment.width + x % pigment.width) * 4
+            granule := (cast(float64)pigment.pixels[grain_at] + cast(float64)pigment.pixels[grain_at + 1] +
+                cast(float64)pigment.pixels[grain_at + 2]) / 765.0 - 0.49
+            paper_at := ((cast(s64)y % paper.height) * paper.width + x % paper.width) * 4
+            tooth := cast(float64)paper.pixels[paper_at] / 255.0 - 0.94
+            factor := (1.0 - dried - pooled) * (1.0 + granule * settings.granulation * (0.4 + 0.9 * (1.0 - light))) *
+                (1.0 + tooth * 4.0 * settings.grain)
+            // The ink line: on the silhouette and the seams, wider where a
+            // slow field says so and on the shadow side, and broken in places.
+            edge := FigureMax(seam, FigureClamp((outside - 0.5) * 2.0, 0.0, 1.0))
+            if reach_ink == 4 && outside > 0.0 && outside < 3.0 {
+                edge *= 0.6
+            }
+            gap := FigureClamp((FigureNoiseAt(noise, fx, fy, 26.0 * scale, 5) - 0.2) * 10.0, 0.0, 1.0)
+            ink := edge * gap * settings.contour * (0.6 + 0.4 * (1.0 - light))
+            sepia: [3]float64 = .[88.0, 58.0, 40.0]
+            for channel: 0..2 {
+                value := cast(float64)scratch.pixels[at + channel] * factor
+                value += (sepia[channel] - value) * ink * 0.85
+                image.pixels[at + channel] = cast(u8)(FigureClamp(value, 0.0, 255.0) + 0.5)
+            }
+            if alpha >= 230 {
+                image.pixels[at + 3] = 255
+            }
+        }
+    }
+    return true
+}
+
+// Makes every region's paint plainly opaque without the finish.
+FigureOpaque :: (image: *Raster.Image) {
+    for index: 0..cast(s64)image.width * image.height - 1 {
+        if image.pixels[index * 4 + 3] >= 230 {
+            image.pixels[index * 4 + 3] = 255
+        }
+    }
+}
+
+// A painted shadow on the ground beneath IMAGE's figure, cast away from the
+// light: one flat violet-grey wash with a ragged, darker dried edge,
+// granulated and grained like the rest.
+FigureShadowWash :: (image: *Raster.Image, noise: *FigureNoise, paper: *Raster.Image, strength: float64,
+    spot: FigureSpot) {
+    scale := FigureMax(cast(float64)image.height / 800.0, 0.25)
+    tone: [3]float64 = .[96.0, 90.0, 118.0]
+    for y: cast(s32)0..image.height - 1 {
+        for x: cast(s32)0..image.width - 1 {
+            fx := cast(float64)x
+            fy := cast(float64)y
+            dx := fx + 0.5 - spot.origin.x
+            dy := fy + 0.5 - spot.origin.y
+            u := spot.xx * dx + spot.xy * dy
+            v := spot.yx * dx + spot.yy * dy
+            distance := Sqrt(u * u + v * v)
+            if !Finite64(distance) || distance > 1.6 {
+                continue
+            }
+            distance += (FigureNoiseAt(noise, fx, fy, 18.0 * scale, 6) - 0.5) * 0.5 +
+                (FigureNoiseAt(noise, fx, fy, 5.0 * scale, 7) - 0.5) * 0.12
+            if distance >= 1.0 {
+                continue
+            }
+            at := (cast(s64)y * image.width + x) * 4
+            paper_at := ((cast(s64)y % paper.height) * paper.width + x % paper.width) * 4
+            tooth := cast(float64)paper.pixels[paper_at] / 255.0 - 0.94
+            shade := strength * (0.26 + 0.16 * FigureSmooth(distance, 0.78, 0.97) - 0.08 * distance) *
+                (1.0 + tooth * 3.0) * (0.85 + 0.3 * FigureNoiseAt(noise, fx, fy, 2.0 * scale, 8))
+            cover := cast(float64)image.pixels[at + 3] / 255.0
+            total := cover + shade * (1.0 - cover)
+            if total <= 0.0 {
+                continue
+            }
+            for channel: 0..2 {
+                value := (cast(float64)image.pixels[at + channel] * cover + tone[channel] * shade * (1.0 - cover)) / total
+                image.pixels[at + channel] = cast(u8)(value + 0.5)
+            }
+            image.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+        }
+    }
+}
+
+// Fills OUT, WIDTH by HEIGHT, with BACKDROP scaled ZOOM times past just
+// covering it: centred across, and cropped FOCUS of the way down (0 keeps
+// its top, 1 its bottom).
+FigureBackdropCover :: (out: *Raster.Image, backdrop: *Raster.Image, width: s32, height: s32,
+    zoom: float64, focus: float64) -> bool {
+    if width < 1 || height < 1 || !Raster.ImageValid(backdrop) ||
+    !VecResize(out.pixels, cast(s64)width * height * 4) {
+        return false
+    }
+    out.width = width
+    out.height = height
+    scale := FigureMax(cast(float64)width / cast(float64)backdrop.width,
+        cast(float64)height / cast(float64)backdrop.height) * FigureMax(zoom, 1.0)
+    left := (cast(float64)backdrop.width * scale - cast(float64)width) * 0.5
+    top := (cast(float64)backdrop.height * scale - cast(float64)height) * FigureClamp(focus, 0.0, 1.0)
+    for y: cast(s32)0..height - 1 {
+        sy := (cast(float64)y + 0.5 + top) / scale - 0.5
+        for x: cast(s32)0..width - 1 {
+            sx := (cast(float64)x + 0.5 + left) / scale - 0.5
+            FigureBilinear(backdrop, sx, sy, out, (cast(s64)y * width + x) * 4)
+        }
+    }
+    return true
+}
+
+// Lays LAYER over OUT, both straight RGBA of the same size, at OPACITY.
+FigureOver :: (out: *Raster.Image, layer: *Raster.Image, opacity: float64) -> bool {
+    if out.width != layer.width || out.height != layer.height || !Raster.ImageValid(out) {
+        return false
+    }
+    for index: 0..cast(s64)out.width * out.height - 1 {
+        at := index * 4
+        a := cast(float64)layer.pixels[at + 3] / 255.0 * opacity
+        if a <= 0.0 {
+            continue
+        }
+        under := cast(float64)out.pixels[at + 3] / 255.0
+        total := a + under * (1.0 - a)
+        for channel: 0..2 {
+            value := (cast(float64)layer.pixels[at + channel] * a +
+                cast(float64)out.pixels[at + channel] * under * (1.0 - a)) / total
+            out.pixels[at + channel] = cast(u8)(value + 0.5)
+        }
+        out.pixels[at + 3] = cast(u8)(total * 255.0 + 0.5)
+    }
+    return true
+}
+
+#scope_file
+// Skin meeting hair: a soft hairline, never inked.
+FigureHairline :: (a: u8, b: u8) -> bool {
+    skin := cast(u8)(FigureRegionAlpha(0) * 255.0 + 0.5)
+    hair := cast(u8)(FigureRegionAlpha(3) * 255.0 + 0.5)
+    near_skin := FigureAbs(cast(float64)a - cast(float64)skin) <= 1.0 || FigureAbs(cast(float64)b - cast(float64)skin) <= 1.0
+    near_hair := FigureAbs(cast(float64)a - cast(float64)hair) <= 1.0 || FigureAbs(cast(float64)b - cast(float64)hair) <= 1.0
+    return near_skin && near_hair
+}
+
+FigureUnit :: (value: float64) -> bool {
+    return Finite64(value) && value >= 0.0 && value <= 1.0
+}
+
+FigureRound :: (value: float64) -> float64 {
+    return ifx value < 0.0 then value - 0.5 else value + 0.5
+}
+
+FigureBound :: (value: s32, size: s32) -> s32 {
+    return ifx value < 0 then 0 else ifx value >= size then size - 1 else value
+}
+
+FigureLight :: (image: *Raster.Image, at: s64) -> float64 {
+    return (cast(float64)image.pixels[at] * 0.30 + cast(float64)image.pixels[at + 1] * 0.59 +
+        cast(float64)image.pixels[at + 2] * 0.11) / 255.0
+}
+
+FigureCopy :: (to: *Raster.Image, from: *Raster.Image) -> bool {
+    if !VecResize(to.pixels, from.pixels.count) {
+        return false
+    }
+    to.width = from.width
+    to.height = from.height
+    for index: 0..from.pixels.count - 1 {
+        to.pixels[index] = from.pixels[index]
+    }
+    return true
+}
+
+FigureBilinear :: (image: *Raster.Image, x: float64, y: float64, out: *Raster.Image, at: s64) {
+    cx := FigureClamp(x, 0.0, cast(float64)image.width - 1.001)
+    cy := FigureClamp(y, 0.0, cast(float64)image.height - 1.001)
+    x0 := cast(s64)cx
+    y0 := cast(s64)cy
+    tx := cx - cast(float64)x0
+    ty := cy - cast(float64)y0
+    for channel: 0..3 {
+        a := cast(float64)image.pixels[(y0 * image.width + x0) * 4 + channel]
+        b := cast(float64)image.pixels[(y0 * image.width + x0 + 1) * 4 + channel]
+        c := cast(float64)image.pixels[((y0 + 1) * image.width + x0) * 4 + channel]
+        d := cast(float64)image.pixels[((y0 + 1) * image.width + x0 + 1) * 4 + channel]
+        top := a + (b - a) * tx
+        bottom := c + (d - c) * tx
+        out.pixels[at + channel] = cast(u8)(top + (bottom - top) * ty + 0.5)
+    }
+}

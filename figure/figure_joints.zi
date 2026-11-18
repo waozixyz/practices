@@ -196,11 +196,13 @@ FigurePose :: (anatomy: *FigureAnatomy, joints: *FigureJoints, poses: *Vec(Figur
             straight = FigureScale(FigureNormalize(FigureLerp(FigureNormalize(straight), middle[side],
                 gather[bone.finger])), size)
         }
-        fist := FigureClamp(joints.fist[side], 0.18, 1.0)
+        // A hook curls the whole finger evenly into a cupped hand; curling
+        // only the tips reads as a claw.
+        fist := FigureClamp(joints.fist[side], 0.10, 1.0)
         hook := FigureClamp(joints.hook[side], 0.0, 1.0)
-        bend := fist * 0.7
+        bend := fist * 0.7 + hook * 0.28
         if bone.segment > 0 {
-            bend = fist * 0.65 + hook * (0.6 + cast(float64)bone.segment * 0.5)
+            bend = fist * 0.65 + hook * (0.26 + cast(float64)bone.segment * 0.06)
         }
         if bone.finger == 1 {
             bend *= 0.55

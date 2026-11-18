@@ -4,7 +4,10 @@
 #import "figure_anatomy"
 #import "figure_joints"
 #import "figure_paint"
+#import "figure_wash"
 #import "kryon/scene"
+#import "std/vec"
+Raster :: #import "std/image";
 #import "std/math"
 
 Check :: (value: bool, label: string) -> s32 {
@@ -29,6 +32,11 @@ Opaque :: (painter: *FigurePainter) -> s64 {
     return count
 }
 
+Light :: (painter: *FigurePainter, at: s64) -> float64 {
+    return (cast(float64)painter.pixels.pixels[at] * 0.30 + cast(float64)painter.pixels.pixels[at + 1] * 0.59 +
+        cast(float64)painter.pixels.pixels[at + 2] * 0.11) / 255.0
+}
+
 main :: () -> s32 {
     media := FigureMediaLoad("shared/watercolor")
     defer FigureMediaRelease(*media)
@@ -42,12 +50,54 @@ main :: () -> s32 {
     view: FigureView = .{yaw = 0.3, pitch = 0.15, height = 2.0, center = .{0.0, 0.85, 0.0}}
     still: FigureEffect
     style := FigureStyleDefault()
-    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320),
+    fail += Check(FigurePaint(*painter, *media, *joints, view, style, still, 240, 320),
         "the watercolor figure paints")
     painted := Opaque(*painter)
     print("figure paint: % opaque pixels, gpu=%\n", painted, painter.accelerated)
     fail += Check(painted > 3000 && painted < 40000, "she covers a plausible share of the picture")
     fail += Check(Alpha(*painter, 4, 4) == 0 && Alpha(*painter, 235, 4) == 0, "the background stays clear")
+    // Each region shows its own painted colour: the green tunic, the
+    // indigo trousers and warm skin.
+    green: s64
+    indigo: s64
+    warm: s64
+    edge_light: float64
+    edge_count: float64
+    inner_light: float64
+    inner_count: float64
+    for y: cast(s32)1..318 {
+        for x: cast(s32)1..238 {
+            at := (cast(s64)y * 240 + x) * 4
+            if Alpha(*painter, x, y) < 255 {
+                continue
+            }
+            r := cast(s32)painter.pixels.pixels[at]
+            g := cast(s32)painter.pixels.pixels[at + 1]
+            b := cast(s32)painter.pixels.pixels[at + 2]
+            if g > r + 8 && g > b + 4 {
+                green += 1
+            }
+            if b > r + 10 && b > g + 10 {
+                indigo += 1
+            }
+            if r > g + 15 && g > b + 8 {
+                warm += 1
+            }
+            light := Light(*painter, at)
+            if Alpha(*painter, x - 1, y) == 0 || Alpha(*painter, x + 1, y) == 0 ||
+            Alpha(*painter, x, y - 1) == 0 || Alpha(*painter, x, y + 1) == 0 {
+                edge_light += light
+                edge_count += 1.0
+            } else {
+                inner_light += light
+                inner_count += 1.0
+            }
+        }
+    }
+    print("figure paint: % green, % indigo, % warm pixels\n", green, indigo, warm)
+    fail += Check(green > 800 && indigo > 800 && warm > 200, "tunic, trousers and skin take their painted colours")
+    fail += Check(edge_count > 0.0 && inner_count > 0.0 && edge_light / edge_count < inner_light / inner_count - 0.05,
+        "a dark ink line runs round her silhouette")
     // Under her feet, beside them, the floor shadow is a faint wash.
     shadow := 0
     for x: cast(s32)20..219 {
@@ -58,7 +108,7 @@ main :: () -> s32 {
     }
     fail += Check(shadow > 10, "a soft shadow lies on the floor")
     style.shadow = false
-    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320),
+    fail += Check(FigurePaint(*painter, *media, *joints, view, style, still, 240, 320),
         "the figure paints without a shadow")
     without := 0
     for x: cast(s32)20..219 {
@@ -68,12 +118,34 @@ main :: () -> s32 {
     }
     fail += Check(without < shadow, "turning the shadow off removes it")
     style.watercolor = false
-    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, style, still, 240, 320) &&
+    fail += Check(FigurePaint(*painter, *media, *joints, view, style, still, 240, 320) &&
         Opaque(*painter) > 3000, "the bare surface paints for judging the shape")
+    // Tipped forward at the pelvis, the skirt's hem hangs below the waist
+    // instead of sticking out level with it.
+    folded := joints
+    folded.pelvis_turn = FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), FIGURE_PI * 0.5)
+    fail += Check(FigurePaint(*painter, *media, *folded, view, FigureStyleDefault(), still, 240, 320),
+        "a tipped pelvis paints")
+    hem: float64
+    hems: float64
+    for index: 0..painter.hang.count - 1 {
+        if painter.hang[index] > 0.9 {
+            hem += painter.scene.positions[index].y
+            hems += 1.0
+        }
+    }
+    waist := FigureBonePoint(painter.poses[0], painter.waist)
+    print("figure paint: tipped hem % below the waist\n", waist.y - hem / FigureMax(hems, 1.0))
+    fail += Check(hems > 0.0 && hem / hems < waist.y - 0.12, "the tunic's skirt hangs towards the ground")
+    // A backdrop covers the whole picture.
+    picture: Raster.Image
+    defer VecFree(picture.pixels)
+    fail += Check(FigureBackdropCover(*picture, *media.paper, 300, 120, 1.5, 0.8) && picture.width == 300 &&
+        picture.height == 120 && picture.pixels[(119 * 300 + 299) * 4 + 3] == 255, "a backdrop covers the picture")
     glow := FigureStyleDefault()
     glow.luminous = true
     glow.opacity = 0.5
-    fail += Check(FigurePaint(*painter, *media, *joints, FigureJade(), view, glow, still, 240, 320),
+    fail += Check(FigurePaint(*painter, *media, *joints, view, glow, still, 240, 320),
         "a translucent double paints")
     fail += Check(Opaque(*painter) < 500, "the double stays translucent")
     if fail == 0 {
