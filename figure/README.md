@@ -18,6 +18,14 @@ What stays here does not depend on a model and serves the next one:
   soft contact shadow, a backdrop covering the picture
   (`FigureBackdropCover`) and pictures laid over each other (`FigureOver`,
   `FigureOverOnto`).
+- `figure_model`: a figure loaded from a glTF 2.0 or VRM file through
+  Kryon's importer (`kryon/scene_gltf`) and posed from `FigureJoints`. Its
+  humanoid bones are found by name (VRoid's `J_Bip_*`, Mixamo's
+  `mixamorig` and common Blender names). Each pose turns them so the limbs
+  point where the solver's joints are, keeping the model's own
+  proportions, scales the model so its legs match the solver's and stands
+  its ankles on the solver's ankles. `FigureModelToon` gives it a
+  cel-shaded look on its own textures and can turn a hair material black.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.
@@ -32,4 +40,5 @@ build-queue -- ./build/figure-parts-test/figure_parts_test
 ```
 
 `figure_parts_test` checks that a skinned vertex follows its bone's motion,
-the contact shadow, and a picture laid over a covering backdrop.
+the contact shadow, a picture laid over a covering backdrop, and that a
+missing model file is refused cleanly.

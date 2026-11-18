@@ -1,9 +1,11 @@
 // The figure's model-independent parts: dual-quaternion skinning on a
-// Kryon skin, the contact shadow and setting a picture over a backdrop.
+// Kryon skin, the contact shadow, setting a picture over a backdrop, and a
+// model file that is missing or not humanoid being refused cleanly.
 #import "figure_math"
 #import "figure_joints"
 #import "figure_skin"
 #import "figure_finish"
+#import "figure_model"
 #import "kryon/scene"
 #import "kryon/scene_skin"
 #import "std/math"
@@ -76,6 +78,14 @@ main :: () -> s32 {
     defer VecFree(out.pixels)
     fail += Check(FigureOverOnto(*out, *covered, *layer) && out.pixels[middle] < covered.pixels[middle] &&
         out.pixels[0] == covered.pixels[0], "a layer lies over the backdrop")
+    // A model that is missing, or has no humanoid bones, is refused.
+    model_scene: Scene
+    SceneInit(*model_scene)
+    defer SceneFree(*model_scene)
+    figure: FigureModel
+    defer FigureModelRelease(*figure)
+    fail += Check(!FigureModelLoad(*figure, *model_scene, "tests/no-such-model.glb") && !figure.ready,
+        "a missing model file is refused")
     if fail == 0 {
         print("Figure parts local tests passed\n")
     }

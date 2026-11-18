@@ -9,14 +9,15 @@ links = ["EGL", "GLESv2", "GLX", "X11", "z", "m", "pthread"]
 
 [toolchain]
 git = "https://github.com/ziranlang/ziran.git"
-ref = "7fbc8152b0ab18b641a73d16d93ccda1e1c7f863"
+ref = "1934aae05eadec28f3f96ea8c3cfe3a21888487d"
 
 [dependencies.kryon]
 git = "https://github.com/kryonlabs/kryon.git"
-ref = "4b79d9761508068e901879eb6208a22b8c331a63"
+ref = "0ad6f6cf07e0288450f1c6f9a2a7def1962a7a30"
 
 [exports]
 figure_math = "figure/figure_math.zi"
 figure_joints = "figure/figure_joints.zi"
 figure_skin = "figure/figure_skin.zi"
 figure_finish = "figure/figure_finish.zi"
+figure_model = "figure/figure_model.zi"

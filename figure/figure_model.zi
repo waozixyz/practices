@@ -1,0 +1,590 @@
+// A practice figure loaded from a glTF 2.0 or VRM model and posed from the
+// practices' solver-neutral joints (FigureJoints).
+//
+// The model's humanoid bones are found by name: VRoid's J_Bip_*, Mixamo's
+// mixamorig names and the common Blender names. Each pose turns those bones
+// so the limbs point where the solver's joints are, keeping the model's own
+// proportions; the trunk, head and feet take the solver's turns. The whole
+// model is scaled so its legs match the solver's and placed so its ankles
+// stand on the solver's ankles.
+#import "figure_math"
+#import "figure_joints"
+#import "kryon/scene"
+#import "kryon/scene_gltf"
+#import "kryon/scene_skin"
+#import "kryon/shader"
+#import "std/math"
+#import "std/vec"
+
+// Humanoid roles. Each side has its shoulder to toes, then five fingers of
+// three segments (thumb first).
+FIGURE_HIPS :: 0
+FIGURE_SPINE :: 1
+FIGURE_CHEST :: 2
+FIGURE_UPPER_CHEST :: 3
+FIGURE_NECK :: 4
+FIGURE_HEAD :: 5
+FIGURE_SIDE :: 6
+FIGURE_SHOULDER :: 0
+FIGURE_UPPER_ARM :: 1
+FIGURE_LOWER_ARM :: 2
+FIGURE_HAND :: 3
+FIGURE_UPPER_LEG :: 4
+FIGURE_LOWER_LEG :: 5
+FIGURE_FOOT :: 6
+FIGURE_TOES :: 7
+FIGURE_SIDE_BONES :: 8
+FIGURE_FINGERS :: 22
+FIGURE_BONES :: 52
+
+FIGURE_TOON_UNIFORMS :: 7
+
+FigureModel :: struct {
+    model: GltfModel
+    instance: GltfSceneInstance
+    // The glTF node of each role, or -1.
+    bones: [FIGURE_BONES]s32
+    // Each node's world rotation and position at rest, in the model's space.
+    rest_turn: Vec(FigureQuat)
+    rest_at: Vec(Vector3)
+    // The nodes from the roots down, and each node's turn during a pose.
+    order: Vec(s32)
+    turn: Vec(FigureQuat)
+    role_of: Vec(s32)
+    // Turns the model to face +Z with its left at +X.
+    facing: FigureQuat
+    yaw: float64
+    // The toon look: a shader, and per scene mesh its uniforms and texture.
+    toon: ShaderProgram
+    uniforms: Vec(ShaderValue)
+    samplers: Vec(ShaderSampler)
+    toon_nodes: Vec(s32)
+    ready: bool
+}
+
+FigureModelRelease :: (figure: *FigureModel) {
+    GltfInstanceRelease(*figure.instance)
+    GltfModelRelease(*figure.model)
+    VecFree(figure.rest_turn)
+    VecFree(figure.rest_at)
+    VecFree(figure.order)
+    VecFree(figure.turn)
+    VecFree(figure.role_of)
+    VecFree(figure.uniforms)
+    VecFree(figure.samplers)
+    VecFree(figure.toon_nodes)
+    ShaderFree(*figure.toon)
+    figure.ready = false
+}
+
+FigureSideRole :: (side: s32, bone: s32) -> s32 {
+    return FIGURE_SIDE + side * FIGURE_SIDE_BONES + bone
+}
+
+FigureFingerRole :: (side: s32, finger: s32, segment: s32) -> s32 {
+    return FIGURE_FINGERS + side * 15 + finger * 3 + segment
+}
+
+// Loads PATH into SCENE: the model, its humanoid bones and its rest pose.
+// The model's own animations are not used. False when the file is not a
+// valid model or has no hips, legs and arms.
+FigureModelLoad :: (figure: *FigureModel, scene: *Scene, path: string) -> bool {
+    FigureModelRelease(figure)
+    loaded := GltfReadFile(path)
+    FigureTakeModel(*figure.model, *loaded)
+    GltfModelRelease(*loaded)
+    if !figure.model.valid || !GltfSceneCreate(scene, *figure.model, *figure.instance) {
+        return false
+    }
+    GltfSetDualQuaternion(*figure.instance, true)
+    count := figure.model.nodes.count
+    if !VecResize(figure.rest_turn, count) || !VecResize(figure.rest_at, count) ||
+    !VecResize(figure.turn, count) || !VecResize(figure.role_of, count) {
+        return false
+    }
+    VecClear(figure.order)
+    for node: 0..count - 1 {
+        if figure.model.nodes[node].parent < 0 && !FigureModelOrder(figure, cast(s32)node) {
+            return false
+        }
+    }
+    // Rest rotations compose down the hierarchy; rest positions come from
+    // the evaluated world matrices, so node scales are honoured.
+    for at: 0..figure.order.count - 1 {
+        node := figure.order[at]
+        local := figure.model.nodes[node].rotation
+        turn: FigureQuat = .{local.x, local.y, local.z, local.w}
+        parent := figure.model.nodes[node].parent
+        figure.rest_turn[node] = FigureQuatNormalize(turn)
+        if parent >= 0 {
+            figure.rest_turn[node] = FigureQuatNormalize(FigureMultiply(figure.rest_turn[parent], turn))
+        }
+        world := figure.instance.node_world[node]
+        figure.rest_at[node] = .{world.m[3], world.m[7], world.m[11]}
+    }
+    for role: 0..FIGURE_BONES - 1 {
+        figure.bones[role] = -1
+    }
+    for node: 0..count - 1 {
+        figure.role_of[node] = -1
+        named := *figure.model.nodes[node]
+        role := FigureRoleOfName(TextView(named.name[:]))
+        if role >= 0 && figure.bones[role] < 0 {
+            figure.bones[role] = cast(s32)node
+            figure.role_of[node] = role
+        }
+    }
+    needed: [9]s32 = .[FIGURE_HIPS, FIGURE_HEAD, FigureSideRole(0, FIGURE_UPPER_ARM), FigureSideRole(1, FIGURE_UPPER_ARM),
+        FigureSideRole(0, FIGURE_LOWER_ARM), FigureSideRole(0, FIGURE_UPPER_LEG), FigureSideRole(1, FIGURE_UPPER_LEG),
+        FigureSideRole(0, FIGURE_FOOT), FigureSideRole(1, FIGURE_FOOT)]
+    for role: needed {
+        if figure.bones[role] < 0 {
+            return false
+        }
+    }
+    // Which way the model faces: its toes ahead of its feet, its left side
+    // to its left.
+    ahead := FigureSub(FigureModelRest(figure, FigureSideRole(0, FIGURE_TOES), FigureSideRole(0, FIGURE_LOWER_LEG)),
+        FigureModelRest(figure, FigureSideRole(0, FIGURE_FOOT), FigureSideRole(0, FIGURE_FOOT)))
+    left := FigureSub(FigureModelRest(figure, FigureSideRole(0, FIGURE_UPPER_ARM), -1),
+        FigureModelRest(figure, FigureSideRole(1, FIGURE_UPPER_ARM), -1))
+    forward := FigureCross(left, FigureV3(0.0, 1.0, 0.0))
+    if FigureDot(FigureV3(ahead.x, 0.0, ahead.z), forward) < 0.0 {
+        // Left and forward disagree; trust the toes.
+        forward = FigureV3(ahead.x, 0.0, ahead.z)
+    }
+    // A left-handed model (its left on the right when it faces forward)
+    // keeps its own naming; only the heading is turned.
+    figure.yaw = -Atan2(forward.x, forward.z)
+    figure.facing = FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), figure.yaw)
+    figure.ready = true
+    return true
+}
+
+// Poses the loaded model in SCENE at JOINTS.
+FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) -> bool {
+    if !figure.ready {
+        return false
+    }
+    turns: [FIGURE_BONES]FigureQuat
+    for role: 0..FIGURE_BONES - 1 {
+        turns[role] = FigureIdentity()
+    }
+    pelvis := FigureQuatNormalize(joints.pelvis_turn)
+    chest := FigureQuatNormalize(joints.chest_turn)
+    head := FigureQuatNormalize(joints.head_turn)
+    turns[FIGURE_HIPS] = pelvis
+    turns[FIGURE_SPINE] = FigureBlend(pelvis, chest, 0.35)
+    turns[FIGURE_CHEST] = FigureBlend(pelvis, chest, 0.7)
+    turns[FIGURE_UPPER_CHEST] = chest
+    turns[FIGURE_NECK] = FigureBlend(chest, head, 0.5)
+    turns[FIGURE_HEAD] = head
+    for side: cast(s32)0..1 {
+        turns[FigureSideRole(side, FIGURE_SHOULDER)] = chest
+        upper := FigureModelAim(figure, chest, FigureSideRole(side, FIGURE_UPPER_ARM),
+            FigureSideRole(side, FIGURE_LOWER_ARM), FigureSub(joints.elbows[side], joints.shoulders[side]))
+        turns[FigureSideRole(side, FIGURE_UPPER_ARM)] = upper
+        lower := FigureModelAim(figure, upper, FigureSideRole(side, FIGURE_LOWER_ARM), FigureSideRole(side, FIGURE_HAND),
+            FigureSub(joints.wrists[side], joints.elbows[side]))
+        turns[FigureSideRole(side, FIGURE_LOWER_ARM)] = lower
+        turns[FigureSideRole(side, FIGURE_HAND)] = lower
+        thigh := FigureModelAim(figure, pelvis, FigureSideRole(side, FIGURE_UPPER_LEG),
+            FigureSideRole(side, FIGURE_LOWER_LEG), FigureSub(joints.knees[side], joints.hips[side]))
+        turns[FigureSideRole(side, FIGURE_UPPER_LEG)] = thigh
+        shin := FigureModelAim(figure, thigh, FigureSideRole(side, FIGURE_LOWER_LEG), FigureSideRole(side, FIGURE_FOOT),
+            FigureSub(joints.ankles[side], joints.knees[side]))
+        turns[FigureSideRole(side, FIGURE_LOWER_LEG)] = shin
+        foot := FigureModelAim(figure, FigureQuatNormalize(joints.feet[side]), FigureSideRole(side, FIGURE_FOOT),
+            FigureSideRole(side, FIGURE_TOES), FigureSub(joints.toes[side], joints.ankles[side]))
+        turns[FigureSideRole(side, FIGURE_FOOT)] = foot
+        turns[FigureSideRole(side, FIGURE_TOES)] = foot
+        // The fingers relax into a soft curl, closing further with a fist.
+        hand := turns[FigureSideRole(side, FIGURE_HAND)]
+        curl := 0.18 + FigureClamp(joints.fist[side], 0.0, 1.0) * 1.0
+        for finger: cast(s32)0..4 {
+            parent := hand
+            for segment: cast(s32)0..2 {
+                role := FigureFingerRole(side, finger, segment)
+                next := ifx segment < 2 then FigureFingerRole(side, finger, segment + 1) else -1
+                bend := FigureModelFingerAxis(figure, role, next, side)
+                amount := ifx finger == 0 then curl * 0.4 else curl
+                turned := FigureMultiply(FigureAxisAngle(FigureRotate(parent, bend), amount), parent)
+                turns[role] = turned
+                parent = turned
+            }
+        }
+    }
+    // Each node turns with the nearest posed bone above it.
+    for at: 0..figure.order.count - 1 {
+        node := figure.order[at]
+        parent := figure.model.nodes[node].parent
+        role := figure.role_of[node]
+        figure.turn[node] = ifx role >= 0 then turns[role] else ifx parent >= 0 then figure.turn[parent] else FigureIdentity()
+        if role < 0 {
+            continue
+        }
+        // World rotation now: the figure-space turn carried into the
+        // model's space; the local rotation is that against the parent's.
+        inverse_facing := FigureConjugate(figure.facing)
+        mine := FigureMultiply(FigureMultiply(FigureMultiply(inverse_facing, figure.turn[node]), figure.facing),
+            figure.rest_turn[node])
+        above := FigureIdentity()
+        if parent >= 0 {
+            above = FigureMultiply(FigureMultiply(FigureMultiply(inverse_facing, figure.turn[parent]), figure.facing),
+                figure.rest_turn[parent])
+        }
+        local := FigureQuatNormalize(FigureMultiply(FigureConjugate(above), mine))
+        figure.instance.rotations[node] = .{local.x, local.y, local.z, local.w}
+        figure.instance.trs_dirty[node] = true
+    }
+    // The legs match the solver's; the ankles stand on the solver's ankles.
+    model_leg: float64
+    solver_leg: float64
+    for side: cast(s32)0..1 {
+        model_leg += FigureDistance(FigureModelRest(figure, FigureSideRole(side, FIGURE_UPPER_LEG), -1),
+            FigureModelRest(figure, FigureSideRole(side, FIGURE_LOWER_LEG), -1)) +
+            FigureDistance(FigureModelRest(figure, FigureSideRole(side, FIGURE_LOWER_LEG), -1),
+            FigureModelRest(figure, FigureSideRole(side, FIGURE_FOOT), -1))
+        solver_leg += FigureDistance(joints.hips[side], joints.knees[side]) + FigureDistance(joints.knees[side], joints.ankles[side])
+    }
+    scale := ifx model_leg > 0.000001 then solver_leg / model_leg else 1.0
+    offset: Vector3
+    for side: cast(s32)0..1 {
+        ankle := FigureScale(FigureRotate(figure.facing, FigureModelPosed(figure, figure.bones[FigureSideRole(side, FIGURE_FOOT)])),
+            scale)
+        offset = FigureAdd(offset, FigureScale(FigureSub(joints.ankles[side], ankle), 0.5))
+    }
+    root := figure.instance.root_node
+    SetPosition(scene, root, offset.x, offset.y, offset.z)
+    SetRotation(scene, root, 0.0, figure.yaw, 0.0)
+    SetScale(scene, root, scale, scale, scale)
+    return GltfUpdateScene(*figure.model, *figure.instance, scene)
+}
+
+// Gives every mesh a cel-shaded look on its own base colour texture: light
+// and shade split softly at the terminator, with a rim light. A material
+// whose name holds DARKEN (such as "Hair") is turned black-brown.
+FigureModelToon :: (figure: *FigureModel, scene: *Scene, darken: string) -> bool {
+    if !figure.ready || !FigureToonCompile(*figure.toon).ok {
+        return false
+    }
+    meshes := figure.instance.meshes.count
+    if !VecResize(figure.uniforms, meshes * FIGURE_TOON_UNIFORMS) || !VecResize(figure.samplers, meshes) ||
+    !VecResize(figure.toon_nodes, meshes) {
+        return false
+    }
+    for at: 0..meshes - 1 {
+        placed := *figure.instance.meshes[at]
+        figure.toon_nodes[at] = placed.scene_node
+        primitive := *figure.model.meshes[placed.mesh_index].primitives[placed.primitive_index]
+        material := scene.meshes[scene.nodes[placed.scene_node].mesh].material
+        base: GltfColor = .{1.0, 1.0, 1.0, 1.0}
+        dark := false
+        figure.samplers[at] = .{width = 1, height = 1, pixels = FIGURE_WHITE[:]}
+        if primitive.material >= 0 && primitive.material < figure.model.materials.count {
+            source := *figure.model.materials[primitive.material]
+            base = source.base_color_factor
+            dark = darken.count > 0 && FigureContains(TextView(source.name[:]), darken)
+            texture := source.base_color_texture.index
+            if texture >= 0 && texture < figure.model.textures.count {
+                image := figure.model.textures[texture].source
+                if image >= 0 && image < figure.model.images.count {
+                    picture := *figure.model.images[image].image
+                    if picture.width > 0 && picture.height > 0 && picture.pixels.count >= cast(s64)picture.width * picture.height * 4 {
+                        figure.samplers[at] = .{width = picture.width, height = picture.height, pixels = picture.pixels[:],
+                            repeat = true}
+                    }
+                }
+            }
+        }
+        first := at * FIGURE_TOON_UNIFORMS
+        figure.uniforms[first] = .{base.r, base.g, base.b, base.a}
+        figure.uniforms[first + 1] = .{-0.45, 0.75, 0.55, 0.0}
+        figure.uniforms[first + 2] = .{0.70, 0.64, 0.78, 1.0}
+        figure.uniforms[first + 3] = .{0.0, 0.0, 1.0, 0.0}
+        figure.uniforms[first + 4] = .{0.16, 0.14, 0.17, 0.0}
+        figure.uniforms[first + 5] = ifx dark then ShaderValue.{0.92, 0.92, 0.92, 0.0} else ShaderValue.{0.0, 0.0, 0.0, 0.0}
+        figure.uniforms[first + 6] = .{0.18, 0.20, 0.26, 0.0}
+        material.kind = .MaterialUnlit
+        material.shader = *figure.toon
+        material.shader_uniforms = figure.uniforms[first:first + FIGURE_TOON_UNIFORMS]
+        material.shader_samplers = figure.samplers[at:at + 1]
+        SetMaterial(scene, placed.scene_node, material)
+    }
+    return true
+}
+
+// Sets the light and view directions the toon look shades by, in the
+// world's space.
+FigureModelLight :: (figure: *FigureModel, light: Vector3, view: Vector3) {
+    for at: 0..figure.toon_nodes.count - 1 {
+        first := at * FIGURE_TOON_UNIFORMS
+        figure.uniforms[first + 1] = .{light.x, light.y, light.z, 0.0}
+        figure.uniforms[first + 3] = .{view.x, view.y, view.z, 0.0}
+    }
+}
+
+#scope_file
+FIGURE_WHITE: [4]u8 = .[255, 255, 255, 255];
+
+// Moves FROM's contents into TO, leaving FROM with TO's old ones.
+FigureTakeModel :: (to: *GltfModel, from: *GltfModel) {
+    to.valid = from.valid
+    to.default_scene = from.default_scene
+    VecSwap(to.error, from.error)
+    VecSwap(to.version, from.version)
+    VecSwap(to.generator, from.generator)
+    VecSwap(to.copyright, from.copyright)
+    VecSwap(to.buffers, from.buffers)
+    VecSwap(to.buffer_views, from.buffer_views)
+    VecSwap(to.accessors, from.accessors)
+    VecSwap(to.samplers, from.samplers)
+    VecSwap(to.images, from.images)
+    VecSwap(to.textures, from.textures)
+    VecSwap(to.materials, from.materials)
+    VecSwap(to.meshes, from.meshes)
+    VecSwap(to.nodes, from.nodes)
+    VecSwap(to.skins, from.skins)
+    VecSwap(to.animations, from.animations)
+    VecSwap(to.scenes, from.scenes)
+    from.valid = false
+}
+
+FigureModelOrder :: (figure: *FigureModel, node: s32) -> bool {
+    if !VecPush(figure.order, node) {
+        return false
+    }
+    named := *figure.model.nodes[node]
+    for at: 0..named.children.count - 1 {
+        if !FigureModelOrder(figure, named.children[at]) {
+            return false
+        }
+    }
+    return true
+}
+
+// ROLE's rest position, or FALLBACK's when the model has no ROLE.
+FigureModelRest :: (figure: *FigureModel, role: s32, fallback: s32) -> Vector3 {
+    node := figure.bones[role]
+    if node < 0 && fallback >= 0 {
+        node = figure.bones[fallback]
+    }
+    return ifx node >= 0 then figure.rest_at[node] else Vector3.{}
+}
+
+// BASE carried on, then swung so the bone from ROLE to NEXT points along
+// TARGET (in the figure's space).
+FigureModelAim :: (figure: *FigureModel, base: FigureQuat, role: s32, next: s32, target: Vector3) -> FigureQuat {
+    if figure.bones[role] < 0 || figure.bones[next] < 0 || FigureLength(target) < 0.000001 {
+        return base
+    }
+    rest := FigureRotate(figure.facing, FigureSub(figure.rest_at[figure.bones[next]], figure.rest_at[figure.bones[role]]))
+    if FigureLength(rest) < 0.000001 {
+        return base
+    }
+    return FigureQuatNormalize(FigureMultiply(FigureSwing(FigureRotate(base, rest), target), base))
+}
+
+// The axis a finger segment curls about at rest, in the figure's space:
+// across the finger, towards the palm (which faces down in a T pose and
+// in towards the body in an A pose).
+FigureModelFingerAxis :: (figure: *FigureModel, role: s32, next: s32, side: s32) -> Vector3 {
+    node := figure.bones[role]
+    if node < 0 {
+        return FigureV3(0.0, 0.0, 1.0)
+    }
+    tip := FigureAdd(figure.rest_at[node], FigureSub(figure.rest_at[node], figure.rest_at[figure.model.nodes[node].parent]))
+    if next >= 0 && figure.bones[next] >= 0 {
+        tip = figure.rest_at[figure.bones[next]]
+    }
+    along := FigureNormalize(FigureRotate(figure.facing, FigureSub(tip, figure.rest_at[node])))
+    palm := FigureV3(0.0, -1.0, 0.0)
+    if FigureAbs(FigureDot(along, palm)) > 0.8 {
+        palm = FigureV3(ifx side == 0 then -1.0 else 1.0, 0.0, 0.0)
+    }
+    return FigureNormalize(FigureCross(along, palm))
+}
+
+// Where NODE is in the model's space once posed (before the root's scale,
+// turn and placement): down from its root, each step turned with the node
+// above it.
+FigureModelPosed :: (figure: *FigureModel, node: s32) -> Vector3 {
+    chain: [64]s32
+    depth: s32
+    at := node
+    while at >= 0 && depth < 64 {
+        chain[depth] = at
+        depth += 1
+        at = figure.model.nodes[at].parent
+    }
+    if depth == 0 {
+        return .{}
+    }
+    inverse_facing := FigureConjugate(figure.facing)
+    position := figure.rest_at[chain[depth - 1]]
+    for step: 0..depth - 2 {
+        above := chain[depth - 1 - step]
+        below := chain[depth - 2 - step]
+        turn := FigureMultiply(FigureMultiply(inverse_facing, figure.turn[above]), figure.facing)
+        position = FigureAdd(position, FigureRotate(turn, FigureSub(figure.rest_at[below], figure.rest_at[above])))
+    }
+    return position
+}
+
+FigureContains :: (text: string, part: string) -> bool {
+    if part.count == 0 || part.count > text.count {
+        return false
+    }
+    for start: 0..text.count - part.count {
+        same := true
+        for at: 0..part.count - 1 {
+            a := text[start + at]
+            b := part[at]
+            if a >= 65 && a <= 90 { a += 32 }
+            if b >= 65 && b <= 90 { b += 32 }
+            if a != b {
+                same = false
+                break
+            }
+        }
+        if same {
+            return true
+        }
+    }
+    return false
+}
+
+// The role a node's NAME names, or -1. VRoid (J_Bip_C_Hips, J_Bip_L_UpperArm,
+// J_Bip_L_Index1), Mixamo (mixamorig:LeftArm, mixamorig:LeftHandIndex1) and
+// Blender (upper_arm.L, forearm.L, thigh.L, shin.L) names.
+FigureRoleOfName :: (name: string) -> s32 {
+    centre: [30]string = .["J_Bip_C_Hips", "mixamorig:Hips", "mixamorig_Hips", "Hips", "pelvis",
+        "J_Bip_C_Spine", "mixamorig:Spine", "mixamorig_Spine", "Spine", "spine",
+        "J_Bip_C_Chest", "mixamorig:Spine1", "mixamorig_Spine1", "Chest", "spine.001",
+        "J_Bip_C_UpperChest", "mixamorig:Spine2", "mixamorig_Spine2", "UpperChest", "spine.002",
+        "J_Bip_C_Neck", "mixamorig:Neck", "mixamorig_Neck", "Neck", "neck",
+        "J_Bip_C_Head", "mixamorig:Head", "mixamorig_Head", "Head", "head"]
+    for at: 0..29 {
+        if name == centre[at] {
+            return cast(s32)(at / 5)
+        }
+    }
+    for side: cast(s32)0..1 {
+        vroid := ifx side == 0 then "J_Bip_L_" else "J_Bip_R_"
+        mixamo := ifx side == 0 then "mixamorig:Left" else "mixamorig:Right"
+        mixamo_ := ifx side == 0 then "mixamorig_Left" else "mixamorig_Right"
+        blender := ifx side == 0 then ".L" else ".R"
+        bones_vroid: [8]string = .["Shoulder", "UpperArm", "LowerArm", "Hand", "UpperLeg", "LowerLeg", "Foot", "ToeBase"]
+        bones_mixamo: [8]string = .["Shoulder", "Arm", "ForeArm", "Hand", "UpLeg", "Leg", "Foot", "ToeBase"]
+        bones_blender: [8]string = .["shoulder", "upper_arm", "forearm", "hand", "thigh", "shin", "foot", "toe"]
+        for bone: cast(s32)0..FIGURE_SIDE_BONES - 1 {
+            if FigureNamed(name, vroid, bones_vroid[bone], "") || FigureNamed(name, mixamo, bones_mixamo[bone], "") ||
+            FigureNamed(name, mixamo_, bones_mixamo[bone], "") || FigureNamed(name, "", bones_blender[bone], blender) {
+                return FigureSideRole(side, bone)
+            }
+        }
+        fingers_vroid: [5]string = .["Thumb", "Index", "Middle", "Ring", "Little"]
+        fingers_mixamo: [5]string = .["HandThumb", "HandIndex", "HandMiddle", "HandRing", "HandPinky"]
+        digits: [3]string = .["1", "2", "3"]
+        for finger: cast(s32)0..4 {
+            for segment: cast(s32)0..2 {
+                if FigureNamed2(name, vroid, fingers_vroid[finger], digits[segment]) ||
+                FigureNamed2(name, mixamo, fingers_mixamo[finger], digits[segment]) ||
+                FigureNamed2(name, mixamo_, fingers_mixamo[finger], digits[segment]) {
+                    return FigureFingerRole(side, finger, segment)
+                }
+            }
+        }
+    }
+    return -1
+}
+
+FigureNamed :: (name: string, before: string, middle: string, after: string) -> bool {
+    if name.count != before.count + middle.count + after.count {
+        return false
+    }
+    return name[0:before.count] == before && name[before.count:before.count + middle.count] == middle &&
+        name[before.count + middle.count:name.count] == after
+}
+
+FigureNamed2 :: (name: string, before: string, middle: string, digit: string) -> bool {
+    return FigureNamed(name, before, middle, digit)
+}
+
+// The toon look. Registers: 0 vertex data, 1 position, 2 normal, 3 UV.
+// Uniforms: 0 base colour factor, 1 light direction, 2 shade tint, 3 view
+// direction, 4 a darkening tint, 5 how far to darken (hair) in every lane
+// but alpha, 6 the rim light's colour. Sampler 0 is the base colour texture.
+FigureToonCompile :: (program: *ShaderProgram) -> ShaderDiagnostic {
+    code: FigureToonCode
+    FigureToonSlot(*code, .ShaderSample, 4, 3, 0)
+    FigureToonSlot(*code, .ShaderUniform, 5, 0, 0)
+    FigureToonOp(*code, .ShaderMultiply, 4, 4, 5)
+    // Darken (hair to black): towards its own brightness in the tint.
+    FigureToonLiteral(*code, 6, 0.2126, 0.7152, 0.0722, 0.0)
+    FigureToonOp(*code, .ShaderDot, 6, 4, 6)
+    FigureToonSlot(*code, .ShaderUniform, 7, 0, 4)
+    FigureToonSlot(*code, .ShaderUniform, 9, 0, 5)
+    FigureToonOp(*code, .ShaderMultiply, 10, 6, 7)
+    FigureToonOp(*code, .ShaderAdd, 10, 10, 7)
+    FigureToonMix(*code, 4, 4, 10, 9)
+    // Into linear light, keeping alpha.
+    FigureToonOp(*code, .ShaderMultiply, 11, 4, 4)
+    FigureToonLiteral(*code, 12, 1.0, 1.0, 1.0, 0.0)
+    FigureToonMix(*code, 4, 4, 11, 12)
+    // Light and shade, split softly a little into the shadow side.
+    FigureToonSlot(*code, .ShaderUniform, 13, 0, 1)
+    FigureToonSlot(*code, .ShaderNormalize, 13, 13, 0)
+    FigureToonOp(*code, .ShaderDot, 14, 2, 13)
+    FigureToonLiteral(*code, 15, 5.0, 5.0, 5.0, 5.0)
+    FigureToonOp(*code, .ShaderMultiply, 14, 14, 15)
+    FigureToonLiteral(*code, 15, 0.75, 0.75, 0.75, 0.75)
+    FigureToonOp(*code, .ShaderAdd, 14, 14, 15)
+    FigureToonLiteral(*code, 15, 0.0, 0.0, 0.0, 0.0)
+    FigureToonOp(*code, .ShaderMax, 14, 14, 15)
+    FigureToonLiteral(*code, 15, 1.0, 1.0, 1.0, 1.0)
+    FigureToonOp(*code, .ShaderMin, 14, 14, 15)
+    FigureToonSlot(*code, .ShaderUniform, 16, 0, 2)
+    FigureToonOp(*code, .ShaderMultiply, 16, 4, 16)
+    FigureToonMix(*code, 17, 16, 4, 14)
+    // A rim of light where the surface turns away from the eye.
+    FigureToonSlot(*code, .ShaderUniform, 18, 0, 3)
+    FigureToonSlot(*code, .ShaderNormalize, 18, 18, 0)
+    FigureToonOp(*code, .ShaderDot, 19, 2, 18)
+    FigureToonLiteral(*code, 20, -1.0, -1.0, -1.0, -1.0)
+    FigureToonOp(*code, .ShaderMultiply, 19, 19, 20)
+    FigureToonLiteral(*code, 20, 1.0, 1.0, 1.0, 1.0)
+    FigureToonOp(*code, .ShaderAdd, 19, 19, 20)
+    FigureToonOp(*code, .ShaderMultiply, 19, 19, 19)
+    FigureToonOp(*code, .ShaderMultiply, 19, 19, 19)
+    FigureToonSlot(*code, .ShaderUniform, 21, 0, 6)
+    FigureToonOp(*code, .ShaderMultiply, 19, 19, 21)
+    FigureToonOp(*code, .ShaderAdd, 17, 17, 19)
+    FigureToonSlot(*code, .ShaderOutput, 0, 17, 0)
+    return ShaderCompile(program, code.code[0:code.count])
+}
+
+FigureToonCode :: struct {
+    code: [64]ShaderInstruction
+    count: s32
+}
+
+FigureToonOp :: (code: *FigureToonCode, op: ShaderOp, dest: s32, a: s32, b: s32) {
+    code.code[code.count] = .{op = op, dest = dest, a = a, b = b}
+    code.count += 1
+}
+
+FigureToonMix :: (code: *FigureToonCode, dest: s32, a: s32, b: s32, t: s32) {
+    code.code[code.count] = .{op = .ShaderMix, dest = dest, a = a, b = b, c = t}
+    code.count += 1
+}
+
+FigureToonSlot :: (code: *FigureToonCode, op: ShaderOp, dest: s32, a: s32, slot: s32) {
+    code.code[code.count] = .{op = op, dest = dest, a = a, slot = slot}
+    code.count += 1
+}
+
+FigureToonLiteral :: (code: *FigureToonCode, dest: s32, x: float64, y: float64, z: float64, w: float64) {
+    code.code[code.count] = .{op = .ShaderLiteral, dest = dest, value = .{x, y, z, w}}
+    code.count += 1
+}
