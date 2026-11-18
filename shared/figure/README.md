@@ -1,20 +1,11 @@
-# Shared practice figures
+# Shared practice figure media
 
-The practice figures (`figure/` in this repository) draw every practice from one continuous CC0 MakeHuman surface, shaped into two characters. Each is MakeHuman's own CC0 young-adult macro shape, mostly its Asian target, at that character's weight and muscle with ideal proportions, and skinned with MakeHuman's own CC0 default rig weights, folded onto 46 bones. The hip and shoulder hand-overs are diffused across the surface, and the thighs stop at the hip crease. Attribution and the pinned sources, with a checksum for every target used, are beside the mesh (`makehuman-source.json`).
+The figure model is pending (see `figure/README.md`); this folder holds the
+media that does not depend on it.
 
-- `female/`: a petite young Chinese woman, slim and toned, with narrow shoulders and hips, a small bottom and bust and small, narrow feet (MakeHuman's own smallest breast cup and its hip, buttocks and foot-width targets), small hands, a slightly longer neck and a young, soft face: larger eyes, a smaller mouth, a shorter chin and a small jaw. She wears a fitted jade top with a stand-up collar, cap sleeves and cream frog knots down to the middle of her chest, slim navy trousers to the ankle, and goes barefoot. Her sleek black hair is parted in the middle and drawn back into a high bun.
-- `male/`: a young Chinese man, athletic. He wears a loose indigo kung fu jacket with a stand-up collar and frog knots all the way down, its skirt slit at the sides and hanging free from the waist, wide black trousers gathered at the ankle, and goes barefoot, with short black hair.
-
-The clothes are shells over the body skinned by the same rig. The fitted top and the trousers are the body's own surface lifted a few millimetres and smoothed the way cloth lies, so they bridge small hollows and never cut into her. The body under the clothes, which never shows, is left out. Both heads add MakeHuman's eyeballs under the face map, and hair shells that start from nothing at the hairline, all following the head bone.
-
-Every texture map is clean and drawn by Breeze's preparation script: flat colours for the skin and the clothes, faint soft strands for the hair, the placket's frog knots, and the face (`face.webp`), drawn on the mesh's own features: the lids' lash lines from MakeHuman's eyelash helpers, irises on its eyeballs, the lips where its teeth meet, brows and, for her, a little blush. The practices' backdrops (`backdrops/`, 1280 px) are generated paintings in Inner Breeze's illustration style; their originals, prompts and checks are in `source/` (`provenance.json`).
-
-Regenerate from the canonical Breeze checkout:
-
-```sh
-build-queue -- python3 scripts/prepare-practice-human.py --output ../../modules/practices/shared/figure --character female
-build-queue -- python3 scripts/prepare-practice-human.py --output ../../modules/practices/shared/figure --character male
-build-queue -- python3 scripts/prepare-practice-human.py --output ../../modules/practices/shared/figure --backdrops
-```
-
-Each character's `anatomy.bin` uses little endian PFIG0002. The 24-byte header contains magic (8 bytes), vertex/index/bone counts (u32 each), and rest height (f32). Each bone is 32 bytes: role/side/finger/segment (u8), parent (i32), rest origin and tip (three f32 each). Each vertex is 48 bytes: position (three f32), normal (three normalized i16), UV (two f32, in repeats of the region's texture, wrapping the trunk and head about the vertical, each limb about its length and the hair from the hairline back to the bun or the crown), detail (two f32: on the face where it lies on the face map, which spans `face.size_metres` from `face.low` in `anatomy.json` as seen from the front; on cloth how freely it hangs from the waist, 0 at the waist and 1 at the jacket's hem; on hair how far it fades into the skin at the hairline), four bone IDs (u8), four normalized u16 weights summing to 65535, region (u8) and how much of the face map shows (u8, 0–255). Triangle indices are u16. Regions are 0 skin, 1 top, 2 trousers, 3 hair, and 4 trim (the placket). The native loader validates the whole stream before creating geometry.
+The practices' backdrops (`backdrops/`, 1280 px) are generated paintings in
+Inner Breeze's illustration style: a lake terrace for Tai Chi, a sunrise
+hill for Sun Salutation, a woodland deck for the Workout and a moonlit
+veranda for astral projection. Their originals, prompts and checks are in
+`source/` (`provenance.json`); the stored backdrops have their colour made
+about 1.3 times as strong and are sized for phones.

@@ -1,7 +1,6 @@
-# The shared practice figures: a petite young woman and a young man, their
-# rig, clothes and studio-lit look, drawn by every practice from that
-# practice's own poses.
-# The media it reads stays in shared/figure/.
+# The shared practice figure's model-independent parts: the joint pose every
+# practice reports, skinning, and setting a figure into a practice's
+# backdrop (shared/figure/backdrops/). The figure model itself is pending.
 [package]
 name = "practices"
 module_roots = ["figure", "tests"]
@@ -18,9 +17,6 @@ ref = "4b79d9761508068e901879eb6208a22b8c331a63"
 
 [exports]
 figure_math = "figure/figure_math.zi"
-figure_anatomy = "figure/figure_anatomy.zi"
 figure_joints = "figure/figure_joints.zi"
 figure_skin = "figure/figure_skin.zi"
-figure_shader = "figure/figure_shader.zi"
 figure_finish = "figure/figure_finish.zi"
-figure_paint = "figure/figure_paint.zi"

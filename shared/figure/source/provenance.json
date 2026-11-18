@@ -1,10 +1,9 @@
 {
   "generated": "2026-11-17",
   "generator": "Harmony generate_image (the owner's configured image model); the backdrops use an Inner Breeze practice banner as the style reference",
-  "cleanup": "Offline OCR (PP-OCRv6-small) found no text, signature or watermark in the backdrops. Stored as WebP q90. Their colour strength and phone sizes are applied by Breeze scripts/prepare-practice-human.py --backdrops.",
+  "cleanup": "Offline OCR (PP-OCRv6-small) found no text, signature or watermark in the backdrops. Stored as WebP q90; the stored backdrops in ../backdrops have their colour made about 1.3 times as strong and are sized for phones.",
   "not_kept": {
-    "earlier watercolor set": "The hand-painted watercolor character (wrap tunic, sash, balloon trousers), its textures and watercolor backdrops of 2026-11-17 were replaced the same day by this set in Inner Breeze's own illustration style; see git history.",
-    "generated character textures": "The slim character's generated face, hair, cloth and skin textures, its style target and character sheet (2026-11-17) were replaced on 2026-11-18 by clean texture maps that scripts/prepare-practice-human.py draws itself, and by the owner's sculpt references in figure/design/reference/; see git history."
+    "earlier figure sets": "The generated watercolor and storybook character textures of 2026-11-17 were replaced, and the MakeHuman-based characters that followed were removed on 2026-11-18; see git history."
   },
   "files": {
     "shared/figure/source/backdrop-tai-chi.webp": {

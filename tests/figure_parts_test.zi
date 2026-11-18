@@ -1,0 +1,83 @@
+// The figure's model-independent parts: dual-quaternion skinning on a
+// Kryon skin, the contact shadow and setting a picture over a backdrop.
+#import "figure_math"
+#import "figure_joints"
+#import "figure_skin"
+#import "figure_finish"
+#import "kryon/scene"
+#import "kryon/scene_skin"
+#import "std/math"
+#import "std/vec"
+Raster :: #import "std/image";
+
+Check :: (value: bool, label: string) -> s32 {
+    if value {
+        return 0
+    }
+    print("figure parts: %\n", label)
+    return 1
+}
+
+main :: () -> s32 {
+    fail: s32
+    // One bone turned a quarter about Z and moved one metre along X.
+    scene: Scene
+    SceneInit(*scene)
+    defer SceneFree(*scene)
+    skin: SceneSkin
+    defer SceneSkinRelease(*skin)
+    positions: [3]Vector3 = .[.{1.0, 0.0, 0.0}, .{0.0, 1.0, 0.0}, .{0.0, 0.0, 1.0}]
+    normals: [3]Vector3 = .[.{0.0, 0.0, 1.0}, .{0.0, 0.0, 1.0}, .{0.0, 0.0, 1.0}]
+    uvs: [3]ShapePoint
+    indices: [3]s32 = .[0, 1, 2]
+    influences: [3]SkinInfluence
+    for index: 0..2 {
+        influences[index].weights[0] = 1.0
+    }
+    fail += Check(SceneSkinCreate(*scene, *skin, 1, positions[:], normals[:], uvs[:], indices[:], influences[:],
+        UnlitMaterial(.{255, 255, 255, 255})), "a one-bone skin is created")
+    blend: FigureSkin
+    defer FigureSkinRelease(*blend)
+    poses: [1]FigureBonePose
+    poses[0] = .{rest_origin = .{}, origin = .{1.0, 0.0, 0.0}, axis = .{0.0, 1.0, 0.0},
+        turn = FigureAxisAngle(FigureV3(0.0, 0.0, 1.0), FIGURE_PI * 0.5), width = 1.0, length = 1.0}
+    fail += Check(FigureSkinDeform(*scene, *skin, *blend, poses[:]), "the skin deforms")
+    first := scene.meshes[scene.nodes[skin.node].mesh].first_vertex
+    moved := scene.positions[first]
+    fail += Check(FigureDistance(moved, FigureV3(1.0, 1.0, 0.0)) < 0.000001, "a vertex follows its bone's motion")
+    fail += Check(FigureDistance(moved, FigureBonePoint(poses[0], positions[0])) < 0.000001,
+        "skinning matches the bone's own motion")
+    // A layer laid over a backdrop, and a soft shadow under it.
+    backdrop: Raster.Image
+    defer VecFree(backdrop.pixels)
+    fail += Check(VecResize(backdrop.pixels, 8 * 8 * 4), "a backdrop is made")
+    backdrop.width = 8
+    backdrop.height = 8
+    for index: 0..backdrop.pixels.count - 1 {
+        backdrop.pixels[index] = 200
+    }
+    covered: Raster.Image
+    defer VecFree(covered.pixels)
+    fail += Check(FigureBackdropCover(*covered, *backdrop, 32, 16, 1.0, 0.5, 1.0) && covered.width == 32 &&
+        covered.pixels[(15 * 32 + 31) * 4 + 3] == 200, "a backdrop covers the picture")
+    layer: Raster.Image
+    defer VecFree(layer.pixels)
+    fail += Check(VecResize(layer.pixels, 32 * 16 * 4), "a layer is made")
+    layer.width = 32
+    layer.height = 16
+    for index: 0..layer.pixels.count - 1 {
+        layer.pixels[index] = 0
+    }
+    spot: FigureSpot = .{origin = .{16.0, 8.0}, xx = 0.1, yy = 0.2}
+    FigureContactShadow(*layer, spot, 0.5)
+    middle := (8 * 32 + 16) * 4
+    fail += Check(layer.pixels[middle + 3] > 100 && layer.pixels[3] == 0, "the shadow is darkest at its middle")
+    out: Raster.Image
+    defer VecFree(out.pixels)
+    fail += Check(FigureOverOnto(*out, *covered, *layer) && out.pixels[middle] < covered.pixels[middle] &&
+        out.pixels[0] == covered.pixels[0], "a layer lies over the backdrop")
+    if fail == 0 {
+        print("Figure parts local tests passed\n")
+    }
+    return fail
+}
