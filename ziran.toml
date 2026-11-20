@@ -11,8 +11,8 @@ git = "https://github.com/ziranlang/ziran.git"
 ref = "1934aae05eadec28f3f96ea8c3cfe3a21888487d"
 
 [dependencies.kryon]
-git = "https://github.com/kryonlabs/kryon.git"
-ref = "ac6c8f47b8d52251213bd416ea373fc60bfd447f"
+git = "https://git.waozi.xyz/kryonlabs/kryon.git"
+ref = "43e6ea3d76ded207e2be93ff82b2a609c3cfeb91"
 
 [exports]
 figure_math = "figure/figure_math.zi"
