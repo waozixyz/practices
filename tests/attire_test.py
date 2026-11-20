@@ -1,13 +1,40 @@
 #!/usr/bin/env python3
 """Verify real garment edits preserve both selected identities and plain soles."""
 import argparse
+import json
 from pathlib import Path
 import sys
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'figure/tools'))
-from prepare_attire import Asset, ORIGINAL, sha
-import json
+from prepare_attire import Asset, ORIGINAL, is_foot_skin, sha
+
+
+def verify_feet(old, new, receipts):
+    original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
+    source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
+    triangles = old.read(original['indices']).reshape(-1, 3)
+    feet = next(mesh for mesh in new.doc['meshes'] if mesh['name'] == 'PracticeBareFeet')
+    assert len(feet['primitives']) == len(receipts) == 2
+    for sign, primitive, receipt in zip((-1, 1), feet['primitives'], receipts):
+        assert primitive['material'] == original['material']
+        expected = triangles[np.all(source['POSITION'][triangles, 0] * sign > 0, axis=1)]
+        indices = new.read(primitive['indices']).reshape(-1, 3)
+        assert len(indices) == len(expected) == receipt['triangles']
+        assert len(np.unique(indices)) == receipt['vertices']
+        attrs = {name: new.read(accessor) for name, accessor in primitive['attributes'].items()}
+        position = attrs['POSITION']
+        assert np.array_equal(position[indices][..., [0, 2]], source['POSITION'][expected][..., [0, 2]])
+        assert np.array_equal(attrs['TEXCOORD_0'][indices], source['TEXCOORD_0'][expected])
+        assert np.isfinite(position).all() and np.isfinite(attrs['NORMAL']).all()
+        assert np.allclose(np.linalg.norm(attrs['NORMAL'], axis=1), 1, atol=1e-5)
+        assert np.allclose(attrs['WEIGHTS_0'].sum(1), 1, atol=1e-5)
+        used = np.unique(indices)
+        assert position[used, 1].min() == 0
+        contact = used[position[used, 1] == 0]
+        assert len(contact) == receipt['support_vertices'] >= 8
+        assert .12 < np.ptp(position[contact, 2]) == receipt['heel_to_ball']
+        assert np.all(attrs['WEIGHTS_0'][contact] == [1, 0, 0, 0])
 
 
 def main():
@@ -33,9 +60,11 @@ def main():
             assert {k: v for k, v in node.items() if k != 'children'} == {k: v for k, v in d['nodes'][i].items() if k != 'children'}
             assert d['nodes'][i].get('children', [])[:len(node.get('children', []))] == node.get('children', [])
         for i, mesh in enumerate(o['meshes']):
-            expected = [p for p in mesh['primitives'] if 'CLOTH' not in o['materials'][p['material']]['name']]
+            expected = [p for p in mesh['primitives']
+                        if 'CLOTH' not in o['materials'][p['material']]['name'] and not is_foot_skin(old, p)]
             actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
             assert actual == expected, (person, mesh.get('name'))
+        verify_feet(old, new, receipts[person]['bare_feet'])
         garments = []
         for mesh in d['meshes']:
             for primitive in mesh['primitives']:
@@ -66,7 +95,7 @@ def main():
                 a = primitive['attributes']
                 joints, weights = new.read(a['JOINTS_0']), new.read(a['WEIGHTS_0'])
                 assert np.max(np.where(np.isin(joints, hood), weights, 0)) < .01
-        print(f'{person}: real linen wrap geometry, identity/CC0/texture/skeleton preserved; skirt retained or hood removed')
+        print(f'{person}: real linen wrap geometry, original barefoot topology, textures and level soles; CC0 and skeleton preserved')
 
 
 if __name__ == '__main__':

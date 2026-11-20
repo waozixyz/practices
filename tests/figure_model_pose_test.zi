@@ -2,6 +2,8 @@
 #import "figure_math"
 #import "figure_joints"
 #import "figure_model"
+#import "figure_cloth"
+#import "std/byte_text_linux"
 #import "kryon/scene"
 #import "kryon/scene_gltf"
 #import "std/math"
@@ -101,6 +103,40 @@ ArmMotion :: (model: *FigureModel, scene: *Scene, path: string) -> bool {
     return shoulder_change > 0.12 && shoulder_change < 0.24 && largest_step < 0.18 && largest_turn > 0.45
 }
 
+SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
+    pose := ModelPose(0.0)
+    // Sweep a sleeve close to the front skirt panel during a low reach.
+    min_gap: float64 = 1.0
+    measured: s64
+    for sample: 0..16 {
+        pose.elbows[0] = .{0.20, 0.82, 0.22}
+        pose.wrists[0] = .{0.18, 0.68, 0.21 + 0.05 * cast(float64)sample / 16.0}
+        if !FigureModelPose(model, scene, *pose) { return false }
+        elbow := ModelPoint(model, scene, FigureSideRole(0, FIGURE_LOWER_ARM))
+        wrist := ModelPoint(model, scene, FigureSideRole(0, FIGURE_HAND))
+        root := scene.nodes[model.instance.root_node]
+        for index: 0..model.instance.meshes.count - 1 {
+            inst := *model.instance.meshes[index]
+            source := *model.model.meshes[inst.mesh_index]
+            if TextView(source.name[:]) != "PracticeSkirt" { continue }
+            mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+            rest_hips := model.rest_at[model.bones[FIGURE_HIPS]]
+            radius := 0.062 * root.scale.x
+            for vertex: 0..inst.skin.positions.count - 1 {
+                if rest_hips.y - inst.skin.positions[vertex].y < 0.10 { continue }
+                point := FigureAdd(root.position, FigureScale(FigureRotate(model.facing,
+                    scene.positions[mesh.first_vertex + vertex]), root.scale.x))
+                restored := FigureClothOutside(point, elbow, wrist, radius, .{1.0, 0.0, 0.0})
+                gap := FigureDistance(restored, point)
+                min_gap = FigureMin(min_gap, radius - gap)
+                measured += 1
+            }
+        }
+    }
+    print("skirt/sleeve contact: % skirt vertices sampled, minimum sleeve radius clearance % m\n", measured, min_gap)
+    return measured >= 17 * 100 && min_gap >= 0.060 * scene.nodes[model.instance.root_node].scale.x
+}
+
 main :: () -> s32 {
     fail: s32
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
@@ -114,6 +150,7 @@ main :: () -> s32 {
             print("model pose: could not load %\n", path)
             return 1
         }
+        worst_pelvis: float64
         worst_ankle: float64
         worst_drift: float64
         worst_hand: float64
@@ -124,6 +161,8 @@ main :: () -> s32 {
             if !FigureModelPose(*model, *scene, *pose) {
                 return 1
             }
+            pelvis := ModelPoint(*model, *scene, FIGURE_HIPS)
+            worst_pelvis = FigureMax(worst_pelvis, FigureDistance(pelvis, pose.pelvis))
             for side: cast(s32)0..1 {
                 ankle := ModelPoint(*model, *scene, FigureSideRole(side, FIGURE_FOOT))
                 if sample == 0 {
@@ -139,9 +178,12 @@ main :: () -> s32 {
                 worst_hand = FigureMax(worst_hand, FigureDistance(pointing, wanted))
             }
         }
-        print("model pose: % ankle error % m, planted drift % m, wrist error % m, hand direction error %\n",
-            path, worst_ankle, worst_drift, worst_wrist, worst_hand)
-        if worst_ankle > 0.0001 || worst_drift > 0.0001 || worst_wrist > 0.0001 || worst_hand > 0.001 {
+        print("model pose: % pelvis error % m, ankle error % m, planted drift % m, wrist error % m, hand direction error %\n",
+            path, worst_pelvis, worst_ankle, worst_drift, worst_wrist, worst_hand)
+        if worst_pelvis > 0.0001 || worst_ankle > 0.0001 || worst_drift > 0.0001 || worst_wrist > 0.0001 || worst_hand > 0.001 {
+            fail += 1
+        }
+        if path == paths[0] && !SleeveContact(*model, *scene) {
             fail += 1
         }
         if !ArmMotion(*model, *scene, path) {

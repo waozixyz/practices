@@ -28,13 +28,16 @@ The modules:
   `mixamorig` and common Blender names). Each pose solves the limbs with
   the model's own segment lengths to reach the solver's wrists and ankles,
   keeping its proportions. It scales the model to the solver's leg length and stands
-  its measured slipper support on the solver's heel/ball contacts. The
+  its measured barefoot support on the solver's heel/ball contacts. The
   clavicles lift and move forward with the upper arms. The wrist follows the
   solver's palm frame and shares part of its axial turn with the forearm.
   The fingers curl gently unless the technique calls for a fist or hook.
   Eyes follow cued head
   turns gently. `FigureModelToon` gives it a
   cel-shaded look on its own textures.
+- `figure_stage` retains the model and renders it to a transparent pixel
+  buffer with a fixed orthographic camera. It accepts the bundled VRM
+  bytes and shares the same camera geometry with the preview.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.
@@ -48,7 +51,6 @@ for suite in figure_parts_test figure_model_pose_test figure_model_sole_test fig
     ziran build --project --target=c --exe --entry "$suite:main" -o "build/$suite" "tests/$suite.zi" &&
         "build/$suite/$suite" || exit
 done
-python3 tests/slippers_test.py
 python3 tests/attire_test.py --source-dir backup/figure-source
 ```
 
@@ -59,17 +61,16 @@ missing model file is refused cleanly.
 `figure_model_pose_test` loads both selected VRM skeletons and checks the
 rendered hand direction, wrist alignment and planted ankles as the pelvis
 moves over fixed foot targets. It also checks clavicle motion on a high
-reach and sweeps the palm through a full turn at a fixed wrist and elbow.
+reach, sweeps the palm through a full turn at a fixed wrist and elbow,
+and measures skirt clearance as the forearm sweeps across a low reach.
 
 `figure_model_sole_test` measures actual skinned underside vertices for both
 models during flat stances and heel/ball pivots, with a 1 mm floor,
-flatness and pivot limit. `slippers_test.py` validates the shipped CC0
-models, rigid foot weights, matte cloth materials and flat soles; with
-`--source-dir` it also proves every original bitmap/accessor byte and every
-non-shoe primitive is retained. See `shared/figure/MODELS.md` for the
-reproducible footwear pipeline.
+flatness and pivot limit. `attire_test.py` checks the soles against the
+original CC0 skin mesh and verifies the reconstructed figures' textures,
+skeleton and clothing. See `shared/figure/MODELS.md` for reproduction.
 
-`figure_cloth` drapes the skirt hem, resolves leg-capsule contacts and
+`figure_cloth` drapes the skirt hem, resolves leg and sleeve contacts and
 shares displacement across nearby fabric edges. `figure_model` applies
 those constraints to the named skirt after skinning. The attire generator
 grades sleeve weights across the elbow and fits the man's shoulder and

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build calm cross-collar meditation clothes on the owner's CC0 VRoid figures.
 
-Starts with prepare_slippers' checksummed originals. Keeps identity, original
-texture bytes, skeleton, hair, body and slippers. Reuses the fitted garment
+Starts with the checksummed CC0 originals. Keeps identity, original
+texture bytes, skeleton, hair and the original skin beneath the shoes. Reuses the fitted garment
 surface and bind weights, removes the man's hood/cords, relaxes his trousers,
 and adds real crossed lapel/sash geometry. The woman's flared skirt remains
 separate so the runtime can drape it under gravity during folds.
@@ -15,7 +15,13 @@ from pathlib import Path
 import struct
 
 import numpy as np
-from prepare_slippers import prepare, ORIGINAL, COMPONENT, WIDTH
+ORIGINAL = {
+    'woman': 'adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979',
+    'man': '7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f',
+}
+COMPONENT = {5121: '<u1', 5123: '<u2', 5125: '<u4', 5126: '<f4'}
+WIDTH = {'SCALAR': 1, 'VEC2': 2, 'VEC3': 3, 'VEC4': 4, 'MAT4': 16}
+
 
 
 def sha(path):
@@ -230,14 +236,77 @@ def fit_garment_weights(attrs, joint_count, body, vertices, blend, body_region):
     attrs['WEIGHTS_0'][selected] = weights / weights.sum(axis=1, keepdims=True)
 
 
+def is_foot_skin(asset, primitive):
+    material = asset.doc['materials'][primitive['material']]['name']
+    if 'SKIN' not in material:
+        return False
+    ids = np.unique(asset.read(primitive['indices']))
+    heights = asset.read(primitive['attributes']['POSITION'])[ids, 1]
+    return heights.min() < .05 and heights.max() < .20
+
+
+def barefoot(asset, body_node, primitive, person):
+    """Level the original plantar skin while preserving toes, UVs and seams."""
+    doc = asset.doc
+    skin = doc['skins'][doc['nodes'][body_node]['skin']]
+    src = {key: asset.read(i) for key, i in primitive['attributes'].items()}
+    src_triangles = asset.read(primitive['indices']).reshape(-1, 3)
+    feet = []
+    measurements = []
+    for side, sign in (('L', -1), ('R', 1)):
+        attrs = {key: values.copy() for key, values in src.items()}
+        xyz = attrs['POSITION']
+        triangles = src_triangles[np.all(xyz[src_triangles, 0] * sign > 0, axis=1)]
+        used = np.unique(triangles)
+        # The source models stand inside slightly elevated shoes. Measure the
+        # bare heel and forefoot on both sides and remove that ramp below the ankle.
+        rear = used[(xyz[used, 2] > .016) & (xyz[used, 2] < .063)]
+        fore = used[(xyz[used, 2] > -.112) & (xyz[used, 2] < -.078)]
+        heel = rear[xyz[rear, 1].argmin()]
+        ball = fore[xyz[fore, 1].argmin()]
+        plane = np.interp(xyz[used, 2], [xyz[ball, 2], xyz[heel, 2]], [xyz[ball, 1], xyz[heel, 1]])
+        blend = np.clip((xyz[used, 1] - .086) / .048, 0, 1)
+        drop = (plane + .0013) * (1 - blend * blend * (3 - 2 * blend))
+        xyz[used, 1] = np.maximum(0, xyz[used, 1] - drop)
+        # Skin on the plantar surface follows the sole affine, while skin at
+        # the ankle still blends through the original lower-leg weights.
+        foot_node = next(i for i, node in enumerate(doc['nodes']) if node.get('name') == f'J_Bip_{side}_Foot')
+        foot = skin['joints'].index(foot_node)
+        sole = used[xyz[used, 1] < .002]
+        attrs['JOINTS_0'][sole] = [foot, 0, 0, 0]
+        attrs['WEIGHTS_0'][sole] = [1, 0, 0, 0]
+        normals = np.zeros_like(attrs['NORMAL'])
+        cross = np.cross(xyz[triangles[:, 1]] - xyz[triangles[:, 0]], xyz[triangles[:, 2]] - xyz[triangles[:, 0]])
+        for corner in range(3):
+            np.add.at(normals, triangles[:, corner], cross)
+        length = np.linalg.norm(normals, axis=1)
+        # Some UV seams have coincident vertices and zero-area bridge triangles.
+        valid = used[length[used] > 1e-8]
+        attrs['NORMAL'][valid] = normals[valid] / length[valid, None]
+        feet.append(asset.primitive(attrs, triangles, primitive['material']))
+        contact = xyz[used][xyz[used, 1] == 0]
+        if len(contact) < 8 or np.ptp(contact[:, 2]) < .12:
+            raise ValueError(f'{person} {side}: heel and forefoot do not share the contact plane')
+        measurements.append({'side': side, 'vertices': len(used), 'triangles': len(triangles),
+                             'support_vertices': len(contact), 'heel_to_ball': float(np.ptp(contact[:, 2]))})
+    if sum(m['triangles'] for m in measurements) != len(src_triangles):
+        raise ValueError(f'{person}: foot extraction dropped original triangles')
+    asset.mesh(body_node, 'PracticeBareFeet', feet)
+    return measurements
+
+
 def dress(source, target, person):
-    slippers = prepare(source, target, person)
-    asset = Asset(target)
+    if sha(source) != ORIGINAL[person]:
+        raise ValueError(f'{source}: expected the original CC0 sample')
+    asset = Asset(source)
     d = asset.doc
     body_node = next(i for i, n in enumerate(d['nodes']) if n.get('name') == 'Body')
     body = d['meshes'][d['nodes'][body_node]['mesh']]
     skin = d['skins'][d['nodes'][body_node]['skin']]
-    skin_parts = [p for p in body['primitives'] if 'SKIN' in d['materials'][p['material']]['name']]
+    foot_skin = next(p for p in body['primitives'] if is_foot_skin(asset, p))
+    measurements = barefoot(asset, body_node, foot_skin, person)
+    skin_parts = [p for p in body['primitives'] if p is not foot_skin and
+                  'SKIN' in d['materials'][p['material']]['name']]
     # The skin and clothes share accessors. Only vertices indexed by skin
     # primitives belong to the surface we want to fit against.
     skin_vertices = np.unique(np.concatenate([asset.read(p['indices']) for p in skin_parts]))
@@ -253,6 +322,8 @@ def dress(source, target, person):
     kept, changed, skirt, trims, cloth = [], [], [], [], []
     for primitive_index, primitive in enumerate(body['primitives']):
         name = d['materials'][primitive['material']]['name']
+        if primitive is foot_skin or 'Shoes' in name:
+            continue
         if 'CLOTH' not in name:
             kept.append(primitive)
             continue
@@ -336,10 +407,10 @@ def dress(source, target, person):
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
-    slippers['output_sha256'] = sha(target)
-    return slippers, {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
+    return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
+                       'bare_feet': measurements,
                        'changed_body_primitives': changed, 'skirt_preserved': person == 'woman',
-                       'identity': 'Original face, hair, body, skeleton and flat slippers retained',
+                       'identity': 'Original face, hair, body, skeleton and bare feet retained',
                        'style': 'Matte linen cross-collar wrap, plain sash and flared skirt' if person == 'woman'
                        else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed'}
 
@@ -349,12 +420,11 @@ def main():
     parser.add_argument('--source-dir', required=True, type=Path)
     parser.add_argument('--output-dir', default=Path('shared/figure'), type=Path)
     args = parser.parse_args()
-    slippers, attire = {}, {}
+    attire = {}
     for person in ORIGINAL:
-        slippers[person], attire[person] = dress(args.source_dir / f'{person}.vrm', args.output_dir / f'{person}.vrm', person)
-    (args.output_dir / 'slippers.json').write_text(json.dumps(slippers, indent=2) + '\n')
+        attire[person] = dress(args.source_dir / f'{person}.vrm', args.output_dir / f'{person}.vrm', person)
     (args.output_dir / 'attire.json').write_text(json.dumps(attire, indent=2) + '\n')
-    print('Prepared both traditional-inspired meditation outfits; original CC0 identities and flat slippers retained')
+    print('Prepared both traditional-inspired meditation outfits; original CC0 identities and bare feet retained')
 
 
 if __name__ == '__main__':

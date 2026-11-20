@@ -106,10 +106,33 @@ FigureFingerRole :: (side: s32, finger: s32, segment: s32) -> s32 {
 // The model's own animations are not used. False when the file is not a
 // valid model or has no hips, legs and arms.
 FigureModelLoad :: (figure: *FigureModel, scene: *Scene, path: string) -> bool {
-    FigureModelRelease(figure)
     loaded := GltfReadFile(path)
-    FigureTakeModel(*figure.model, *loaded)
-    GltfModelRelease(*loaded)
+    defer GltfModelRelease(*loaded)
+    if !FigureModelUse(figure, scene, *loaded) {
+        return false
+    }
+    if VrmReadFile(*figure.avatar, path) {
+        unused VrmSpringsReset(*figure.avatar, *figure.model, *figure.instance)
+    }
+    return true
+}
+
+// Package assets are already in memory on desktop, Android and Web.
+FigureModelLoadBytes :: (figure: *FigureModel, scene: *Scene, bytes: []u8) -> bool {
+    loaded := GltfReadBytes(bytes)
+    defer GltfModelRelease(*loaded)
+    if !FigureModelUse(figure, scene, *loaded) {
+        return false
+    }
+    if VrmReadBytes(*figure.avatar, bytes) {
+        unused VrmSpringsReset(*figure.avatar, *figure.model, *figure.instance)
+    }
+    return true
+}
+
+FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> bool {
+    FigureModelRelease(figure)
+    FigureTakeModel(*figure.model, loaded)
     if !figure.model.valid || !GltfSceneCreate(scene, *figure.model, *figure.instance) {
         return false
     }
@@ -201,10 +224,6 @@ FigureModelLoad :: (figure: *FigureModel, scene: *Scene, path: string) -> bool {
         figure.hand_rest[side] = FigureModelHandRest(figure, side)
     }
     FigureModelReadSoles(figure)
-    // A VRM model's springs start from its rest pose.
-    if VrmReadFile(*figure.avatar, path) {
-        unused VrmSpringsReset(*figure.avatar, *figure.model, *figure.instance)
-    }
     figure.clock = -1.0
     figure.ready = true
     return true
@@ -248,8 +267,8 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
         shin := FigureModelAim(figure, thigh, FigureSideRole(side, FIGURE_LOWER_LEG), FigureSideRole(side, FIGURE_FOOT),
             FigureSub(joints.ankles[side], joints.knees[side]))
         turns[FigureSideRole(side, FIGURE_LOWER_LEG)] = shin
-        // The prepared slipper sole is level at rest. Toe-bone direction
-        // is anatomical, not the sole plane; aiming it tilted planted shoes.
+        // The calibrated foot sole is level at rest. Toe-bone direction
+        // is anatomical, not the sole plane; aiming it tilted planted feet.
         foot := FigureQuatNormalize(joints.feet[side])
         turns[FigureSideRole(side, FIGURE_FOOT)] = foot
         turns[FigureSideRole(side, FIGURE_TOES)] = foot
@@ -295,12 +314,12 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
         }
         feet_targets[side] = FigureModelSoleTarget(figure, joints, side, scale)
     }
-    offset: Vector3
-    for side: cast(s32)0..1 {
-        ankle := FigureScale(FigureRotate(figure.facing, FigureModelPosed(figure, figure.bones[FigureSideRole(side, FIGURE_FOOT)])),
-            scale)
-        offset = FigureAdd(offset, FigureScale(FigureSub(feet_targets[side], ankle), 0.5))
-    }
+    // Keep authored pelvis translation. Averaging the ankles inferred from
+    // rotating model bones shifts the whole root during a weight transfer,
+    // even when both feet stay planted in the solver.
+    model_pelvis := FigureScale(FigureRotate(figure.facing,
+        FigureModelPosed(figure, figure.bones[FIGURE_HIPS])), scale)
+    offset := FigureSub(joints.pelvis, model_pelvis)
     // A measured sole changes the ankle target. Keep the pelvis inside
     // both legs' reach before solving them, including nearly straight
     // stances where the two avatars' thigh/shin ratios differ.
@@ -358,12 +377,57 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
     if !GltfUpdateScene(*figure.model, *figure.instance, scene) {
         return false
     }
+    FigureModelToeContact(figure, scene, joints)
     FigureModelCloth(figure, scene, joints)
     return true
 }
 
+// Let the toes flex along the floor as the heel rises. The surface beyond
+// the ball follows the forefoot correction across its whole thickness.
+FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
+    root := scene.nodes[figure.instance.root_node]
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        source := *figure.model.meshes[inst.mesh_index]
+        if TextView(source.name[:]) != "PracticeBareFeet" {
+            continue
+        }
+        side := inst.primitive_index
+        turn := FigureQuatNormalize(joints.feet[side])
+        up := FigureRotate(turn, .{0.0, 1.0, 0.0})
+        if up.y < 0.1 || FigureDistance(joints.heels[side], joints.balls[side]) < 0.01 {
+            continue
+        }
+        heel_down := joints.heels[side].y <= joints.balls[side].y
+        anchor := ifx heel_down then joints.heels[side] else joints.balls[side]
+        rest := ifx heel_down then figure.sole_heel[side] else figure.sole_ball[side]
+        // A lifted leg needs no contact adjustment once its toes clear.
+        ankle := FigureModelRest(figure, FigureSideRole(side, FIGURE_FOOT), -1)
+        matrix := figure.instance.node_world[inst.gltf_node]
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        local_up := FigureV3(matrix.m[4], matrix.m[5], matrix.m[6])
+        slope := FigureDot(local_up, local_up) * root.scale.x
+        if slope <= 0.000001 { continue }
+        changed := false
+        for vertex: 0..inst.skin.positions.count - 1 {
+            from_ankle := FigureRotate(figure.facing, FigureSub(inst.skin.positions[vertex], ankle))
+            from_pivot := FigureV3(from_ankle.x - rest.x, 0.0,
+                (from_ankle.z - rest.z) * figure.foot_stretch[side])
+            level := anchor.y + FigureRotate(turn, FigureScale(from_pivot, root.scale.x)).y
+            point := *scene.positions[mesh.first_vertex + vertex]
+            height := root.position.y + (FigureDot(local_up, <<point) + matrix.m[7]) * root.scale.x
+            lift := -FigureMin(level, height)
+            if lift > 0.0000001 {
+                <<point = FigureAddScaled(<<point, local_up, lift / slope)
+                changed = true
+            }
+        }
+        if changed { ComputeNormals(scene, inst.scene_node) }
+    }
+}
+
 // Drape only the named skirt emitted by prepare_attire.py. Other garment,
-// body, hair and slipper skins retain their existing deformation.
+// body, hair and foot skins retain their existing deformation.
 FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
@@ -374,12 +438,23 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
     yaw := ifx lateral.x * lateral.x + lateral.z * lateral.z > 0.000001 then Atan2(-lateral.z, lateral.x) else Atan2(forward.x, forward.z)
     cloth_turn := FigureMultiply(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), figure.facing)
     legs: [6]Vector3
+    arms: [6]Vector3
+    sleeves: [2]bool
     thighs: [2]Vector3
     for side: cast(s32)0..1 {
         legs[side * 3] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_UPPER_LEG))
         legs[side * 3 + 1] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_LOWER_LEG))
         legs[side * 3 + 2] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_FOOT))
         thighs[side] = FigureNormalize(FigureSub(legs[side * 3 + 1], legs[side * 3]))
+        upper := FigureSideRole(side, FIGURE_UPPER_ARM)
+        lower := FigureSideRole(side, FIGURE_LOWER_ARM)
+        hand := FigureSideRole(side, FIGURE_HAND)
+        sleeves[side] = figure.bones[upper] >= 0 && figure.bones[lower] >= 0 && figure.bones[hand] >= 0
+        if sleeves[side] {
+            arms[side * 3] = FigureModelWorld(figure, scene, upper)
+            arms[side * 3 + 1] = FigureModelWorld(figure, scene, lower)
+            arms[side * 3 + 2] = FigureModelWorld(figure, scene, hand)
+        }
     }
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
@@ -410,6 +485,15 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                             point = FigureLerp(point, outside, loose)
                             outside = FigureClothOutside(point, legs[side * 3 + 1], legs[side * 3 + 2], 0.054 * scale, outward)
                             point = FigureLerp(point, outside, loose)
+                            // Loose cloth can reach the forearm in low reaches
+                            // and the upper sleeve during a fold. Resolve both
+                            // against the skinned rig, keeping the waist pinned.
+                            if sleeves[side] {
+                                outside = FigureClothOutside(point, arms[side * 3], arms[side * 3 + 1], 0.071 * scale, outward)
+                                point = FigureLerp(point, outside, loose)
+                                outside = FigureClothOutside(point, arms[side * 3 + 1], arms[side * 3 + 2], 0.062 * scale, outward)
+                                point = FigureLerp(point, outside, loose)
+                            }
                         }
                     }
                 }
@@ -492,7 +576,7 @@ FigureGaze :: (joints: *FigureJoints) -> Vector3 {
     return .{FigureClamp(yaw * 0.2, -8.0, 8.0), FigureClamp(pitch * 0.2, -5.0, 5.0), 0.0}
 }
 
-// Place the measured shoe support on the solver's actual contact, rather
+// Place the measured foot support on the solver's actual contact, rather
 // than assuming two avatars have the solver's ankle-to-sole dimensions.
 FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32, scale: float64) -> Vector3 {
     if figure.sole_count[side] == 0 || FigureDistance(joints.heels[side], joints.balls[side]) < 0.01 {
@@ -515,7 +599,7 @@ FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32
     return target
 }
 
-// Measurements from the actual skinned slipper vertices in the scene.
+// Measurements from the actual skinned plantar vertices in the scene.
 // Only contacts on the floor with the sole facing upward are planted.
 FigureContactMeasure :: struct {
     vertices: s64
@@ -530,7 +614,7 @@ FigureModelContacts :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoin
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         source := *figure.model.meshes[inst.mesh_index]
-        if TextView(source.name[:]) != "PracticeClothSlippers" {
+        if !FigureSoleMesh(TextView(source.name[:])) {
             continue
         }
         side := inst.primitive_index
@@ -756,14 +840,18 @@ FigureModelRest :: (figure: *FigureModel, role: s32, fallback: s32) -> Vector3 {
     return ifx node >= 0 then figure.rest_at[node] else Vector3.{}
 }
 
-// The generated slippers are separate primitives with one rigid foot
-// weight. Measure the actual underside vertices; no guessed ankle height.
+// The plantars use a rigid foot weight. Measure the actual underside
+// vertices to establish the heel and forefoot pivots.
+FigureSoleMesh :: (name: string) -> bool {
+    return name == "PracticeBareFeet" || name == "PracticeClothSlippers"
+}
+
 FigureModelReadSoles :: (figure: *FigureModel) {
     figure.sole_count[0] = 0
     figure.sole_count[1] = 0
     for mesh_index: 0..figure.model.meshes.count - 1 {
         mesh := *figure.model.meshes[mesh_index]
-        if TextView(mesh.name[:]) != "PracticeClothSlippers" || mesh.primitives.count != 2 {
+        if !FigureSoleMesh(TextView(mesh.name[:])) || mesh.primitives.count != 2 {
             continue
         }
         for side: cast(s32)0..1 {

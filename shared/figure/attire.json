@@ -1,7 +1,23 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "286b1f2da9fcd951df819452b4cf9ff2de4c3a7226c500762069b76c4a99e2b3",
+    "output_sha256": "22051fc02f151c35b3fb2d422ced0a12bdf1e216b6805f9bf2d80592078be93f",
+    "bare_feet": [
+      {
+        "side": "L",
+        "vertices": 608,
+        "triangles": 878,
+        "support_vertices": 36,
+        "heel_to_ball": 0.1543569266796112
+      },
+      {
+        "side": "R",
+        "vertices": 608,
+        "triangles": 878,
+        "support_vertices": 36,
+        "heel_to_ball": 0.15435673296451569
+      }
+    ],
     "changed_body_primitives": [
       {
         "original_primitive": 4,
@@ -9,12 +25,28 @@
       }
     ],
     "skirt_preserved": true,
-    "identity": "Original face, hair, body, skeleton and flat slippers retained",
+    "identity": "Original face, hair, body, skeleton and bare feet retained",
     "style": "Matte linen cross-collar wrap, plain sash and flared skirt"
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
-    "output_sha256": "4e37818973181bc3ac52dea275a123b3bb021d82f571577d068fd4bc423370c8",
+    "output_sha256": "12f08ad217679f3c6f17d4e2dc0f04593b84092b08bfd35e5c0c0a8cc98d8685",
+    "bare_feet": [
+      {
+        "side": "L",
+        "vertices": 254,
+        "triangles": 422,
+        "support_vertices": 8,
+        "heel_to_ball": 0.13664749264717102
+      },
+      {
+        "side": "R",
+        "vertices": 254,
+        "triangles": 422,
+        "support_vertices": 8,
+        "heel_to_ball": 0.1366473287343979
+      }
+    ],
     "changed_body_primitives": [
       {
         "original_primitive": 4,
@@ -26,7 +58,7 @@
       }
     ],
     "skirt_preserved": false,
-    "identity": "Original face, hair, body, skeleton and flat slippers retained",
+    "identity": "Original face, hair, body, skeleton and bare feet retained",
     "style": "Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed"
   }
 }

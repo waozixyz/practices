@@ -21,58 +21,34 @@
   a VRM humanoid skeleton with hair spring bones. 27,068 and 24,858
   triangles.
 
-On 2026-11-18 the owner requested simple, flat cloth Tai Chi slippers for
-both figures. `figure/tools/prepare_slippers.py` removes only the original
-shoe primitives and adds closed, rounded cloth slippers: matte stone grey
-for the woman and charcoal for the man, a 3 mm edge and 57 mm upper, with
-one level underside and no heel or platform. The rest of the mesh,
-textures, skeleton and VRM metadata is retained. Output checksums and sole
-measurements are in `slippers.json`; the CC0 dedication still applies.
+## Bare feet and meditation attire
 
-Reproduce from the original files (checksums above), kept in the ignored
-`backup/figure-source/` directory during development:
+The figures use the original bare feet, including toe geometry, skin texture
+and UV layout. The generator removes shoe primitives and levels the plantar
+surface below the ankle. The same original leg weights blend the skin above
+the sole into the ankle. `attire.json` records the finished asset checksums,
+triangle and contact counts, and each heel-to-ball span.
 
-```sh
-python3 figure/tools/prepare_slippers.py --source-dir backup/figure-source
-python3 tests/slippers_test.py --source-dir backup/figure-source
-```
+Kryon's importer loads these models through `figure_model`. The retargeter
+measures the skinned soles and fits the foot length to the solver's heel/ball
+span. It keeps the loaded pivot in contact as the feet roll and lets the toes
+flex at the floor. The foot mesh uses affine skinning for the length fit,
+and the rest uses dual quaternions.
 
-The originals can also be recovered from this repository's pre-slipper
-revision or the source URLs above. The pipeline refuses modified input,
-so re-running it never compounds a previous edit. No texture regeneration
-or changes to the other clothing, hair or face are part of this edit.
+The matte linen colors, crossed facings and fitted sash form a traditional
+wrap. The woman keeps the long-sleeve top and flared skirt. The man wears a
+cross-collar tunic with relaxed trousers. Blended weights at the sleeves and
+trouser seat spread deformation through each joint. The generator preserves
+faces, hair, skeletons, expressions, original textures and CC0 metadata.
 
-Kryon's importer loads these models through `figure_model`, using the
-approved toon look. The retargeter measures actual sole vertices and fits
-the foot length to the solver's heel/ball span, keeping both pivots fixed.
-Only foot-only primitives use affine skinning for that length adjustment;
-the rest retain volume-preserving dual-quaternion skinning.
+The separate `PracticeSkirt` mesh keeps its skinned waist seam. Its lower
+portion drapes around the legs and sleeves, stays above the floor, and
+spreads the displacement across neighboring fabric edges. The current pose
+sets these constraints so seeking and playback produce the same drape.
 
-## Traditional meditation attire
-
-The owner's later request includes the clothes and explicitly keeps the
-woman's skirt. `figure/tools/prepare_attire.py --source-dir
-backup/figure-source` starts from the same checksummed originals, builds the
-existing neutral flat slippers, and then replaces only clothing draw
-primitives. The new matte linen colors, crossed cloth facings and fitted
-sash form a calm traditional-inspired wrap. The woman retains the fitted
-long-sleeve top and flared skirt silhouette; the man loses the hoodie/cord
-geometry and gains a cross-collar tunic with relaxed trousers. Faces,
-hair, bodies, skeleton, expressions, source texture bytes, CC0 metadata and
-slipper geometry remain intact. Blended skin weights at the sleeves and
-the trouser seat spread deformation through those joints. `attire.json`
-records exact output identity and the source primitives replaced.
-
-The skirt is its own `PracticeSkirt` mesh. `figure_cloth` and
-`FigureModelCloth` constrain its lower portion under gravity, outside leg
-capsules and above the floor, while preserving the skinned waist seam.
-Short edge-length constraints distribute the drape below the waist during
-forward folds and lunges. The constraints use the pose at the requested
-time, so seeking to a frame gives the same drape as playing it. The
-pre-attire slippers and original models remain in ignored recovery storage.
+Reproduce from the checksummed originals in `backup/figure-source/`.
 
 ```sh
 python3 figure/tools/prepare_attire.py --source-dir backup/figure-source
-python3 tests/slippers_test.py --source-dir backup/figure-source
 python3 tests/attire_test.py --source-dir backup/figure-source
 ```
