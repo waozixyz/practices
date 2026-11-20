@@ -1,0 +1,1006 @@
+{
+  "schema": 1,
+  "status": "final-newly-authored-draft",
+  "title": "Bruce-method astral projection practice drafts",
+  "language": "en",
+  "note": "Newly authored drafts for owner selection, not recovered earlier work. Source procedures are paraphrased into original guidance. Robert Bruce's model is experiential; these drafts make no health, medical, or guaranteed-outcome claims.",
+  "selection_guide": [
+    {
+      "practice_id": "bruce_foundation_touch",
+      "choose_when": "You are starting Bruce-style work or need dependable awareness hands before exit practice."
+    },
+    {
+      "practice_id": "bruce_full_body_current",
+      "choose_when": "Tactile targeting is familiar and you want a gentle daily preparation circuit."
+    },
+    {
+      "practice_id": "bruce_elevator_trance",
+      "choose_when": "You can relax and settle attention, but fall asleep or become too busy-minded during deeper practice."
+    },
+    {
+      "practice_id": "bruce_spin_loosening",
+      "choose_when": "You have stable relaxation and trance familiarity; this is preparation/loosening, not an exit method."
+    },
+    {
+      "practice_id": "bruce_rope_exit",
+      "choose_when": "You are ready for the primary active conscious-exit attempt after preparation."
+    },
+    {
+      "practice_id": "bruce_roll_out_exit",
+      "choose_when": "You want an alternate whole-body exit or a method for finishing a partly completed separation."
+    }
+  ],
+  "recommended_progression": [
+    "Practice Foundation Touch until you can move a felt point of attention without physical movement.",
+    "Add Full-Body Current for two or more familiar sessions.",
+    "Develop Elevator Descent until you can settle deeply without following every thought.",
+    "Use Room Spin only after relaxation and trance feel stable.",
+    "Choose Rope Exit as the primary exit attempt; keep Roll-Out Exit as an alternate and finishing method."
+  ],
+  "practices": [
+    {
+      "id": "bruce_foundation_touch",
+      "title": "Foundation Touch: Hands, Feet, and Awareness Hands",
+      "choice_description": "A beginner preparation that teaches Bruce's tactile-imaging and awareness-hand actions without projection pressure.",
+      "level": "Beginner",
+      "prerequisites": "No prior OBE experience. Practice seated while learning; lying down is fine if you can remain awake.",
+      "posture_setup": "Sit comfortably or recline with your spine supported. Rest your hands palms down, fingers slightly apart. Keep your eyes closed after the initial physical targeting cue.",
+      "duration_seconds": 1200,
+      "phases": [
+        "Settle and choose one hand.",
+        "Locate the thumb-joint target, first with touch if needed.",
+        "Practice small circular tactile imaging.",
+        "Practice straight brushing through the thumb and hand.",
+        "Move awareness hands upward through each leg.",
+        "Combine legs and use a sponge-like upward action.",
+        "Return, compare sides, and record keywords."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Settle",
+          "label": "Welcome and setup",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Welcome. This is Foundation Touch, a preparation practice for Bruce-style body awareness. Sit comfortably or recline, with your hands resting palms down and your fingers slightly apart. Let your eyes close. You may briefly touch the target when I invite it, but otherwise let your physical body remain still. This is training, not a test. Tingling, warmth, pressure, or nothing at all are all acceptable."
+        },
+        {
+          "second": 120,
+          "phase": "Settle",
+          "label": "Locate the thumb target",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Choose your right hand. With one fingertip, lightly scratch a small circle on top of the joint where your thumb joins your hand. Make it about the size of a fingertip. Follow that touch closely. Then stop moving. Keep your attention on the exact place where the sensation remains. That remembered place is your target."
+        },
+        {
+          "second": 240,
+          "phase": "Tactile imaging",
+          "label": "Small clockwise circle",
+          "estimated_spoken_seconds": 35,
+          "quiet_after_seconds": 85,
+          "spoken_text": "Now stir that place with awareness alone. Feel a small clockwise circle moving through the skin, as if a soft pencil were turning there. Keep the circle close and simple. One or two turns each second is enough. If the motion loses its feel, slow down. Stay with touch rather than trying to see anything."
+        },
+        {
+          "second": 360,
+          "phase": "Tactile imaging",
+          "label": "Allow any response",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Let response come or not come. Local heaviness, pressure, tingling, buzzing, or a bone-deep tickle may appear. None of it is required. If nothing happens, that is still useful training. Continue the little circle without pressing, without straining, and without asking for a particular result. Simply keep the feel of movement alive."
+        },
+        {
+          "second": 480,
+          "phase": "Tactile imaging",
+          "label": "Brush thumb and hand",
+          "estimated_spoken_seconds": 35,
+          "quiet_after_seconds": 85,
+          "spoken_text": "Change to a gentle brushing action. Move awareness from just above the thumb joint, along the thumb, and to its tip. Then return through the same path. Feel the whole pathway each way. After a while, widen the stroke across the back of your hand and up to the wrist. Let motion itself hold your attention."
+        },
+        {
+          "second": 600,
+          "phase": "Awareness hands",
+          "label": "Left foot to hip",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Now imagine two hands made entirely of awareness. Send them to your left foot. Feel the whole foot, from toes to heel. Draw both awareness hands upward through the ankle, shin, knee, and thigh. When you reach the hip, instantly return to the toes. Stroke upward again. Do not drag awareness back down."
+        },
+        {
+          "second": 720,
+          "phase": "Awareness hands",
+          "label": "Right foot to hip",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Move to your right foot. Take a moment to feel its shape, sole, toes, and heel. Then draw your awareness hands slowly upward through the ankle, shin, knee, and thigh. Reach the hip, then flick back to the toes. Repeat these upward strokes at a speed that keeps the whole leg present to you."
+        },
+        {
+          "second": 840,
+          "phase": "Awareness hands",
+          "label": "Both legs with sponge action",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "If both legs can stay clear, feel them together. As you stroke upward, imagine each awareness hand holding a large soft sponge. Draw a comfortable resistance upward through each leg, as though moving water upward through the whole limb. If one leg fades, work one leg at a time and alternate. Clarity matters more than doing both at once."
+        },
+        {
+          "second": 960,
+          "phase": "Troubleshooting",
+          "label": "Distraction and no result",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "When thought carries you away, name it gently: thought. Then return to the smallest felt action, one circle or one upward stroke. No result is not failure. If a limb stays blank, keep the movement going for a few more strokes, then change sides. Stop straining whenever effort becomes physical tension."
+        },
+        {
+          "second": 1080,
+          "phase": "Return",
+          "label": "Return and recall",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Let the awareness hands settle at your sides. Feel your whole body breathing. Begin small movement: swallow, wiggle your fingers, move your feet. Before you stand, recall which side responded most easily, what sensations appeared, and where attention wandered. Write those keywords now or immediately after you finish."
+        }
+      ],
+      "if_distracted": [
+        "Label the distraction, release it, and resume one small circle or upward stroke.",
+        "If the same thought returns, note one keyword for later and return once more.",
+        "If sleepiness rises, pause the practice, sit upright if appropriate, open your eyes, and finish with recall notes."
+      ],
+      "if_no_result": [
+        "Continue for a few unhurried repetitions, then change target or side rather than forcing.",
+        "Absence of sensation is acceptable; preserve the felt intention of movement.",
+        "Use physical touch only for initial locating, then return to awareness-only movement."
+      ],
+      "return_and_end": [
+        "Stop awareness movement and feel ordinary breath.",
+        "Restore movement gradually before standing.",
+        "Immediately record side differences, sensations, and distractions."
+      ],
+      "recall_notes": [
+        "Record the clearest body area and its sensation.",
+        "Record which side was easier and when attention drifted.",
+        "Use short keywords rather than a long narrative."
+      ],
+      "source_references": [
+        "Astral Dynamics local 2007 author-revised ebook, PDF pages 100-106, chapter 10: tactile imaging and awareness hands."
+      ]
+    },
+    {
+      "id": "bruce_full_body_current",
+      "title": "Full-Body Current: Bounce and Breath Circuit",
+      "choice_description": "A daily energy-body preparation combining limb bounce, upward raising, and Bruce's full-body breathing circuit.",
+      "level": "Beginner to intermediate",
+      "prerequisites": "Complete Foundation Touch comfortably. You should be able to keep a felt point of attention moving through a foot, hand, leg, or arm.",
+      "posture_setup": "Lie on your back with arms comfortably at your sides for the full circuit. A supported reclining posture also works. Keep breathing natural throughout.",
+      "duration_seconds": 1500,
+      "phases": [
+        "Settle and test bounce speed.",
+        "Bounce legs and arms.",
+        "Raise awareness upward through limbs.",
+        "Learn the full-body breath circuit.",
+        "Rest in ordinary breath and record keywords."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Settle",
+          "label": "Welcome and posture",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Welcome to Full-Body Current. Lie on your back, or recline comfortably, and let your arms rest at your sides. Close your eyes and let your body settle. In this practice, movement happens in awareness, not muscles. Keep breathing naturally. We will first test rhythm, then bounce, then draw upward, and finally follow one slow circuit with the breath."
+        },
+        {
+          "second": 120,
+          "phase": "Bounce testing",
+          "label": "Find resistance",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Bring awareness into your right leg. Move it rapidly from foot to hip and back, feeling the pathway in both directions. Gradually increase speed until the movement seems to meet a soft dragging feeling. Then slow slightly. That sustainable rhythm is your bounce. It is not counted or timed by the clock; it is found by contact and comfort."
+        },
+        {
+          "second": 240,
+          "phase": "Bounce testing",
+          "label": "Bounce both legs",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Keep bouncing through the right leg. Feel every passage between foot and hip. Now change to the left leg and find its rhythm. If both legs can remain clear, bounce them together, foot to hip and back. If one side fades, alternate. Let each bounce be smooth and continuous."
+        },
+        {
+          "second": 360,
+          "phase": "Bounce testing",
+          "label": "Bounce arms",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Move awareness into your right hand. Bounce from fingertips, through the hand and arm, to the shoulder, and back. Find the same gentle resistance, then settle into rhythm. Change to the left arm. If possible, feel both arms together. Keep your shoulders loose and your jaw soft."
+        },
+        {
+          "second": 480,
+          "phase": "Raising",
+          "label": "Sponge upward through legs",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Now slow down. Feel an awareness hand holding a large soft sponge at each foot. Draw upward through the whole of both legs, over the front of the hips, and into the lower belly, midway between navel and pubic line. Flick back to the feet. Repeat each upward sweep in two or three comfortable seconds."
+        },
+        {
+          "second": 600,
+          "phase": "Raising",
+          "label": "Sponge upward through arms",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Move to your hands. Draw awareness through each whole arm, into the shoulders, down across the chest and stomach, and into the same lower-belly area. Then flick back to the hands. Let the action be wide and spongy rather than narrow and precise. If both arms cannot stay clear, alternate arms."
+        },
+        {
+          "second": 720,
+          "phase": "Full-body circuit",
+          "label": "Map the circuit",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Let awareness rest in both feet. With your next natural in-breath, draw upward through both legs and the back, through the hips and spine, to the back of the neck. Continue to the crown. At the top, briefly gather awareness before the out-breath begins. Keep the path broad and comfortable."
+        },
+        {
+          "second": 840,
+          "phase": "Full-body circuit",
+          "label": "Descend on the out-breath",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "As you breathe out, sweep awareness over the crown and face, down over the chest and stomach, into the lower belly. At the end of the out-breath, instantly return to both feet. Breathe in, and rise again. Let the breath provide rhythm. Do not force its depth. Simple, slow, and natural is enough."
+        },
+        {
+          "second": 960,
+          "phase": "Full-body circuit",
+          "label": "Keep whole-body feel",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Continue the circuit. Feel the upward current through feet, legs, and back. At the crown, do not linger too long. On the out-breath, descend like a slow wave to the lower belly. If the mouth or throat detail distracts you, simply pass over face and chest. The broad current matters more than any small segment."
+        },
+        {
+          "second": 1080,
+          "phase": "Full-body circuit",
+          "label": "Simplify if needed",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If the circuit becomes complicated, simplify. Breathe in and rise from feet to crown. Breathe out and descend to the lower belly. Nothing else is required. If breath awareness makes you tense, let the same current continue at a natural rhythm without counting. Return to the breath only when you soften."
+        },
+        {
+          "second": 1200,
+          "phase": "Full-body circuit",
+          "label": "Last easy rounds",
+          "estimated_spoken_seconds": 40,
+          "quiet_after_seconds": 80,
+          "spoken_text": "Take a few last easy rounds. Let each rise be felt through the whole body. Let each descent end low and quiet. If sensations become intense or uncomfortable, stop the circuit and rest with ordinary breathing. This practice should remain gentle and repeatable."
+        },
+        {
+          "second": 1320,
+          "phase": "Return",
+          "label": "Return and record",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let the circuit dissolve. Feel the bed or chair holding you. Notice ordinary breathing without changing it. Move your fingers and toes, stretch if you wish, and let your eyes open naturally. Before doing anything else, note the clearest pathway, strongest sensation, and any place where awareness skipped."
+        },
+        {
+          "second": 1440,
+          "phase": "Return",
+          "label": "Close",
+          "estimated_spoken_seconds": 35,
+          "quiet_after_seconds": 25,
+          "spoken_text": "This completes Full-Body Current. You have practiced finding rhythm, moving awareness through limbs, and following one complete circuit. Keep your notes brief and factual. In later sessions, choose the same practice again, or move to Elevator Descent when you feel steady."
+        }
+      ],
+      "if_distracted": [
+ "Return to one limb and its bounce rhythm before rebuilding the full circuit.",
+        "If counting or breath detail increases tension, drop the count and keep broad felt movement.",
+        "Note the distraction keyword, then resume at the feet."
+      ],
+      "if_no_result": [
+        "Maintain the felt intention of movement even without sensation.",
+        "Work one limb at a time if paired awareness is unclear.",
+        "Shorten the circuit rather than forcing intensity."
+      ],
+      "return_and_end": [
+        "End circuit movement and rest with ordinary breathing.",
+        "Restore movement gradually.",
+        "Record clearest pathway, sensation, and skipped areas."
+      ],
+      "recall_notes": [
+        "Note whether legs, arms, or back carried attention most easily.",
+        "Note the comfortable bounce rhythm in words, not exact counts.",
+        "Note where the circuit became vague."
+      ],
+      "source_references": [
+        "Astral Dynamics local 2007 author-revised ebook, PDF pages 137-149: bounce, raising, and full-body circuit procedures."
+      ]
+    }
+    ,
+    {
+      "id": "bruce_elevator_trance",
+      "title": "Elevator Descent: Body Asleep, Mind Quiet",
+      "choice_description": "A trance-development practice using a felt downward elevator ride while the body grows heavy and the mind remains quietly awake.",
+      "level": "Beginner to intermediate",
+      "prerequisites": "Comfortable with Foundation Touch and Full-Body Current. Ability to relax without immediately falling asleep for twenty minutes.",
+      "posture_setup": "Use a supported reclining posture or lie down. If sleep usually wins, recline slightly more upright. Keep covers comfortable and let ordinary sounds remain in the background.",
+      "duration_seconds": 1800,
+      "phases": [
+        "Settle and release the body.",
+        "Quiet the surface mind with breath.",
+        "Enter the felt elevator descent.",
+        "Hold the trance state with light breath focus.",
+        "Deepen or stabilize as needed.",
+        "Return and recall."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Settle",
+          "label": "Welcome and intention",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Welcome to Elevator Descent. Settle into a comfortable reclining or lying position and close your eyes. Let your body become sleepy and heavy while a small part of attention stays quietly awake. You do not need perfect silence, perfect comfort, or any special sensation. If you fall asleep, let yourself wake naturally; when you do, record what you remember."
+        },
+        {
+          "second": 120,
+          "phase": "Settle",
+          "label": "Release face and shoulders",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Bring attention to your face. Let your forehead broaden. Let your eyelids rest. Unclench your jaw and let your tongue lie easily. Allow your breath to move without control. Let the back of your neck lengthen. Let your shoulders fall away. There is nowhere to reach and nothing to achieve in this first phase."
+        },
+        {
+          "second": 240,
+          "phase": "Settle",
+          "label": "Release arms and trunk",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let heaviness move down through your arms, elbows, wrists, and hands. Feel your chest rise and fall by itself. Soften your belly. Let your back sink into its support. If a place holds tension, breathe toward it once, then allow it to remain as it softens in its own time."
+        },
+        {
+          "second": 360,
+          "phase": "Settle",
+          "label": "Release hips and legs",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let your hips grow wide and heavy. Let your thighs release. Let your knees fall naturally. Let the feeling continue through your calves, ankles, and feet. From crown to toes, allow your body to be completely held. If you need to adjust, move once, slowly, and then settle again."
+        },
+        {
+          "second": 480,
+          "phase": "Quiet mind",
+          "label": "Set aside pressing thoughts",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Now let thoughts lose their urgency. If a plan or concern calls, hold it for one moment and say inwardly: noted. Imagine setting it just outside the elevator door. You may return to it later. If thoughts continue, let them pass like voices in another corridor. Your attention does not need to argue with them."
+        },
+        {
+          "second": 600,
+          "phase": "Quiet mind",
+          "label": "Breath awareness",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Rest a small, steady part of attention at the nostrils or the movement of your chest. Feel air enter. Feel air leave. Do not deepen or shape the breath. When the mind wanders, return with the next out-breath. This simple contact is enough to keep you quietly present while the body continues to let go."
+        },
+        {
+          "second": 720,
+          "phase": "Elevator descent",
+          "label": "Enter the elevator",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Imagine standing in a simple elevator. One side is open to a dark stone shaft. You are safe and supported. The elevator begins to move down. Feel that downward movement in your body, perhaps as a soft lowering in the stomach or a general settling. Let the rough stone surface pass upward as you descend."
+        },
+        {
+          "second": 840,
+          "phase": "Elevator descent",
+          "label": "Feel rather than visualize",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "The image can remain incomplete. You do not need clear pictures. Return to felt movement: down, down, down. If a remembered elevator sensation arises, borrow it. If nothing visual appears, continue with the body feeling of lowering. Let every imagined detail stay simple and unimportant compared with the felt descent."
+        },
+        {
+          "second": 960,
+          "phase": "Elevator descent",
+          "label": "Count floors",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If counting helps, notice a soft floor number as you pass. One. Two. Three. Let each number arrive on an out-breath and fade. Do not rush to a target floor. If counting becomes busy, drop it and feel only the elevator moving downward. If you lose the scene, begin again at the next breath."
+        },
+        {
+          "second": 1080,
+          "phase": "Trance holding",
+          "label": "Recognize heaviness",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "A wave of warmth or heaviness may pass through the body. In Bruce's model, this is a sign of trance entry. It does not need to be dramatic. When it comes, stop adding effort. Breathe naturally. Let the elevator become very slow or pause. Rest with breath awareness and allow the heavy feeling to stabilize."
+        },
+        {
+          "second": 1200,
+          "phase": "Trance holding",
+          "label": "Stay light and awake",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If the mind becomes fuzzy, do not grip. Keep one quiet thread of attention at the breath. If imagery, sound, or drifting thought appears, let it move without following it. Your body can continue to sleep downward while your awareness remains lightly present. Not too tight. Not too loose."
+        },
+        {
+          "second": 1320,
+          "phase": "Trance holding",
+          "label": "Deepen if stable",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If you remain clear and want more depth, let the elevator move down again. One easy floor. One felt lowering. If sleep presses close, stop descending. Return to breath and simply hold the state you have. A stable light state is more useful for later practice than forcing a deeper one."
+        },
+        {
+          "second": 1440,
+          "phase": "Trance holding",
+          "label": "Sounds and distraction",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If a sound arrives, let it be part of the background. Do not brace against it. Let it arise and fade like a distant floor bell. If discomfort grows, adjust slowly and deliberately, then resettle. If genuine uneasiness remains, end the descent and return. You can always practice again."
+        },
+        {
+          "second": 1560,
+          "phase": "Return",
+          "label": "Pause the elevator",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let the elevator pause. Let the stone shaft fade. Let the feeling of downward movement stop. Keep your eyes closed and feel ordinary breathing. Notice the room around your body, the support beneath you, and the heaviness still present. Let wakefulness return gently, at its own pace."
+        },
+        {
+          "second": 1680,
+          "phase": "Return",
+          "label": "Restore and record",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Now bring small movement back. Wiggle your fingers and toes. Move your ankles and wrists. Stretch if that feels good. Open your eyes when you are ready. Immediately recall the moment of deepest heaviness, the first sign of fuzziness, and any thoughts that pulled you away. Record those keywords while they remain fresh."
+        }
+      ],
+      "if_distracted": [
+        "Return to ordinary breath before rebuilding the elevator.",
+        "Let sounds remain background rather than treating them as interruptions.",
+        "If thoughts persist, note one keyword and resume one floor lower."
+      ],
+      "if_no_result": [
+        "Stay with breath and relaxation; trance signs can be subtle or absent.",
+        "If sleep repeatedly wins, practice earlier or in a more upright posture.",
+        "Shorten the session rather than forcing depth."
+      ],
+      "return_and_end": [
+        "Pause the descent before moving.",
+        "Restore breath and body awareness gradually.",
+        "Record the first heaviness wave and strongest distraction."
+      ],
+      "recall_notes": [
+        "Record whether heaviness, warmth, sound change, or time distortion appeared.",
+        "Record the deepest moment you can remember.",
+        "Record whether sleep or thought ended the held state."
+      ],
+      "source_references": [
+        "Astral Dynamics local 2007 author-revised ebook, PDF pages 197-205, chapter 17: trance requirements and elevator technique."
+      ]
+    },
+    {
+      "id": "bruce_spin_loosening",
+      "title": "Room Spin: Exterior-Awareness Loosening",
+      "choice_description": "A projection-preparation and loosening practice that moves a point of awareness around the room while physical-body sensation recedes.",
+      "level": "Intermediate",
+      "prerequisites": "Stable relaxation and familiarity with Elevator Descent. This practice deliberately shifts awareness outside the body but is not taught here as an exit method.",
+      "posture_setup": "Lie down or recline safely. Before closing your eyes, note the main directions: wall or ceiling before your face, surfaces to each side, floor or bed beneath, and space behind you.",
+      "duration_seconds": 1800,
+      "phases": [
+        "Settle and remember room layout.",
+        "Deeply relax without falling asleep.",
+        "Bounce awareness gently ahead and back.",
+        "Circle awareness around room surfaces.",
+        "Let exterior perspective strengthen.",
+        "Return and record."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Settle",
+          "label": "Welcome and limits",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Welcome to Room Spin. This is a loosening preparation, not an exit attempt. Its aim is to practice holding a moving point of awareness outside your physical body. Lie down or recline safely. Let the room be familiar. If strong vertigo, fear, or unwellness appears, stop and return to ordinary breathing."
+        },
+        {
+          "second": 120,
+          "phase": "Settle",
+          "label": "Room layout",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "With eyes closed, remember the room. Sense the wall or ceiling before your face. Sense the surface to your right, the surface to your left, the space behind you, and the support beneath. You do not need perfect detail. This is only a spatial map. Let it stay broad and calm."
+        },
+        {
+          "second": 240,
+          "phase": "Relax",
+          "label": "Body releases",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let your face soften. Let your jaw, throat, and shoulders release. Let each arm grow heavy. Let your chest and belly move with easy breath. Let your hips, legs, and feet sink. Move once if needed, then settle. This practice needs a deeply relaxed body and a quietly awake mind."
+        },
+        {
+          "second": 360,
+          "phase": "Relax",
+          "label": "Approach light trance",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Use easy breath awareness. As your body grows heavier, let thoughts become less verbal. If a concern appears, note it and let it pass. You may feel warm, fuzzy, distant from the room, or simply deeply rested. Stay awake enough to know where your attention is placed."
+        },
+        {
+          "second": 480,
+          "phase": "Exterior bounce",
+          "label": "Bounce gently forward",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Now place a small point of awareness before your face, at eye level. Let it touch the wall or ceiling directly in front of you, then return to your starting position. Again, forward and back. Keep the movement gentle and continuous. The point is not your eyes and not your muscles; it is a moving place of attention."
+        },
+        {
+          "second": 600,
+          "phase": "Exterior bounce",
+          "label": "Feel the surface",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "As the point touches each surface, briefly imagine being close to it. Texture, temperature, and distance can remain vague. What matters is the momentary change of position. Let physical sensation slide into the background. If you become too aware of the body, relax once more, then resume the moving point."
+        },
+        {
+          "second": 720,
+          "phase": "Room spin",
+          "label": "Begin clockwise circuit",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "From the point before your face, move clockwise. Brush the right side of the room, then the space behind you, then the left side, then return to the point before your face. Let the circuit include ceiling or wall, side surfaces, floor or bed, and back. Move smoothly, without forcing speed."
+        },
+        {
+          "second": 840,
+          "phase": "Room spin",
+          "label": "Find natural speed",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let each full circuit take about one to three seconds, or whatever feels natural. Faster is not better. Keep contact with each surface as you pass. If the movement skips, slow down. If the room becomes uncertain, rebuild the broad map and continue. Movement is easier to hold than a fixed point outside the body."
+        },
+        {
+          "second": 960,
+          "phase": "Room spin",
+          "label": "Changing perspective",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "As awareness circles, notice that perspective changes. From the right side, the body lies to the left. From behind, the body is before you. From the left, the body lies right. You need not see this clearly; feel the changing relation. Each pass briefly accepts a position that is not centered in the physical body."
+        },
+        {
+          "second": 1080,
+          "phase": "Room spin",
+          "label": "Body in background",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let the physical body remain safe, heavy, and increasingly distant. Do not inspect its sensations. Keep attention on the moving point and the surfaces it touches. If tingling, lightness, dizziness, or brief falling feelings arise, remain calm and continue only if you feel steady. Otherwise slow to breath and end."
+        },
+        {
+          "second": 1200,
+          "phase": "Room spin",
+          "label": "Maintain one rhythm",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Continue in one steady rhythm. Around the room, again and again. If attention drops back into the body, send the point gently forward and resume the clockwise circle. If monotony makes you drowsy, slightly vary the size of the circle while keeping direction and movement. Do not turn this into effort."
+        },
+        {
+          "second": 1320,
+          "phase": "Room spin",
+          "label": "No visual requirement",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Release any demand for images. Some people see shadows or surfaces; many feel only position and movement. Both are workable. If an image contradicts the room you know, let it pass without analysis. This is training in exterior perspective, not a test of clairvoyance or accuracy."
+        },
+        {
+          "second": 1440,
+          "phase": "Room spin",
+          "label": "Stay preparation",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "If movement feels unusually strong, remember that this session remains preparation. Do not add an exit technique now. Let the circle slow. Return to easy breath. Keep the body limp. If the state remains comfortable, you may continue a few more easy circuits, then finish within this session."
+        },
+        {
+          "second": 1560,
+          "phase": "Return",
+          "label": "Slow and settle",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Let the circle grow slower and wider. Bring the point before your face. Let it dissolve. Feel ordinary breath in the chest or nostrils. Notice the support beneath your body. Let awareness gather behind your closed eyes, then through the whole physical body. Rest here without rushing."
+        },
+        {
+          "second": 1680,
+          "phase": "Return",
+          "label": "Restore and record",
+          "estimated_spoken_seconds": 45,
+          "quiet_after_seconds": 75,
+          "spoken_text": "Bring movement back gradually. Wiggle fingers and toes, then ankles and wrists. Turn or stretch slowly. Open your eyes when ready. Record the circuit speed that stayed clear, the direction and surface easiest to feel, and any moment when perspective truly changed. Note anything uncomfortable so the next setup can be adjusted."
+        }
+      ],
+      "if_distracted": [
+        "Slow the circuit rather than abandoning it, then reestablish the forward point.",
+        "If physical sensation returns, relax once and resume exterior movement.",
+        "If imagery becomes confusing, return to felt position and direction."
+      ],
+      "if_no_result": [
+        "Use exterior bouncing longer before rebuilding the full spin.",
+        "Practice in a simpler, familiar room if spatial memory is unstable.",
+        "Treat absence of visuals as normal; felt movement is sufficient."
+      ],
+      "return_and_end": [
+        "Never leap up after prolonged stillness; restore limbs gradually.",
+        "Return attention to breath and body before opening eyes.",
+        "Finish with immediate keywords."
+      ],
+      "recall_notes": [
+        "Record the clearest surface and circuit rhythm.",
+        "Record the first moment perspective changed.",
+        "Record any dizziness, lightness, or falling sensation."
+      ],
+      "source_references": [
+        "Astral Dynamics local 2007 author-revised ebook, PDF pages 216-222, chapter 19: exterior bounce and spin loosening.",
+        "Mastering Astral Projection, printed pages 230-231, PDF pages 244-245: preprojection routine from relaxation to loosening."
+      ]
+    }
+    ,
+    {
+      "id": "bruce_rope_exit",
+      "title": "Rope Exit: Hand-over-Hand Projection Attempt",
+      "choice_description": "Bruce's primary active conscious-exit method: both awareness hands climb an imaginary rope while the physical body remains deeply relaxed.",
+      "level": "Advanced preparation",
+      "prerequisites": "Foundation Touch, Full-Body Current, Elevator Descent, and ideally Room Spin. Do not use this as your first relaxation practice.",
+      "posture_setup": "Lie down or recline safely. If sleep usually overcomes you, use a semi-reclining posture. Optionally suspend a soft ribbon or string above your chest within easy reach, touch it occasionally before the session, then remove it from attention while climbing.",
+      "duration_seconds": 2400,
+      "phases": [
+        "Set intention and safety.",
+        "Deep physical relaxation.",
+        "Breath focus and trance entry.",
+        "Energy preparation.",
+        "Exterior loosening.",
+        "Build the rope and climb.",
+        "Respond to exit signs or partial separation.",
+        "Return, recall, and end."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Intention",
+          "label": "Welcome and plan",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Welcome to Rope Exit. This is the main active attempt in this draft set. Its purpose, in Bruce's model, is to hold exterior awareness strongly enough to trigger a projection response. Prepare as though for sleep, but keep a thread of intention awake. If you feel unwell, unusually anxious, or unsafe, stop and practice a preparation session instead."
+        },
+        {
+          "second": 120,
+          "phase": "Intention",
+          "label": "Posture and rope memory",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Settle into your chosen posture. If you prepared a soft rope aid above your chest, briefly touch its position and remember how it feels. Then let your hand rest. The real rope in this practice is imaginary. Place it above the center of your chest, within easy reach. Let its angle adjust naturally to your posture."
+        },
+        {
+          "second": 240,
+          "phase": "Relaxation",
+          "label": "Face and upper body",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Close your eyes. Smooth your forehead. Let your eyelids become still. Let your jaw loosen and your tongue rest. Soften your throat and the back of your neck. Let your shoulders fall. Let each arm grow heavier, through elbow, wrist, hand, and fingertips. Keep breathing naturally."
+        },
+        {
+          "second": 360,
+          "phase": "Relaxation",
+          "label": "Chest, belly, and back",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let your chest move without control. Let your belly soften. Let your back settle into its support, vertebra by vertebra. If a place remains tense, do not fight it. Breathe toward it, then let time and gravity do the work. Deep physical relaxation is not a preliminary here; it is central to the method."
+        },
+        {
+          "second": 480,
+          "phase": "Relaxation",
+          "label": "Hips, legs, and feet",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let your hips widen and sink. Let both thighs release. Let your knees fall comfortably apart or supported. Let heaviness continue through calves, ankles, soles, and toes. From crown to toes, your body is safe and heavy. If you must adjust, move once slowly, then settle again."
+        },
+        {
+          "second": 600,
+          "phase": "Trance",
+          "label": "Quiet surface mind",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let thoughts become quieter. Set aside plans with one inner word: later. Rest attention at the breath. Feel air enter and leave. Do not control it. If a thought pulls you, return with the next out-breath. Let the body continue toward sleep while a small thread of awareness remains clear."
+        },
+        {
+          "second": 720,
+          "phase": "Trance",
+          "label": "Light downward settling",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If it helps you settle, imagine a slow elevator moving downward. Feel the lowering in your body. Let one floor pass. Let another pass. When heaviness or warmth arrives, stop adding imagery. Keep breath awareness. You want enough depth for the body to sleep, but enough clarity to act."
+        },
+        {
+          "second": 840,
+          "phase": "Energy preparation",
+          "label": "Stimulate hands and feet",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Bring awareness into both feet. Brush across the toes and through the soles until the feet feel present, even if no sensation appears. Draw upward through each leg to the hip, then return to the feet. Move to your hands. Brush through fingers and palms, then draw through each arm to the shoulder."
+        },
+        {
+          "second": 960,
+          "phase": "Energy preparation",
+          "label": "Full-body circuit",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Now use a few easy full-body circuits. Breathe in, and draw awareness from feet through legs and back to the crown. Breathe out, and sweep down over face and chest into the lower belly. Return to the feet. Keep the action broad and gentle. Stop before it becomes tense or exhausting."
+        },
+        {
+          "second": 1080,
+          "phase": "Loosening",
+          "label": "Exterior bounce or spin",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "For a few minutes, loosen exterior awareness. Send a point before your face, touch the wall or ceiling, and return through the body. Or move the point slowly around the room. Let physical sensation move into the background. Keep the body limp. This is optional pressure, not the main exit yet."
+        },
+        {
+          "second": 1200,
+          "phase": "Intention",
+          "label": "Resolve and rehearse",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Now make the intention simple. If separation occurs, stay calm, keep the session brief, return promptly, and record everything. Do not extend a first success. Feel the possibility of moving upward and away, with your physical body safely behind you. Then let that rehearsal go. Only the rope remains."
+        },
+        {
+          "second": 1320,
+          "phase": "Rope",
+          "label": "Grasp the rope",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Feel a strong rope hanging above your chest. Reach out with both awareness hands and grasp it. Feel texture, weight, and grip only as much as helps. Let one hand hold while the other reaches higher. Then pull. The rope comes toward your chest as your felt body rises."
+        },
+        {
+          "second": 1440,
+          "phase": "Rope",
+          "label": "Hand over hand",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Climb hand over hand. One awareness hand reaches while the other holds. Pull. Reach. Pull. Feel yourself moving upward along the rope while your physical body remains behind and limp. Keep your neck, shoulders, and arms relaxed, and let breathing continue naturally. The climbing happens entirely as felt body-awareness action."
+        },
+        {
+          "second": 1560,
+          "phase": "Rope",
+          "label": "Find climbing rhythm",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Increase speed until the action meets a sense of resistance, then ease back to a strong natural rhythm. One complete reach and pull might take half a second to one second. Do not climb so slowly that pressure fades. Do not move so fast that your awareness skips the rope. Keep both hands working together."
+        },
+        {
+          "second": 1680,
+          "phase": "Rope",
+          "label": "Possible signs",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Dizziness in the chest or stomach, localized pressure, buzzing, heaviness, warmth, or a sense of movement may appear. In Bruce's model these can indicate exit pressure. They are not goals. Do not inspect them. Keep climbing. If genuine distress or disorientation appears, stop calmly, rest, and end the session."
+        },
+        {
+          "second": 1800,
+          "phase": "Rope",
+          "label": "Stay with one action",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If thoughts arise, return to the next reach. If the rope becomes vague, feel the pull alone. If sensations grow strong, remain calm and continue only while you feel safe. Do not analyze the process. Do not wonder whether it is working. Reach, hold, pull, rise. This one action fills the mind."
+        },
+        {
+          "second": 1920,
+          "phase": "Rope",
+          "label": "Keep body and breath settled",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Check without checking: your jaw is loose. Your shoulders are down. Your arms do not move. Your breath remains natural. If the breath has become shallow or held, let it resume. If any muscle has tightened, let it release. Then climb again, strongly and quietly, hand over hand."
+        },
+        {
+          "second": 2040,
+          "phase": "Exit responses",
+          "label": "If partly out",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If you feel partly lifted, stuck near the body, or only a limb free, do not pull back in alarm. Continue the rope, or switch smoothly to a rolling whole-body movement if that feels more natural. Do not open physical eyes. Keep the physical body motionless while the felt body completes its motion away."
+        },
+        {
+          "second": 2160,
+          "phase": "Return",
+          "label": "If separation occurs",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If separation seems to occur, remain calm. Keep the experience deliberately short. Move only a little away, note where you are, and choose to return promptly. Let reentry happen. Do not struggle to reconstruct the experience while it is still unfolding. Quietly say inwardly: I remember clearly."
+        },
+        {
+          "second": 2280,
+          "phase": "Return",
+          "label": "Return and record",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let the rope disappear. Let all technique end. Feel ordinary breath and physical support. Move fingers and toes, then ankles and wrists. Open your eyes gradually. Immediately write keywords: rope feel, rhythm, signs, any separation, return, and the first memory that arrives. Do not wait to make a polished story."
+        }
+      ],
+      "if_distracted": [
+        "Return to one reach-and-pull action; do not reconstruct the whole method.",
+        "If analysis begins, let the next physical-feeling pull replace the question.",
+        "If fear or real unwellness grows, stop climbing and restore ordinary breathing."
+      ],
+      "if_no_result": [
+        "End without forcing more climbing after sustained fatigue or tension.",
+        "Return to Foundation Touch, Full-Body Current, or Elevator Descent on another day.",
+        "Record whether relaxation, trance, energy work, or rope clarity failed first."
+      ],
+      "return_and_end": [
+        "End imagery and all exit effort before moving.",
+        "Restore breath and movement gradually.",
+        "Write immediate keywords, even after an apparently blank session."
+      ],
+      "recall_notes": [
+        "Record rope clarity, rhythm, and first pressure sign.",
+        "Use prompts such as: I was climbing, and then...? I felt movement, and then...?",
+        "Record the return and first keyword before interpreting anything."
+      ],
+      "source_references": [
+        "Astral Dynamics local 2007 author-revised ebook, PDF pages 223-231, chapter 19: rope method, sequences, and summary guidance.",
+        "Mastering Astral Projection, printed pages 230-231, PDF pages 244-245: preprojection routine."
+      ]
+    },
+    {
+      "id": "bruce_roll_out_exit",
+      "title": "Roll-Out Exit: Whole-Body Movement Away",
+      "choice_description": "An alternate conscious-exit session using a continuous felt roll and twist to the side, also useful for completing a partly stuck separation.",
+      "level": "Advanced preparation",
+      "prerequisites": "Stable deep relaxation, breath focus, and prior preparation practices. Useful after learning Rope Exit, but may be chosen as the primary exit if whole-body movement feels clearer than climbing.",
+      "posture_setup": "Lie on your back or side with safe space around you. A recliner also works. Keep eyes closed throughout. The physical body does not roll; awareness recreates a whole-body roll.",
+      "duration_seconds": 1800,
+      "phases": [
+        "Set intention and settle.",
+        "Deeply relax body and breath.",
+        "Enter light trance.",
+        "Practice whole-body rolling awareness.",
+        "Alternate sides and strengthen the felt roll.",
+        "Use as an exit or complete a partial exit.",
+        "Return and record."
+      ],
+      "cues": [
+        {
+          "second": 0,
+          "phase": "Intention",
+          "label": "Welcome and distinction",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Welcome to Roll-Out Exit. Unlike Room Spin, this is an exit attempt. You will recreate the whole-body feeling of rolling and twisting to one side, away from your physical body. First you will prepare. Then you will practice both sides. If uneasiness or unwellness grows, stop and return to breath."
+        },
+        {
+          "second": 120,
+          "phase": "Intention",
+          "label": "Setup and safety",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Lie safely with space to either side, or settle in a recliner. Keep your physical body still. The imagined movement may feel energetic or subtle; do not let your muscles imitate it. Your eyes remain closed. If separation occurs, keep it short, return promptly, and record keywords immediately."
+        },
+        {
+          "second": 240,
+          "phase": "Relaxation",
+          "label": "Deep release",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let your face soften. Let jaw, neck, and shoulders release. Let both arms become heavy. Let your chest and belly move naturally. Let your hips, legs, and feet sink. From the top of your head to your soles, allow complete support. Move once if necessary, then become still."
+        },
+        {
+          "second": 360,
+          "phase": "Trance",
+          "label": "Breath and body asleep",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Rest attention at the breath. Air enters. Air leaves. Let thought grow quiet. Let the body grow warmer, heavier, and more distant. You want a light, stable trance: enough depth that the body is asleep-like, enough clarity that you can choose a direction and move awareness."
+        },
+        {
+          "second": 480,
+          "phase": "Energy preparation",
+          "label": "Wake hands and feet",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Brush awareness through both feet and hands. Draw upward through legs to hips and arms to shoulders. Follow a few easy full-body circuits: rise from feet to crown on the in-breath, descend over face and chest to the lower belly on the out-breath. Keep the action gentle and stop before strain."
+        },
+        {
+          "second": 600,
+          "phase": "Trance",
+          "label": "Settle into exit state",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let energy work fade. Return to breath. Let heaviness deepen again. Let the sense of your physical body become broad and less insistent. When you feel settled, remember that the upcoming roll is a whole-body awareness action, not a twist of muscles and not a visual picture."
+        },
+        {
+          "second": 720,
+          "phase": "Roll practice",
+          "label": "Feel the whole body",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Feel your body as one shape from head to feet. Do not divide it into parts. Imagine that entire shape beginning to turn. The head, shoulders, chest, hips, legs, and feet all roll together. No joint leads. No muscle tightens. The whole felt body moves as one continuous body."
+        },
+        {
+          "second": 840,
+          "phase": "Roll practice",
+          "label": "Roll left",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Begin rolling slowly to your left. Feel twist and sideways movement together. Roll away from your physical position, not merely onto an arm. Pause. Return to center. Roll left again. Let the movement be complete, from crown through feet. If the left feels awkward, note it and rest."
+        },
+        {
+          "second": 960,
+          "phase": "Roll practice",
+          "label": "Roll right",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Now return to center. Roll the whole felt body to your right. Again, feel twist and roll together. Away from center. Pause. Return. Repeat. Compare this side with the other. Choose whichever side gives the stronger sense of whole-body movement away from where you lie."
+        },
+        {
+          "second": 1080,
+          "phase": "Roll practice",
+          "label": "Choose the clearer side",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Choose your clearer direction. Let the roll become more confident. Roll away, return just enough to repeat, then roll away again. Keep the physical body limp. Keep the movement whole. Do not imagine a separate pair of hands pulling you; this method uses the entire body's felt motion."
+        },
+        {
+          "second": 1200,
+          "phase": "Exit attempt",
+          "label": "Strengthen intention",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Now let the roll carry farther. Do not rush. Feel yourself twisting beyond the body's position and away. Keep your eyes closed. Keep your breath natural. Fill attention with the whole-body roll. In Bruce's approach, resolve and enthusiasm matter, but they must remain mentally strong while the body stays relaxed."
+        },
+        {
+          "second": 1320,
+          "phase": "Exit attempt",
+          "label": "If signs arise",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Heaviness, lightness, pressure, tingling, vertigo, or movement feelings may arise. Do not stop to examine them. Continue the roll. If sensations become intense, stay calm and only continue if you feel safe. If genuine distress appears, stop technique, breathe normally, and end the attempt."
+        },
+        {
+          "second": 1440,
+          "phase": "Exit attempt",
+          "label": "Complete a partial separation",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If you feel partly out or stuck close to the physical body, do not pull back in panic. Roll farther to the clearer side. Let the whole felt body complete the movement away. If a limb seems free, bring the entire body with it. Keep physical muscles completely still."
+        },
+        {
+          "second": 1560,
+          "phase": "Return",
+          "label": "If separation occurs",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "If separation seems complete, remain calm and make the experience brief. Note your position, then choose to return directly to the body. Do not linger to explore. Let reentry happen. As you return, say inwardly: I remember clearly. Then let memory settle without forcing."
+        },
+        {
+          "second": 1680,
+          "phase": "Return",
+          "label": "Restore and record",
+          "estimated_spoken_seconds": 50,
+          "quiet_after_seconds": 70,
+          "spoken_text": "Let rolling end. Feel ordinary breath and the support beneath you. Wiggle fingers and toes, then move wrists and ankles. Stretch slowly and open your eyes. Immediately write: clearer side, roll strength, signs, partial separation, return, and any image or movement remembered. Keywords first; interpretation later."
+        }
+      ],
+      "if_distracted": [
+ "Return to the whole-body feel before choosing a side again.",
+        "If physical tension develops, stop the roll and relax the exact muscle group.",
+        "If the method becomes abstract, slow down and recreate one complete felt turn."
+      ],
+      "if_no_result": [
+        "End after sustained effort or tension; do not add a second exit method mechanically.",
+        "Practice whole-body movement separately while deeply relaxed.",
+        "Record which side and phase lost clarity."
+      ],
+      "return_and_end": [
+        "Stop the roll and all exit intention before physical movement.",
+        "Restore movement gradually.",
+        "Write immediate side, sign, separation, and recall keywords."
+      ],
+      "recall_notes": [
+        "Record left/right comparison and the first movement that felt whole.",
+        "Use prompts such as: I rolled, and then...? I was partly out, and then...?",
+        "Record reentry before filling gaps with interpretation."
+      ],
+      "source_references": [
+        "Mastering Astral Projection, printed pages 232-233, PDF pages 246-247: rolling-out method and reminders.",
+        "Mastering Astral Projection, printed pages 230-231, PDF pages 244-245: preprojection routine."
+      ]
+    }
+  ]
+}

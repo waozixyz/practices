@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "duration": 2400,
+  "cues": [
+    {
+      "second": 0,
+      "key": "astral_text_rope_01"
+    },
+    {
+      "second": 120,
+      "key": "astral_text_rope_02"
+    },
+    {
+      "second": 240,
+      "key": "astral_text_rope_03"
+    },
+    {
+      "second": 360,
+      "key": "astral_text_rope_04"
+    },
+    {
+      "second": 480,
+      "key": "astral_text_rope_05"
+    },
+    {
+      "second": 600,
+      "key": "astral_text_rope_06"
+    },
+    {
+      "second": 720,
+      "key": "astral_text_rope_07"
+    },
+    {
+      "second": 840,
+      "key": "astral_text_rope_08"
+    },
+    {
+      "second": 960,
+      "key": "astral_text_rope_09"
+    },
+    {
+      "second": 1080,
+      "key": "astral_text_rope_10"
+    },
+    {
+      "second": 1200,
+      "key": "astral_text_rope_11"
+    },
+    {
+      "second": 1320,
+      "key": "astral_text_rope_12"
+    },
+    {
+      "second": 1440,
+      "key": "astral_text_rope_13"
+    },
+    {
+      "second": 1560,
+      "key": "astral_text_rope_14"
+    },
+    {
+      "second": 1680,
+      "key": "astral_text_rope_15"
+    },
+    {
+      "second": 1800,
+      "key": "astral_text_rope_16"
+    },
+    {
+      "second": 1920,
+      "key": "astral_text_rope_17"
+    },
+    {
+      "second": 2040,
+      "key": "astral_text_rope_18"
+    },
+    {
+      "second": 2160,
+      "key": "astral_text_rope_19"
+    },
+    {
+      "second": 2280,
+      "key": "astral_text_rope_20"
+    }
+  ]
+}

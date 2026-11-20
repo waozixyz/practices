@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "practices": [
+    {
+      "id": "bruce_foundation_touch",
+      "duration": 1200,
+      "title_key": "astral_practice_foundation_title",
+      "description_key": "astral_practice_foundation_description",
+      "guide_key": "astral_practice_foundation_guide"
+    },
+    {
+      "id": "bruce_full_body_current",
+      "duration": 1500,
+      "title_key": "astral_practice_current_title",
+      "description_key": "astral_practice_current_description",
+      "guide_key": "astral_practice_current_guide"
+    },
+    {
+      "id": "bruce_elevator_trance",
+      "duration": 1800,
+      "title_key": "astral_practice_elevator_title",
+      "description_key": "astral_practice_elevator_description",
+      "guide_key": "astral_practice_elevator_guide"
+    },
+    {
+      "id": "bruce_spin_loosening",
+      "duration": 1800,
+      "title_key": "astral_practice_spin_title",
+      "description_key": "astral_practice_spin_description",
+      "guide_key": "astral_practice_spin_guide"
+    },
+    {
+      "id": "bruce_rope_exit",
+      "duration": 2400,
+      "title_key": "astral_practice_rope_title",
+      "description_key": "astral_practice_rope_description",
+      "guide_key": "astral_practice_rope_guide"
+    },
+    {
+      "id": "bruce_roll_out_exit",
+      "duration": 1800,
+      "title_key": "astral_practice_roll_out_title",
+      "description_key": "astral_practice_roll_out_description",
+      "guide_key": "astral_practice_roll_out_guide"
+    }
+  ]
+}

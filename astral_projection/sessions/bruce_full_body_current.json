@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "duration": 1500,
+  "cues": [
+    {
+      "second": 0,
+      "key": "astral_text_current_01"
+    },
+    {
+      "second": 120,
+      "key": "astral_text_current_02"
+    },
+    {
+      "second": 240,
+      "key": "astral_text_current_03"
+    },
+    {
+      "second": 360,
+      "key": "astral_text_current_04"
+    },
+    {
+      "second": 480,
+      "key": "astral_text_current_05"
+    },
+    {
+      "second": 600,
+      "key": "astral_text_current_06"
+    },
+    {
+      "second": 720,
+      "key": "astral_text_current_07"
+    },
+    {
+      "second": 840,
+      "key": "astral_text_current_08"
+    },
+    {
+      "second": 960,
+      "key": "astral_text_current_09"
+    },
+    {
+      "second": 1080,
+      "key": "astral_text_current_10"
+    },
+    {
+      "second": 1200,
+      "key": "astral_text_current_11"
+    },
+    {
+      "second": 1320,
+      "key": "astral_text_current_12"
+    },
+    {
+      "second": 1440,
+      "key": "astral_text_current_13"
+    }
+  ]
+}

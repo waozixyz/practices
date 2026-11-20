@@ -58,3 +58,393 @@ Lâchez prise, encore un peu.
 [astral_text_20]
 Reposez-vous maintenant. Dormez bien.
 ---
+[astral_practice_foundation_title]
+Toucher de base
+---
+[astral_practice_foundation_description]
+Une préparation pour débutants qui enseigne l'imagerie tactile de Bruce et les actions des mains de conscience, sans la pression d'une projection.
+---
+[astral_practice_foundation_guide]
+Niveau : débutant.
+
+Prérequis : Aucune expérience préalable de sortie hors du corps. Pratiquez assis pendant la phase d'apprentissage ; vous pouvez aussi vous allonger si vous parvenez à rester éveillé.
+
+Posture : Asseyez-vous confortablement ou allongez-vous en gardant le dos soutenu. Posez vos mains paumes vers le bas, les doigts légèrement écartés. Gardez les yeux fermés après l'indication physique initiale de ciblage.
+
+Déroulement : Installez-vous calmement et choisissez une main. Repérez la cible de l'articulation du pouce, d'abord par le toucher si nécessaire. Pratiquez une petite imagerie tactile circulaire. Pratiquez un brossage rectiligne le long du pouce et de la main. Faites remonter les mains de conscience dans chaque jambe. Combinez les deux jambes et utilisez un mouvement ascendant semblable à celui d'une éponge. Revenez, comparez les deux côtés et notez des mots-clés.
+
+En cas de distraction : Nommez la distraction, relâchez-la, puis reprenez par un petit cercle ou un geste ascendant. Si la même pensée revient, notez un mot-clé pour plus tard et revenez encore une fois. Si la somnolence s'installe, interrompez la pratique, redressez-vous si cela convient, ouvrez les yeux et terminez par quelques notes de rappel.
+
+S'il semble ne rien se passer : Poursuivez quelques répétitions sans hâte, puis changez de cible ou de côté plutôt que de forcer. L'absence de sensation est acceptable ; préservez l'intention ressentie du mouvement. Utilisez le toucher physique uniquement pour le repérage initial, puis revenez à un mouvement de conscience seule.
+
+Après la pratique : Notez la zone du corps la plus nette et sa sensation. Notez quel côté a été le plus facile et quand l'attention s'est égarée. Utilisez de courts mots-clés plutôt qu'un long récit. Interrompez le mouvement de conscience et sentez votre respiration habituelle. Réactivez le mouvement progressivement avant de vous lever. Notez immédiatement les différences entre les côtés, les sensations et les distractions.
+---
+[astral_text_foundation_01]
+Bienvenue. Voici le Toucher de fondation, une pratique préparatoire à la conscience corporelle selon l'approche de Bruce. Asseyez-vous confortablement ou allongez-vous, les mains posées paumes vers le bas et les doigts légèrement écartés. Laissez vos yeux se fermer. Vous pouvez toucher brièvement la cible lorsque je vous y invite, mais sinon, laissez votre corps physique rester immobile. C'est un entraînement, pas un test. Des picotements, de la chaleur, une pression ou rien du tout : tout est acceptable.
+---
+[astral_text_foundation_02]
+Choisissez votre main droite. Du bout d'un doigt, grattez légèrement un petit cercle sur le dessus de l'articulation où votre pouce rejoint votre main. Faites-en environ la taille d'un bout de doigt. Suivez ce toucher de près. Puis arrêtez de bouger. Gardez votre attention sur l'endroit exact où la sensation demeure. Cet endroit mémorisé est votre cible.
+---
+[astral_text_foundation_03]
+Maintenant, remuez cet endroit avec la conscience seule. Sentez un petit cercle dans le sens des aiguilles d'une montre se déplacer à travers la peau, comme si un crayon doux tournait là. Gardez le cercle proche et simple. Un ou deux tours par seconde suffisent. Si le mouvement perd sa sensation, ralentissez. Restez dans le toucher plutôt que d'essayer de voir quoi que ce soit.
+---
+[astral_text_foundation_04]
+Laissez la réponse venir ou ne pas venir. Une lourdeur locale, une pression, des picotements, un fourmillement ou un chatouillement profond jusqu'à l'os peuvent apparaître. Rien de tout cela n'est nécessaire. S'il ne se passe rien, c'est tout de même un entraînement utile. Continuez le petit cercle sans appuyer, sans forcer et sans demander un résultat particulier. Gardez simplement vivante la sensation du mouvement.
+---
+[astral_text_foundation_05]
+Passez à une action de brossage doux. Déplacez la conscience juste au-dessus de l'articulation du pouce, le long du pouce, jusqu'à son extrémité. Puis revenez par le même chemin. Sentez tout le trajet dans chaque sens. Après un moment, élargissez le geste sur le dos de la main et remontez jusqu'au poignet. Laissez le mouvement lui-même retenir votre attention.
+---
+[astral_text_foundation_06]
+Imaginez maintenant deux mains faites entièrement de conscience. Envoyez-les vers votre pied gauche. Sentez le pied entier, des orteils au talon. Faites remonter les deux mains de conscience à travers la cheville, le tibia, le genou et la cuisse. En atteignant la hanche, revenez aussitôt aux orteils. Brossez à nouveau vers le haut. Ne faites pas redescendre la conscience.
+---
+[astral_text_foundation_07]
+Passez à votre pied droit. Prenez un moment pour sentir sa forme, la plante du pied, les orteils et le talon. Puis faites remonter lentement vos mains de conscience à travers la cheville, le tibia, le genou et la cuisse. Atteignez la hanche, puis revenez d'un bond aux orteils. Répétez ces gestes ascendants à une vitesse qui garde toute la jambe présente à votre esprit.
+---
+[astral_text_foundation_08]
+Si les deux jambes peuvent rester nettes, sentez-les ensemble. Tout en brossant vers le haut, imaginez que chaque main de conscience tient une grande éponge douce. Tirez une résistance confortable vers le haut dans chaque jambe, comme si vous faisiez remonter de l'eau à travers tout le membre. Si une jambe s'estompe, travaillez une jambe à la fois en alternance. La netteté compte plus que de faire les deux à la fois.
+---
+[astral_text_foundation_09]
+Quand une pensée vous emporte, nommez-la doucement : pensée. Puis revenez à la plus petite action ressentie, un cercle ou un geste ascendant. L'absence de résultat n'est pas un échec. Si un membre reste vide, poursuivez le mouvement encore quelques gestes, puis changez de côté. Cessez de forcer dès que l'effort devient une tension physique.
+---
+[astral_text_foundation_10]
+Laissez les mains de conscience se poser de chaque côté de votre corps. Sentez tout votre corps respirer. Commencez par de petits mouvements : avalez, remuez les doigts, bougez les pieds. Avant de vous lever, rappelez-vous quel côté a répondu le plus facilement, quelles sensations sont apparues et où l'attention s'est égarée. Écrivez ces mots-clés maintenant ou immédiatement après avoir terminé.
+---
+[astral_practice_current_title]
+Courant corporel complet
+---
+[astral_practice_current_description]
+Une préparation quotidienne du corps énergétique combinant le rebond des membres, l'élévation vers le haut et le circuit respiratoire du corps entier de Bruce.
+---
+[astral_practice_current_guide]
+Niveau : débutant à intermédiaire.
+
+Prérequis : avoir terminé Toucher de fondation avec aisance. Vous devriez être capable de maintenir un point d'attention ressenti qui se déplace dans un pied, une main, une jambe ou un bras.
+
+Posture : allongez-vous sur le dos, les bras confortablement le long du corps, pour le circuit complet. Une position inclinée avec soutien convient également. Gardez une respiration naturelle tout au long de la pratique.
+
+Déroulement : installez-vous et testez la vitesse de rebond. Faites rebondir jambes et bras. Élevez l'attention vers le haut à travers les membres. Apprenez le circuit respiratoire du corps entier. Reposez-vous dans la respiration ordinaire et notez des mots-clés.
+
+En cas de distraction : revenez à un seul membre et à son rythme de rebond avant de reconstruire le circuit complet. Si compter ou détailler la respiration augmente la tension, abandonnez le comptage et gardez un mouvement large et ressenti. Notez le mot-clé de la distraction, puis reprenez aux pieds.
+
+Si rien ne semble se produire : maintenez l'intention ressentie du mouvement, même sans sensation. Travaillez un membre à la fois si l'attention simultanée des deux côtés manque de clarté. Raccourcissez le circuit plutôt que de forcer l'intensité.
+
+Après la pratique : notez si ce sont les jambes, les bras ou le dos qui ont porté l'attention le plus facilement. Décrivez le rythme de rebond confortable avec des mots, sans chiffres exacts. Notez où le circuit est devenu flou. Terminez le mouvement du circuit et reposez-vous avec une respiration ordinaire. Rétablissez le mouvement progressivement. Consignez le trajet le plus clair, la sensation la plus nette et les zones survolées.
+---
+[astral_text_current_01]
+Bienvenue dans Courant du corps entier. Allongez-vous sur le dos, ou installez-vous confortablement en position inclinée, et laissez vos bras reposer le long de votre corps. Fermez les yeux et laissez votre corps s'installer. Dans cette pratique, le mouvement a lieu dans l'attention, pas dans les muscles. Continuez à respirer naturellement. Nous allons d'abord tester le rythme, puis faire des rebonds, puis tirer vers le haut, et enfin suivre un circuit lent avec la respiration.
+---
+[astral_text_current_02]
+Amenez votre attention dans votre jambe droite. Déplacez-la rapidement du pied à la hanche et retour, en ressentant le trajet dans les deux sens. Augmentez progressivement la vitesse jusqu'à ce que le mouvement semble rencontrer une douce sensation de traînement. Puis ralentissez légèrement. Ce rythme soutenable est votre rebond. Il ne se compte ni ne se chronomètre ; il se trouve par le contact et le confort.
+---
+[astral_text_current_03]
+Continuez à faire rebondir l'attention dans la jambe droite. Ressentez chaque passage entre le pied et la hanche. Passez maintenant à la jambe gauche et trouvez son rythme. Si les deux jambes peuvent rester claires, faites-les rebondir ensemble, du pied à la hanche et retour. Si un côté s'estompe, alternez. Laissez chaque rebond être fluide et continu.
+---
+[astral_text_current_04]
+Déplacez votre attention dans votre main droite. Faites rebondir du bout des doigts, à travers la main et le bras, jusqu'à l'épaule, et retour. Trouvez la même résistance douce, puis installez-vous dans le rythme. Passez au bras gauche. Si possible, ressentez les deux bras ensemble. Gardez vos épaules relâchées et votre mâchoire souple.
+---
+[astral_text_current_05]
+Ralentissez maintenant. Ressentez une main d'attention tenant une grande éponge douce à chaque pied. Tirez vers le haut à travers toute la longueur des deux jambes, par-dessus le devant des hanches, et jusque dans le bas-ventre, à mi-chemin entre le nombril et le pubis. Ramenez vivement l'attention aux pieds. Répétez chaque balayage vers le haut en deux ou trois secondes confortables.
+---
+[astral_text_current_06]
+Passez à vos mains. Tirez l'attention à travers chaque bras entier, jusque dans les épaules, puis descendez à travers la poitrine et le ventre, jusqu'à la même zone du bas-ventre. Puis ramenez vivement l'attention aux mains. Laissez l'action être large et spongieuse plutôt qu'étroite et précise. Si les deux bras ne peuvent pas rester clairs, alternez les bras.
+---
+[astral_text_current_07]
+Laissez l'attention reposer dans les deux pieds. Avec votre prochaine inspiration naturelle, tirez vers le haut à travers les deux jambes et le dos, à travers les hanches et la colonne vertébrale, jusqu'à l'arrière du cou. Continuez jusqu'au sommet de la tête. Au sommet, rassemblez brièvement l'attention avant que l'expiration ne commence. Gardez le trajet large et confortable.
+---
+[astral_text_current_08]
+À l'expiration, balayez l'attention par-dessus le sommet de la tête et le visage, puis descendez à travers la poitrine et le ventre, jusque dans le bas-ventre. À la fin de l'expiration, revenez instantanément aux deux pieds. Inspirez, et remontez à nouveau. Laissez la respiration donner le rythme. Ne forcez pas sa profondeur. Simple, lent et naturel, c'est suffisant.
+---
+[astral_text_current_09]
+Continuez le circuit. Ressentez le courant montant à travers les pieds, les jambes et le dos. Au sommet de la tête, ne vous attardez pas trop longtemps. À l'expiration, descendez comme une vague lente jusqu'au bas-ventre. Si les détails de la bouche ou de la gorge vous distraient, passez simplement par-dessus le visage et la poitrine. Le courant d'ensemble compte davantage que n'importe quel petit segment.
+---
+[astral_text_current_10]
+Si le circuit devient compliqué, simplifiez. Inspirez et montez des pieds au sommet de la tête. Expirez et descendez jusqu'au bas-ventre. Rien d'autre n'est nécessaire. Si l'attention portée à la respiration vous met en tension, laissez le même courant se poursuivre à un rythme naturel, sans compter. Ne revenez à la respiration que lorsque la détente revient.
+---
+[astral_text_current_11]
+Prenez encore quelques tours faciles. Laissez chaque montée être ressentie dans tout le corps. Laissez chaque descente se terminer bas et dans le calme. Si les sensations deviennent intenses ou inconfortables, arrêtez le circuit et reposez-vous avec une respiration ordinaire. Cette pratique doit rester douce et reproductible.
+---
+[astral_text_current_12]
+Laissez le circuit se dissoudre. Ressentez le lit ou la chaise qui vous soutient. Remarquez la respiration ordinaire sans la modifier. Bougez vos doigts et vos orteils, étirez-vous si vous le souhaitez, et laissez vos yeux s'ouvrir naturellement. Avant toute autre chose, notez le trajet le plus clair, la sensation la plus forte et les zones que l'attention a survolées.
+---
+[astral_text_current_13]
+Ceci conclut Courant du corps entier. Vous avez pratiqué la recherche du rythme, le déplacement de l'attention à travers les membres et le suivi d'un circuit complet. Gardez vos notes brèves et factuelles. Lors des séances suivantes, choisissez à nouveau cette pratique, ou passez à Descente en ascenseur lorsque vous vous sentez stable.
+---
+[astral_practice_elevator_title]
+Descente en ascenseur
+---
+[astral_practice_elevator_description]
+Une pratique pour développer la transe, fondée sur la sensation d'une descente en ascenseur pendant que le corps devient lourd et que l'esprit reste paisiblement éveillé.
+---
+[astral_practice_elevator_guide]
+Niveau : Débutant à intermédiaire.
+
+Prérequis : Être à l'aise avec le Toucher de fondation et le Courant corporel complet. Savoir se détendre sans s'endormir immédiatement pendant vingt minutes.
+
+Posture : Adoptez une position allongée avec soutien ou étendez-vous. Si le sommeil l'emporte habituellement, relevez légèrement le buste. Gardez vos couvertures confortables et laissez les sons ordinaires demeurer en arrière-plan.
+
+Déroulement : Installez-vous et relâchez le corps. Apaisez le mental de surface grâce au souffle. Entrez dans la descente en ascenseur ressentie. Maintenez l'état de transe par une attention légère au souffle. Approfondissez ou stabilisez selon les besoins. Revenez, puis remémorez-vous la séance.
+
+En cas de distraction : Retournez à la respiration ordinaire avant de reconstruire l'ascenseur. Laissez les sons rester en arrière-plan plutôt que de les traiter comme des interruptions. Si les pensées persistent, retenez un mot-clé et reprenez un étage plus bas.
+
+S'il ne semble rien se passer : Restez avec le souffle et la détente ; les signes de transe peuvent être subtils ou absents. Si le sommeil l'emporte à plusieurs reprises, pratiquez plus tôt dans la journée ou dans une posture plus redressée. Raccourcissez la séance plutôt que de forcer la profondeur.
+
+Après la séance : Notez si une lourdeur, une chaleur, un changement dans les sons ou une distorsion du temps sont apparus. Notez le moment le plus profond dont vous puissiez vous souvenir. Notez si c'est le sommeil ou la pensée qui a interrompu l'état maintenu. Suspendez la descente avant de bouger. Restaurez progressivement la respiration et la conscience du corps. Notez la première vague de lourdeur et la distraction la plus forte.
+---
+[astral_text_elevator_01]
+Bienvenue dans la Descente en ascenseur. Installez-vous dans une position confortable, allongée ou couchée, et fermez les yeux. Laissez votre corps s'assoupir et s'alourdir tandis qu'une petite part de votre attention reste paisiblement éveillée. Vous n'avez besoin ni d'un silence parfait, ni d'un confort parfait, ni d'une sensation particulière. Si vous vous endormez, laissez-vous vous réveiller naturellement ; le moment venu, notez ce dont vous vous souvenez.
+---
+[astral_text_elevator_02]
+Portez l'attention sur votre visage. Laissez votre front s'élargir. Laissez vos paupières se reposer. Déserrez votre mâchoire et laissez votre langue reposer sans effort. Permettez à votre souffle de se mouvoir sans contrôle. Laissez l'arrière de votre nuque s'allonger. Laissez vos épaules retomber et s'éloigner. Il n'y a nulle part où aller et rien à accomplir dans cette première phase.
+---
+[astral_text_elevator_03]
+Laissez la lourdeur descendre à travers vos bras, vos coudes, vos poignets et vos mains. Sentez votre poitrine se soulever et s'abaisser d'elle-même. Détendez votre ventre. Laissez votre dos s'enfoncer dans son soutien. Si un endroit garde de la tension, respirez vers lui une fois, puis permettez-lui de rester tel quel pendant qu'il se relâche à son propre rythme.
+---
+[astral_text_elevator_04]
+Laissez vos hanches s'élargir et s'alourdir. Laissez vos cuisses se relâcher. Laissez vos genoux retomber naturellement. Laissez la sensation se poursuivre dans vos mollets, vos chevilles et vos pieds. Du sommet du crâne aux orteils, permettez à votre corps d'être entièrement porté. Si vous devez vous ajuster, bougez une fois, lentement, puis installez-vous à nouveau.
+---
+[astral_text_elevator_05]
+Maintenant, laissez les pensées perdre leur urgence. Si un projet ou une préoccupation vous appelle, retenez-la un instant et dites intérieurement : noté. Imaginez la déposer juste à l'extérieur de la porte de l'ascenseur. Vous pourrez y revenir plus tard. Si les pensées continuent, laissez-les passer comme des voix dans un autre couloir. Votre attention n'a pas besoin de discuter avec elles.
+---
+[astral_text_elevator_06]
+Déposez une petite part de votre attention, régulière et stable, sur vos narines ou sur le mouvement de votre poitrine. Sentez l'air entrer. Sentez l'air sortir. N'essayez ni d'approfondir ni de façonner le souffle. Quand le mental s'égare, revenez avec l'expiration suivante. Ce contact simple suffit à maintenir une présence paisible pendant que le corps continue de lâcher prise.
+---
+[astral_text_elevator_07]
+Imaginez-vous debout dans un ascenseur simple. L'un de ses côtés s'ouvre sur une gaine de pierre sombre. Vous êtes en sécurité, la cabine vous porte. L'ascenseur commence à descendre. Ressentez ce mouvement descendant dans votre corps, peut-être comme une douce chute dans le ventre ou un affaissement général. Laissez la paroi de pierre rugueuse défiler vers le haut pendant votre descente.
+---
+[astral_text_elevator_08]
+L'image peut rester incomplète. Vous n'avez pas besoin d'images nettes. Revenez au mouvement ressenti : descendre, descendre, descendre. Si une sensation d'ascenseur mémorisée remonte, empruntez-la. Si rien de visuel n'apparaît, poursuivez avec la sensation corporelle de descente. Laissez chaque détail imaginé rester simple et secondaire face à la descente ressentie.
+---
+[astral_text_elevator_09]
+Si compter vous aide, laissez doucement apparaître un numéro d'étage à chaque passage. Un. Deux. Trois. Laissez chaque numéro arriver sur une expiration, puis s'estomper. Ne vous hâtez pas vers un étage précis. Si le comptage devient agité, abandonnez-le et sentez seulement l'ascenseur descendre. Si vous perdez la scène, recommencez à la respiration suivante.
+---
+[astral_text_elevator_10]
+Une vague de chaleur ou de lourdeur peut traverser le corps. Dans le modèle de Bruce, c'est un signe d'entrée en transe. Elle n'a pas besoin d'être spectaculaire. Quand elle arrive, cessez d'ajouter des efforts. Respirez naturellement. Laissez l'ascenseur devenir très lent ou marquer un arrêt. Reposez-vous dans la conscience du souffle et laissez la sensation de lourdeur se stabiliser.
+---
+[astral_text_elevator_11]
+Si le mental devient brumeux, ne vous crispez pas. Gardez un fil paisible d'attention sur le souffle. Si des images, des sons ou des pensées flottantes apparaissent, laissez-les passer sans les suivre. Votre corps peut continuer à glisser vers le sommeil pendant que votre conscience demeure légèrement présente. Ni trop ferme. Ni trop lâche.
+---
+[astral_text_elevator_12]
+Si vous restez lucide et souhaitez plus de profondeur, laissez l'ascenseur descendre à nouveau. Un étage, tout en douceur. Une descente ressentie. Si le sommeil se fait trop proche, cessez de descendre. Revenez au souffle et maintenez simplement l'état déjà présent. Un état léger et stable est plus utile pour les pratiques à venir que la recherche forcée d'un état plus profond.
+---
+[astral_text_elevator_13]
+Si un son survient, laissez-le faire partie de l'arrière-plan. Ne vous raidissez pas contre lui. Laissez-le naître et s'estomper, comme le carillon lointain d'un étage. Si l'inconfort grandit, ajustez-vous lentement et délibérément, puis réinstallez-vous. Si un malaise véritable persiste, mettez fin à la descente et revenez. Vous pourrez toujours pratiquer de nouveau.
+---
+[astral_text_elevator_14]
+Laissez l'ascenseur marquer un arrêt. Laissez la gaine de pierre s'estomper. Laissez la sensation de mouvement descendant cesser. Gardez les yeux fermés et sentez votre respiration ordinaire. Remarquez la pièce autour de votre corps, le soutien sous vous et la lourdeur encore présente. Laissez l'éveil revenir en douceur, à son propre rythme.
+---
+[astral_text_elevator_15]
+Maintenant, faites revenir de petits mouvements. Remuez vos doigts et vos orteils. Bougez vos chevilles et vos poignets. Étirez-vous si cela vous fait du bien. Ouvrez les yeux quand le moment vous semble venu. Rappelez-vous aussitôt le moment de lourdeur le plus profond, le premier signe de brume mentale et les pensées qui vous ont tiré ailleurs. Notez ces mots-clés tant qu'ils sont encore frais dans votre esprit.
+---
+[astral_practice_spin_title]
+Rotation de la pièce
+---
+[astral_practice_spin_description]
+Une pratique de préparation à la projection et de relâchement, qui déplace un point de conscience autour de la pièce tandis que les sensations du corps physique s'estompent.
+---
+[astral_practice_spin_guide]
+Niveau : intermédiaire.
+
+Prérequis : une relaxation stable et une bonne familiarité avec la Descente en ascenseur. Cette pratique déplace volontairement la conscience hors du corps, mais elle n'est pas enseignée ici comme méthode de sortie.
+
+Posture : Allongez-vous ou installez-vous confortablement et en sécurité. Avant de fermer les yeux, repérez les directions principales : mur ou plafond devant votre visage, surfaces de chaque côté, sol ou lit en dessous, et espace derrière vous.
+
+Déroulement : Installez-vous et rappelez-vous la disposition de la pièce. Détendez-vous profondément sans vous endormir. Faites rebondir doucement la conscience vers l'avant puis vers l'arrière. Faites tourner la conscience autour des surfaces de la pièce. Laissez la perspective extérieure se renforcer. Revenez et notez.
+
+En cas de distraction : Ralentissez le circuit plutôt que de l'abandonner, puis rétablissez le point à l'avant. Si la sensation physique revient, détendez-vous une fois et reprenez le mouvement extérieur. Si les images deviennent confuses, revenez à la position et à la direction ressenties.
+
+S'il ne semble rien se passer : Prolongez les rebonds extérieurs avant de reconstruire la rotation complète. Pratiquez dans une pièce plus simple et familière si votre mémoire spatiale est instable. Considérez l'absence de visuels comme normale ; le mouvement ressenti suffit.
+
+Après la pratique : Notez la surface la plus nette et le rythme du circuit. Notez le premier moment où la perspective a changé. Notez tout vertige, toute légèreté ou toute sensation de chute. Ne vous levez jamais brusquement après une immobilité prolongée ; réveillez vos membres progressivement. Ramenez l'attention au souffle et au corps avant d'ouvrir les yeux. Terminez en notant immédiatement quelques mots-clés.
+---
+[astral_text_spin_01]
+Bienvenue dans la Rotation de la pièce. Il s'agit d'une préparation par relâchement, et non d'une tentative de sortie. Son but est de vous exercer à maintenir un point de conscience en mouvement hors de votre corps physique. Allongez-vous ou installez-vous confortablement et en sécurité. Laissez la pièce vous être familière. Si un vertige intense, de la peur ou un malaise apparaît, arrêtez et revenez à une respiration ordinaire.
+---
+[astral_text_spin_02]
+Les yeux fermés, rappelez-vous la pièce. Sentez le mur ou le plafond devant votre visage. Sentez la surface à votre droite, la surface à votre gauche, l'espace derrière vous et le soutien en dessous. Vous n'avez pas besoin d'un détail parfait. Ce n'est qu'une carte spatiale. Laissez-la rester vaste et calme.
+---
+[astral_text_spin_03]
+Laissez votre visage s'assouplir. Laissez votre mâchoire, votre gorge et vos épaules se relâcher. Laissez chaque bras devenir lourd. Laissez votre poitrine et votre ventre bouger au rythme d'un souffle facile. Laissez vos hanches, vos jambes et vos pieds s'enfoncer. Bougez une fois si nécessaire, puis installez-vous. Cette pratique demande un corps profondément détendu et un esprit calmement éveillé.
+---
+[astral_text_spin_04]
+Utilisez une conscience aisée du souffle. Tandis que votre corps s'alourdit, laissez les pensées devenir moins verbales. Si une préoccupation apparaît, notez-la et laissez-la passer. Vous pouvez ressentir de la chaleur, un léger flou, une impression de distance par rapport à la pièce, ou simplement un repos profond. Restez suffisamment éveillé pour savoir où se pose votre attention.
+---
+[astral_text_spin_05]
+Placez maintenant un petit point de conscience devant votre visage, à hauteur des yeux. Laissez-le toucher le mur ou le plafond juste devant vous, puis revenez à votre position de départ. Encore une fois, en avant et en arrière. Gardez le mouvement doux et continu. Ce point n'est ni vos yeux ni vos muscles ; c'est un lieu d'attention en mouvement.
+---
+[astral_text_spin_06]
+Quand le point touche chaque surface, imaginez brièvement être proche d'elle. La texture, la température et la distance peuvent rester vagues. Ce qui compte, c'est le changement momentané de position. Laissez la sensation physique glisser vers l'arrière-plan. Si vous devenez trop conscient du corps, détendez-vous une fois encore, puis reprenez le point en mouvement.
+---
+[astral_text_spin_07]
+À partir du point devant votre visage, déplacez-vous dans le sens des aiguilles d'une montre. Effleurez le côté droit de la pièce, puis l'espace derrière vous, puis le côté gauche, puis revenez au point devant votre visage. Laissez le circuit inclure plafond ou mur, surfaces latérales, sol ou lit, puis le retour. Déplacez-vous avec fluidité, sans forcer la vitesse.
+---
+[astral_text_spin_08]
+Laissez chaque tour complet prendre environ une à trois secondes, ou ce qui vous semble naturel. Plus vite n'est pas mieux. Gardez le contact avec chaque surface en passant. Si le mouvement saute des étapes, ralentissez. Si la pièce devient incertaine, reconstruisez la carte vaste et continuez. Le mouvement est plus facile à maintenir qu'un point fixe hors du corps.
+---
+[astral_text_spin_09]
+Tandis que la conscience tourne, remarquez que la perspective change. Depuis le côté droit, le corps se trouve à gauche. Depuis l'arrière, le corps est devant vous. Depuis la gauche, le corps se trouve à droite. Vous n'avez pas besoin de le voir clairement ; sentez la relation qui change. Chaque passage accepte brièvement une position qui n'est pas centrée dans le corps physique.
+---
+[astral_text_spin_10]
+Laissez le corps physique rester en sécurité, lourd et de plus en plus lointain. N'inspectez pas ses sensations. Gardez l'attention sur le point en mouvement et les surfaces qu'il touche. Si des fourmillements, une légèreté, des vertiges ou de brèves sensations de chute surviennent, restez calme et continuez seulement si vous vous sentez stable. Sinon, ralentissez jusqu'au souffle et terminez.
+---
+[astral_text_spin_11]
+Continuez dans un rythme régulier. Autour de la pièce, encore et encore. Si l'attention retombe dans le corps, envoyez doucement le point vers l'avant et reprenez le cercle dans le sens des aiguilles d'une montre. Si la monotonie vous assoupit, faites varier légèrement la taille du cercle tout en gardant la direction et le mouvement. Ne transformez pas cela en effort.
+---
+[astral_text_spin_12]
+Libérez toute exigence d'images. Certaines personnes voient des ombres ou des surfaces ; beaucoup ne ressentent que la position et le mouvement. Les deux conviennent. Si une image contredit la pièce que vous connaissez, laissez-la passer sans l'analyser. C'est un entraînement à la perspective extérieure, pas un test de clairvoyance ou d'exactitude.
+---
+[astral_text_spin_13]
+Si le mouvement semble inhabituellement fort, rappelez-vous que cette séance reste une préparation. N'ajoutez pas de technique de sortie maintenant. Laissez le cercle ralentir. Revenez à un souffle facile. Gardez le corps tout relâché. Si cet état reste confortable, vous pouvez poursuivre quelques circuits de plus, en douceur, puis terminer au sein de cette séance.
+---
+[astral_text_spin_14]
+Laissez le cercle devenir plus lent et plus large. Ramenez le point devant votre visage. Laissez-le se dissoudre. Sentez le souffle ordinaire dans la poitrine ou les narines. Remarquez le soutien sous votre corps. Laissez la conscience se rassembler derrière vos yeux fermés, puis dans tout le corps physique. Reposez-vous ici sans vous presser.
+---
+[astral_text_spin_15]
+Ramenez le mouvement progressivement. Remuez les doigts et les orteils, puis les chevilles et les poignets. Tournez-vous ou étirez-vous lentement. Ouvrez les yeux quand vous êtes prêt. Notez la vitesse de circuit qui est restée claire, la direction et la surface les plus faciles à sentir, et tout moment où la perspective a réellement changé. Notez tout inconfort afin que la prochaine configuration puisse être ajustée.
+---
+[astral_practice_rope_title]
+Sortie par la corde
+---
+[astral_practice_rope_description]
+La méthode active principale de sortie consciente de Bruce : les deux mains de conscience grimpent le long d'une corde imaginaire tandis que le corps physique reste profondément détendu.
+---
+[astral_practice_rope_guide]
+Niveau : préparation avancée.
+
+Prérequis : Toucher de base, Courant du corps entier, Descente en ascenseur et, idéalement, Rotation de la pièce. N'utilisez pas cette pratique comme votre premier exercice de relaxation.
+
+Posture : Allongez-vous ou installez-vous en position inclinée en toute sécurité. Si le sommeil vous gagne habituellement, adoptez une posture semi-inclinée. Vous pouvez aussi, si vous le souhaitez, suspendre un ruban doux ou une ficelle au-dessus de votre poitrine, à portée de main ; touchez-la de temps en temps avant la séance, puis écartez-la de votre attention pendant l'escalade.
+
+Déroulement : Posez l'intention et le cadre de sécurité. Relaxation physique profonde. Attention au souffle et entrée en transe. Préparation énergétique. Détachement extérieur. Construisez la corde et grimpez. Répondez aux signes de sortie ou à une séparation partielle. Revenez, rappelez-vous et terminez.
+
+En cas de distraction : Revenez à une seule action de saisir et tirer ; ne reconstituez pas toute la méthode. Si l'analyse commence, laissez la traction suivante, ressentie physiquement, remplacer la question. Si la peur ou un vrai malaise s'installe, arrêtez l'escalade et retrouvez une respiration ordinaire.
+
+S'il ne semble rien se passer : Terminez sans forcer davantage l'escalade après une fatigue ou une tension durable. Revenez à Toucher de base, Courant du corps entier ou Descente en ascenseur un autre jour. Notez si c'est la relaxation, la transe, le travail énergétique ou la netteté de la corde qui a failli en premier.
+
+Ensuite : Notez la netteté de la corde, le rythme et le premier signe de pression. Utilisez des amorces telles que : Je grimpais, et ensuite... ? J'ai senti un mouvement, et ensuite... ? Notez le retour et le premier mot-clé avant d'interpréter quoi que ce soit. Mettez fin à l'imagerie et à tout effort de sortie avant de bouger. Rétablissez le souffle et le mouvement progressivement. Écrivez des mots-clés immédiatement, même après une séance apparemment vide.
+---
+[astral_text_rope_01]
+Bienvenue dans la Sortie par la corde. Voici la tentative active principale de cette série préliminaire. Son but, dans le modèle de Bruce, est de maintenir la conscience extérieure avec suffisamment d'intensité pour déclencher une réponse de projection. Préparez-vous comme pour dormir, mais gardez éveillé un fil d'intention. Si vous vous sentez mal, inhabituellement anxieux ou en insécurité, arrêtez et faites plutôt une séance de préparation.
+---
+[astral_text_rope_02]
+Installez-vous dans la posture choisie. Si vous avez préparé un support doux en guise de corde au-dessus de votre poitrine, touchez brièvement l'endroit où il se trouve et retenez-en la sensation. Puis laissez votre main se reposer. La véritable corde de cette pratique est imaginaire. Placez-la au-dessus du centre de votre poitrine, à portée de main. Laissez son angle s'ajuster naturellement à votre posture.
+---
+[astral_text_rope_03]
+Fermez les yeux. Détendez votre front. Laissez vos paupières devenir immobiles. Laissez votre mâchoire se relâcher et votre langue se poser. Assouplissez votre gorge et votre nuque. Laissez vos épaules descendre. Laissez chaque bras s'alourdir, du coude au poignet, à la main et jusqu'au bout des doigts. Continuez à respirer naturellement.
+---
+[astral_text_rope_04]
+Laissez votre poitrine bouger sans contrôle. Laissez votre ventre s'assouplir. Laissez votre dos se déposer dans son support, vertèbre après vertèbre. Si un endroit reste tendu, ne le combattez pas. Respirez vers lui, puis laissez le temps et la gravité faire le travail. Ici, la relaxation physique profonde n'est pas un préliminaire ; elle est au cœur de la méthode.
+---
+[astral_text_rope_05]
+Laissez vos hanches s'élargir et s'enfoncer. Laissez vos deux cuisses se relâcher. Laissez vos genoux s'écarter confortablement ou reposer sur un support. Laissez la lourdeur continuer le long des mollets, des chevilles, des plantes de pied et des orteils. Du sommet du crâne aux orteils, votre corps est en sécurité et lourd. Si vous devez vous ajuster, bougez une fois lentement, puis installez-vous à nouveau.
+---
+[astral_text_rope_06]
+Laissez les pensées devenir plus calmes. Écartez les projets d'un seul mot intérieur : plus tard. Posez l'attention sur le souffle. Sentez l'air entrer et sortir. Ne le contrôlez pas. Si une pensée vous emporte, revenez avec l'expiration suivante. Laissez le corps continuer vers le sommeil tandis qu'un petit fil de conscience reste clair.
+---
+[astral_text_rope_07]
+Si cela vous aide à vous installer, imaginez un ascenseur lent qui descend. Ressentez cet abaissement dans votre corps. Laissez un étage passer. Laissez-en passer un autre. Quand la lourdeur ou la chaleur arrive, cessez d'ajouter des images. Gardez l'attention sur le souffle. Il vous faut assez de profondeur pour que le corps s'endorme, mais assez de clarté pour agir.
+---
+[astral_text_rope_08]
+Amenez la conscience dans vos deux pieds. Balayez les orteils et les plantes jusqu'à ce que les pieds se sentent présents, même si aucune sensation n'apparaît. Remontez le long de chaque jambe jusqu'à la hanche, puis revenez aux pieds. Passez à vos mains. Balayez les doigts et les paumes, puis remontez le long de chaque bras jusqu'à l'épaule.
+---
+[astral_text_rope_09]
+Utilisez maintenant quelques circuits faciles du corps entier. Inspirez, et remontez la conscience des pieds le long des jambes et du dos jusqu'au sommet du crâne. Expirez, et balayez vers le bas sur le visage et la poitrine jusqu'au bas-ventre. Revenez aux pieds. Gardez l'action ample et douce. Arrêtez avant qu'elle ne devienne tendue ou épuisante.
+---
+[astral_text_rope_10]
+Pendant quelques minutes, détachez la conscience vers l'extérieur. Envoyez un point devant votre visage, touchez le mur ou le plafond, puis revenez à travers le corps. Ou déplacez lentement le point dans la pièce. Laissez la sensation physique passer à l'arrière-plan. Gardez le corps relâché. C'est une pression facultative, pas encore la sortie principale.
+---
+[astral_text_rope_11]
+Rendez maintenant l'intention simple. Si une séparation se produit, restez calme, gardez la séance courte, revenez promptement et notez tout. Ne prolongez pas un premier succès. Ressentez la possibilité de vous élever et de vous éloigner, votre corps physique restant en sécurité derrière vous. Puis laissez partir cette répétition. Seule la corde demeure.
+---
+[astral_text_rope_12]
+Ressentez une corde solide suspendue au-dessus de votre poitrine. Tendez vos deux mains de conscience et saisissez-la. Ressentez la texture, le poids et la préhension, seulement autant que cela vous aide. Laissez une main tenir pendant que l'autre atteint plus haut. Puis tirez. La corde vient vers votre poitrine tandis que votre corps ressenti s'élève.
+---
+[astral_text_rope_13]
+Grimpez main après main. Une main de conscience atteint pendant que l'autre tient. Tirez. Attrapez. Tirez. Sentez-vous monter le long de la corde pendant que votre corps physique reste derrière, relâché. Gardez la nuque, les épaules et les bras détendus, et laissez la respiration suivre son cours naturel. L'escalade se déroule entièrement comme action ressentie de la conscience du corps.
+---
+[astral_text_rope_14]
+Augmentez la vitesse jusqu'à ce que l'action rencontre une sensation de résistance, puis revenez à un rythme naturel et vigoureux. Une saisie et une traction complètes peuvent prendre d'une demi-seconde à une seconde. Ne grimpez pas si lentement que la pression s'efface. Ne bougez pas si vite que votre conscience perd le contact de la corde. Faites travailler les deux mains ensemble.
+---
+[astral_text_rope_15]
+Des vertiges dans la poitrine ou l'estomac, une pression localisée, des bourdonnements, une lourdeur, une chaleur ou une sensation de mouvement peuvent apparaître. Dans le modèle de Bruce, ils peuvent indiquer une pression de sortie. Ce ne sont pas des objectifs. Ne les inspectez pas. Continuez à grimper. Si une détresse réelle ou une désorientation apparaît, arrêtez calmement, reposez-vous et terminez la séance.
+---
+[astral_text_rope_16]
+Si des pensées surgissent, revenez à la saisie suivante. Si la corde devient vague, concentrez-vous sur la seule sensation de traction. Si les sensations s'intensifient, restez calme et continuez seulement tant que vous vous sentez en sécurité. N'analysez pas le processus. Ne vous demandez pas si cela fonctionne. Attrapez, tenez, tirez, montez. Cette seule action remplit l'esprit.
+---
+[astral_text_rope_17]
+Vérifiez sans vérifier : votre mâchoire est relâchée. Vos épaules sont basses. Vos bras ne bougent pas. Votre souffle reste naturel. Si la respiration est devenue courte ou retenue, laissez-la reprendre. Si un muscle s'est tendu, laissez-le se relâcher. Puis grimpez à nouveau, avec force et calme, main après main.
+---
+[astral_text_rope_18]
+Si vous vous sentez soulevé en partie, coincé près du corps, ou avec seulement un membre de libre, ne vous repliez pas avec affolement. Continuez avec la corde, ou passez en douceur à un mouvement de roulis du corps entier si cela semble plus naturel. N'ouvrez pas les yeux physiques. Gardez le corps physique immobile pendant que le corps ressenti achève son mouvement vers l'extérieur.
+---
+[astral_text_rope_19]
+Si une séparation semble se produire, restez calme. Gardez l'expérience volontairement courte. Éloignez-vous seulement un peu, notez où vous êtes, et choisissez de revenir promptement. Laissez la réintégration se faire. Ne vous évertuez pas à reconstruire l'expérience pendant qu'elle se déroule encore. Dites calmement en vous : Je me souviens clairement.
+---
+[astral_text_rope_20]
+Laissez la corde disparaître. Laissez toute technique s'achever. Ressentez le souffle ordinaire et le support du corps. Bougez les doigts et les orteils, puis les chevilles et les poignets. Ouvrez les yeux progressivement. Écrivez immédiatement des mots-clés : sensation de la corde, rythme, signes, éventuelle séparation, retour, et le premier souvenir qui arrive. N'attendez pas pour en faire une histoire bien formulée.
+---
+[astral_practice_roll_out_title]
+Sortie en roulant
+---
+[astral_practice_roll_out_description]
+Une séance alternative de sortie consciente, utilisant un roulis et une torsion ressentis en continu sur le côté, également utile pour compléter une séparation partiellement bloquée.
+---
+[astral_practice_roll_out_guide]
+Niveau : préparation avancée.
+
+Prérequis : relaxation profonde stable, concentration sur la respiration et pratiques de préparation antérieures. Utile après avoir appris la Sortie par la corde, mais peut être choisie comme sortie principale si le mouvement du corps entier semble plus clair que l'escalade.
+
+Posture : Allongez-vous sur le dos ou sur le côté, avec un espace sûr autour de vous. Un fauteuil inclinable convient aussi. Gardez les yeux fermés tout au long de la séance. Le corps physique ne roule pas ; la conscience recrée un roulis du corps entier.
+
+Déroulement : Posez votre intention et installez-vous. Relaxez profondément le corps et le souffle. Entrez en transe légère. Pratiquez la conscience du roulis du corps entier. Alternez les côtés et renforcez le roulis ressenti. Utilisez-le comme sortie, ou complétez une sortie partielle. Revenez et notez.
+
+En cas de distraction : Retournez à la sensation du corps entier avant de choisir à nouveau un côté. Si une tension physique apparaît, arrêtez le roulis et relaxez précisément le groupe musculaire concerné. Si la méthode devient abstraite, ralentissez et recréez un tour complet, ressenti.
+
+S'il ne semble rien se passer : Terminez après un effort soutenu ou une tension ; n'ajoutez pas mécaniquement une seconde méthode de sortie. Pratiquez le mouvement du corps entier séparément, en état de relaxation profonde. Notez quel côté et quelle phase ont perdu en clarté.
+
+Après la séance : Notez la comparaison gauche/droite et le premier mouvement qui a paru complet. Utilisez des amorces telles que : J'ai roulé, et ensuite... ? J'étais partiellement sorti(e), et ensuite... ? Notez le retour avant de combler les vides par des interprétations. Arrêtez le roulis et toute intention de sortie avant tout mouvement physique. Rétablissez le mouvement progressivement. Écrivez immédiatement le côté, le signe, la séparation et les mots-clés de souvenir.
+---
+[astral_text_roll_out_01]
+Bienvenue dans la Sortie par roulade. Contrairement à la Rotation de la pièce, il s'agit ici d'une tentative de sortie. Vous allez recréer la sensation, dans tout le corps, de rouler et de vous tordre sur un côté, en vous éloignant de votre corps physique. Vous commencerez par vous préparer. Puis vous pratiquerez des deux côtés. Si un inconfort ou un malaise s'intensifie, arrêtez et revenez à la respiration.
+---
+[astral_text_roll_out_02]
+Allongez-vous en sécurité, avec de l'espace de chaque côté, ou installez-vous dans un fauteuil inclinable. Gardez votre corps physique immobile. Le mouvement imaginé peut sembler énergétique ou subtil ; ne laissez pas vos muscles l'imiter. Vos yeux restent fermés. Si une séparation se produit, gardez-la brève, revenez promptement et notez des mots-clés immédiatement.
+---
+[astral_text_roll_out_03]
+Laissez votre visage s'adoucir. Laissez mâchoire, nuque et épaules se relâcher. Laissez vos deux bras s'alourdir. Laissez votre poitrine et votre ventre bouger naturellement. Laissez vos hanches, vos jambes et vos pieds s'enfoncer. Du sommet de votre tête jusqu'à la plante de vos pieds, laissez le soutien être complet. Bougez une fois si nécessaire, puis devenez immobile.
+---
+[astral_text_roll_out_04]
+Posez l'attention sur la respiration. L'air entre. L'air sort. Laissez la pensée s'apaiser. Laissez le corps devenir plus chaud, plus lourd et plus lointain. Vous cherchez une transe légère et stable : assez de profondeur pour que le corps soit comme endormi, assez de clarté pour que vous puissiez choisir une direction et déplacer la conscience.
+---
+[astral_text_roll_out_05]
+Balayez la conscience dans les deux pieds et les deux mains. Remontez le long des jambes jusqu'aux hanches et le long des bras jusqu'aux épaules. Suivez quelques circuits complets du corps, en douceur : montez de la plante des pieds au sommet de la tête sur l'inspiration, descendez le long du visage et de la poitrine jusqu'au bas-ventre sur l'expiration. Gardez le geste doux et arrêtez avant toute tension.
+---
+[astral_text_roll_out_06]
+Laissez le travail énergétique s'estomper. Revenez à la respiration. Laissez la lourdeur s'approfondir à nouveau. Laissez la sensation de votre corps physique devenir ample et moins insistante. Quand vous vous sentez bien installé(e), rappelez-vous que le roulis à venir est une action de conscience du corps entier, ni une torsion musculaire, ni une image visuelle.
+---
+[astral_text_roll_out_07]
+Ressentez votre corps comme une seule forme, de la tête aux pieds. Ne le divisez pas en parties. Imaginez cette forme entière commencer à tourner. La tête, les épaules, la poitrine, les hanches, les jambes et les pieds roulent ensemble. Aucune articulation ne mène. Aucun muscle ne se crispe. Tout le corps ressenti se meut comme un seul corps continu.
+---
+[astral_text_roll_out_08]
+Commencez à rouler lentement vers votre gauche. Ressentez ensemble la torsion et le déplacement latéral. Roulez loin de votre position physique, pas simplement sur un bras. Faites une pause. Revenez au centre. Roulez à nouveau à gauche. Que le mouvement soit complet, du sommet de la tête jusqu'aux pieds. Si la gauche paraît inconfortable, notez-le et reposez-vous.
+---
+[astral_text_roll_out_09]
+Revenez maintenant au centre. Roulez tout le corps ressenti vers votre droite. Là encore, ressentez ensemble la torsion et le roulis. Loin du centre. Pause. Retour. Répétez. Comparez ce côté avec l'autre. Choisissez le côté qui donne la sensation la plus nette d'un mouvement du corps entier vous éloignant de l'endroit où repose votre corps.
+---
+[astral_text_roll_out_10]
+Choisissez votre direction la plus claire. Laissez le roulis gagner en assurance. Éloignez-vous en roulant, revenez juste assez pour répéter, puis éloignez-vous à nouveau. Gardez le corps physique totalement relâché. Gardez le mouvement complet. N'imaginez pas une paire de mains distincte qui vous tirerait ; cette méthode utilise le mouvement ressenti du corps tout entier.
+---
+[astral_text_roll_out_11]
+Laissez maintenant le roulis vous porter plus loin. Ne vous précipitez pas. Ressentez-vous vous tordre au-delà de la position du corps, en vous en éloignant. Gardez les yeux fermés. Gardez une respiration naturelle. Remplissez l'attention du roulis du corps entier. Dans l'approche de Bruce, la détermination et l'enthousiasme comptent, mais ils doivent rester forts sur le plan mental tandis que le corps demeure détendu.
+---
+[astral_text_roll_out_12]
+Une lourdeur, une légèreté, une pression, des picotements, des vertiges ou des sensations de mouvement peuvent survenir. Ne vous arrêtez pas pour les examiner. Continuez le roulis. Si les sensations deviennent intenses, restez calme et ne continuez que si vous vous sentez en sécurité. Si une véritable détresse apparaît, arrêtez la technique, respirez normalement et mettez fin à la tentative.
+---
+[astral_text_roll_out_13]
+Si vous vous sentez partiellement sorti(e) ou bloqué(e) près du corps physique, ne vous repliez pas dans la panique. Roulez plus loin du côté le plus clair. Laissez tout le corps ressenti achever le mouvement d'éloignement. Si un membre semble libre, emmenez le corps entier avec lui. Gardez les muscles physiques parfaitement immobiles.
+---
+[astral_text_roll_out_14]
+Si la séparation semble complète, restez calme et rendez l'expérience brève. Notez votre position, puis choisissez de revenir directement au corps. Ne vous attardez pas pour explorer. Laissez le retour se faire. En revenant, dites intérieurement : Je me souviens clairement. Puis laissez la mémoire se déposer, sans forcer.
+---
+[astral_text_roll_out_15]
+Laissez le roulis s'achever. Ressentez la respiration ordinaire et le soutien sous vous. Remuez les doigts et les orteils, puis bougez les poignets et les chevilles. Étirez-vous lentement et ouvrez les yeux. Écrivez immédiatement : le côté le plus clair, la force du roulis, les signes, la séparation partielle, le retour, et toute image ou tout mouvement dont vous vous souvenez. D'abord les mots-clés ; l'interprétation ensuite.
+---

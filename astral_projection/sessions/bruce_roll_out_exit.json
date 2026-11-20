@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "duration": 1800,
+  "cues": [
+    {
+      "second": 0,
+      "key": "astral_text_roll_out_01"
+    },
+    {
+      "second": 120,
+      "key": "astral_text_roll_out_02"
+    },
+    {
+      "second": 240,
+      "key": "astral_text_roll_out_03"
+    },
+    {
+      "second": 360,
+      "key": "astral_text_roll_out_04"
+    },
+    {
+      "second": 480,
+      "key": "astral_text_roll_out_05"
+    },
+    {
+      "second": 600,
+      "key": "astral_text_roll_out_06"
+    },
+    {
+      "second": 720,
+      "key": "astral_text_roll_out_07"
+    },
+    {
+      "second": 840,
+      "key": "astral_text_roll_out_08"
+    },
+    {
+      "second": 960,
+      "key": "astral_text_roll_out_09"
+    },
+    {
+      "second": 1080,
+      "key": "astral_text_roll_out_10"
+    },
+    {
+      "second": 1200,
+      "key": "astral_text_roll_out_11"
+    },
+    {
+      "second": 1320,
+      "key": "astral_text_roll_out_12"
+    },
+    {
+      "second": 1440,
+      "key": "astral_text_roll_out_13"
+    },
+    {
+      "second": 1560,
+      "key": "astral_text_roll_out_14"
+    },
+    {
+      "second": 1680,
+      "key": "astral_text_roll_out_15"
+    }
+  ]
+}
