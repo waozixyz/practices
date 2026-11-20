@@ -39,14 +39,17 @@ The matte linen colors, crossed facings and fitted sash form a traditional
 wrap. The woman keeps the long-sleeve top and flared skirt. The man wears a
 cross-collar tunic with relaxed trousers. Blended weights at the sleeves and
 trouser seat spread deformation through each joint. The generator preserves
-faces, hair, skeletons, expressions, original textures and CC0 metadata.
+faces, hair, skeletons, expressions and CC0 metadata. The man’s skin uses a
+copy of the original atlas with the painted sock colour removed at the ankles
+and feet. The generator retains the original atlas in the model.
 
 The separate `PracticeSkirt` mesh keeps its skinned waist seam. Its lower
 portion drapes around the legs and sleeves, stays above the floor, and
 spreads the displacement across neighboring fabric edges. The current pose
 sets these constraints so seeking and playback produce the same drape.
 
-Reproduce from the checksummed originals in `backup/figure-source/`.
+Reproduce from the checksummed originals in `backup/figure-source/` with NumPy
+and Pillow installed.
 
 ```sh
 python3 figure/tools/prepare_attire.py --source-dir backup/figure-source

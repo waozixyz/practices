@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Verify real garment edits preserve both selected identities and plain soles."""
 import argparse
+from io import BytesIO
 import json
 from pathlib import Path
 import sys
 import numpy as np
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'figure/tools'))
 from prepare_attire import Asset, ORIGINAL, is_foot_skin, sha
@@ -35,6 +37,15 @@ def verify_feet(old, new, receipts):
         assert len(contact) == receipt['support_vertices'] >= 8
         assert .12 < np.ptp(position[contact, 2]) == receipt['heel_to_ball']
         assert np.all(attrs['WEIGHTS_0'][contact] == [1, 0, 0, 0])
+        material = new.doc['materials'][primitive['material']]['pbrMetallicRoughness']
+        texture = new.doc['textures'][material['baseColorTexture']['index']]
+        image = new.doc['images'][texture['source']]
+        view = new.doc['bufferViews'][image['bufferView']]
+        offset = view.get('byteOffset', 0)
+        atlas = np.asarray(Image.open(BytesIO(new.binary[offset:offset + view['byteLength']])).convert('RGB'))
+        x, y = np.rint(attrs['TEXCOORD_0'][used] * [atlas.shape[1] - 1, atlas.shape[0] - 1]).astype(int).T
+        toes = position[used, 1] < .04
+        assert np.quantile(atlas[y[toes], x[toes], 0], .05) > 215, 'The atlas still paints dark socks on the foot'
 
 
 def main():
@@ -53,8 +64,11 @@ def main():
         assert new.binary[:len(old.binary)] == old.binary
         assert d['extensions']['VRM']['meta'] == o['extensions']['VRM']['meta']
         assert d['extensions']['VRM']['meta']['licenseName'] == 'CC0'
-        for key in ('images', 'textures', 'samplers', 'skins'):
+        for key in ('samplers', 'skins'):
             assert d[key] == o[key], (person, key)
+        for key in ('images', 'textures'):
+            extra = int(person == 'man')
+            assert len(d[key]) == len(o[key]) + extra and d[key][:len(o[key])] == o[key], (person, key)
         for i, node in enumerate(o['nodes']):
             # Appended garment nodes may be new children; original nodes stay.
             assert {k: v for k, v in node.items() if k != 'children'} == {k: v for k, v in d['nodes'][i].items() if k != 'children'}

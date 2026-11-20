@@ -139,14 +139,8 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     GltfSetDualQuaternion(*figure.instance, true)
     // Feet use their exact affine transform: the calibrated sole length
     // needs nonuniform Z scale, which a rigid dual quaternion cannot encode.
-    // The tunic and trousers also use affine blending across joints. In a
-    // deep lunge the thighs can rotate far enough apart to make adjacent
-    // vertices choose opposite dual-quaternion rotation paths at the seat.
-    skirt := false
-    for index: 0..figure.model.meshes.count - 1 {
-        mesh := *figure.model.meshes[index]
-        skirt = skirt || TextView(mesh.name[:]) == "PracticeSkirt"
-    }
+    // Tailored garments use affine blending so adjacent vertices keep
+    // following the same rotation path in deep reaches and lunges.
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         mesh := *figure.model.meshes[inst.mesh_index]
@@ -156,7 +150,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         for vertex: primitive.indices[:] {
             high = FigureMax(high, primitive.positions[vertex].y)
         }
-        if high < 0.30 || (!skirt && (name == "PracticeClothing" || name == "PracticeWrapFacings")) {
+        if high < 0.30 || name == "PracticeClothing" || name == "PracticeWrapFacings" {
             inst.skin.dual_quaternion = false
         }
     }

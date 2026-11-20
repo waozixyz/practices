@@ -13,8 +13,10 @@ import hashlib
 import json
 from pathlib import Path
 import struct
+from io import BytesIO
 
 import numpy as np
+from PIL import Image, ImageDraw, ImageFilter
 ORIGINAL = {
     'woman': 'adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979',
     'man': '7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f',
@@ -245,6 +247,55 @@ def is_foot_skin(asset, primitive):
     return heights.min() < .05 and heights.max() < .20
 
 
+def remove_sock_dye(asset, body, material_id):
+    """Recover the skin colour below the sock line on the original atlas."""
+    doc = asset.doc
+    material = doc['materials'][material_id]['pbrMetallicRoughness']['baseColorTexture']
+    texture_id = material['index']
+    texture = doc['textures'][texture_id]
+    image = doc['images'][texture['source']]
+    data = doc['bufferViews'][image['bufferView']]
+    start = data.get('byteOffset', 0)
+    original = Image.open(BytesIO(asset.binary[start:start + data['byteLength']])).convert('RGBA')
+    region = Image.new('L', original.size)
+    draw = ImageDraw.Draw(region)
+    dimensions = np.array(original.size) - 1
+    for primitive in body['primitives']:
+        if primitive['material'] != material_id:
+            continue
+        attrs = primitive['attributes']
+        vertices = asset.read(attrs['POSITION'])
+        triangles = asset.read(primitive['indices']).reshape(-1, 3)
+        below_sock_line = np.any(vertices[triangles, 1] < .29, axis=1)
+        pixels = asset.read(attrs['TEXCOORD_0']) * dimensions
+        for triangle in pixels[triangles[below_sock_line]]:
+            draw.polygon([tuple(point) for point in triangle], fill=255)
+    # Include neighbouring texels so normal texture filtering cannot pull
+    # the sock colour back in at a UV seam. Preserve the skin above the sock.
+    mask = np.asarray(region.filter(ImageFilter.MaxFilter(5))) != 0
+    rgba = np.array(original)
+    rgb = rgba[mask, :3].astype(np.float32)
+    weight = np.clip((180 - rgb[:, 0]) / 123, 0, 1)
+    rgb += weight[:, None] * [187, 161, 134]
+    rgba[mask, :3] = np.clip(np.rint(rgb), 0, 255).astype(np.uint8)
+    stream = BytesIO()
+    Image.fromarray(rgba).save(stream, 'PNG')
+    encoded = stream.getbuffer()
+    asset.binary.extend(b'\0' * (-len(asset.binary) % 4))
+    view = len(doc['bufferViews'])
+    doc['bufferViews'].append({'buffer': 0, 'byteOffset': len(asset.binary), 'byteLength': len(encoded)})
+    asset.binary.extend(encoded)
+    source = len(doc['images'])
+    doc['images'].append({'name': 'PracticeBareSkin', 'mimeType': 'image/png', 'bufferView': view})
+    corrected = len(doc['textures'])
+    doc['textures'].append({**texture, 'source': source})
+    material['index'] = corrected
+    properties = doc['extensions']['VRM']['materialProperties'][material_id]['textureProperties']
+    for key in ('_MainTex', '_ShadeTexture'):
+        if properties.get(key) == texture_id:
+            properties[key] = corrected
+
+
 def barefoot(asset, body_node, primitive, person):
     """Level the original plantar skin while preserving toes, UVs and seams."""
     doc = asset.doc
@@ -304,6 +355,8 @@ def dress(source, target, person):
     body = d['meshes'][d['nodes'][body_node]['mesh']]
     skin = d['skins'][d['nodes'][body_node]['skin']]
     foot_skin = next(p for p in body['primitives'] if is_foot_skin(asset, p))
+    if person == 'man':
+        remove_sock_dye(asset, body, foot_skin['material'])
     measurements = barefoot(asset, body_node, foot_skin, person)
     skin_parts = [p for p in body['primitives'] if p is not foot_skin and
                   'SKIN' in d['materials'][p['material']]['name']]
