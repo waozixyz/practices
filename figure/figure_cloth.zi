@@ -35,3 +35,19 @@ FigureClothHang :: (skinned: Vector3, rest: Vector3, rest_hips: Vector3, hips: V
     hanging := FigureAdd(hips, FigureScale(.{lateral.x, -depth, lateral.z}, scale))
     return FigureLerp(skinned, hanging, loose)
 }
+
+// A raised thigh carries the panel above it. The weight comes from the
+// panel's original direction around the waist, so crossing the cloth's
+// surface cannot suddenly move the same panel to the other side of the leg.
+FigureClothLift :: (point: Vector3, outward: Vector3, depth: float64, scale: float64,
+    thighs: []Vector3) -> Vector3 {
+    motion: Vector3
+    coverage: float64
+    for thigh: thighs {
+        weight := FigureSmooth(FigureDot(thigh, outward), 0.08, 0.68)
+        motion = FigureAddScaled(motion, FigureAdd(thigh, .{0.0, 1.0, 0.0}), weight)
+        coverage += weight
+    }
+    loose := FigureSmooth(depth, 0.025, 0.19)
+    return FigureAddScaled(point, motion, loose * depth * scale / FigureMax(1.0, coverage))
+}

@@ -363,11 +363,14 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
     forward := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{0.0, 0.0, 1.0})
     lateral := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{1.0, 0.0, 0.0})
     yaw := ifx lateral.x * lateral.x + lateral.z * lateral.z > 0.000001 then Atan2(-lateral.z, lateral.x) else Atan2(forward.x, forward.z)
+    cloth_turn := FigureMultiply(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), figure.facing)
     legs: [6]Vector3
+    thighs: [2]Vector3
     for side: cast(s32)0..1 {
         legs[side * 3] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_UPPER_LEG))
         legs[side * 3 + 1] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_LOWER_LEG))
         legs[side * 3 + 2] = FigureModelWorld(figure, scene, FigureSideRole(side, FIGURE_FOOT))
+        thighs[side] = FigureNormalize(FigureSub(legs[side * 3 + 1], legs[side * 3]))
     }
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
@@ -385,16 +388,18 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                 skinned := FigureAdd(root.position, FigureScale(FigureRotate(figure.facing,
                     scene.positions[mesh.first_vertex + vertex]), scale))
                 point := FigureClothHang(skinned, rest, rest_hips, hip_world, figure.facing, yaw, scale)
-                loose := FigureSmooth(rest_hips.y - rest.y, 0.015, 0.10)
+                outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                depth := rest_hips.y - rest.y
+                point = FigureClothLift(point, outward, depth, scale, thighs[:])
+                loose := FigureSmooth(depth, 0.015, 0.10)
                 if loose > 0.0 {
-                    fallback := FigureRotate(figure.facing, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z})
-                    // Alternate projections resolve both legs when the skirt lies
-                    // between them, without changing the body or the foot contacts.
+                    // Resolve contact on the lifted drape, then let adjacent
+                    // edges distribute the displacement across the fabric.
                     for pass: 0..3 {
                         for side: 0..1 {
-                            outside := FigureClothOutside(point, legs[side * 3], legs[side * 3 + 1], 0.078 * scale, fallback)
+                            outside := FigureClothOutside(point, legs[side * 3], legs[side * 3 + 1], 0.078 * scale, outward)
                             point = FigureLerp(point, outside, loose)
-                            outside = FigureClothOutside(point, legs[side * 3 + 1], legs[side * 3 + 2], 0.054 * scale, fallback)
+                            outside = FigureClothOutside(point, legs[side * 3 + 1], legs[side * 3 + 2], 0.054 * scale, outward)
                             point = FigureLerp(point, outside, loose)
                         }
                     }

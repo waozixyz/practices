@@ -42,6 +42,26 @@ main :: () -> s32 {
     if !FigureFinite(center) || FigureAbs(center.x - 0.078) > 0.000001 {
         fail += 1
     }
-    print("cloth constraints: % findings in fold/waist/capsule regressions\n", fail)
+    // A high knee lifts the panel out in front and up over the thigh. The
+    // waist and the panel on the far side stay attached to their own drape.
+    thigh: [1]Vector3
+    front := FigureV3(0.0, 0.0, 1.0)
+    previous = hem
+    for sample: 0..110 {
+        angle := cast(float64)sample * FIGURE_PI / 180.0
+        thigh[0] = .{0.0, -Cos(angle), Sin(angle)}
+        lifted := FigureClothLift(hem, front, 0.30, 1.0, thigh[:])
+        behind := FigureClothLift(hem, .{0.0, 0.0, -1.0}, 0.30, 1.0, thigh[:])
+        fixed := FigureClothLift(waist, front, 0.0, 1.0, thigh[:])
+        if !FigureFinite(lifted) || FigureDistance(lifted, previous) > 0.015 ||
+            FigureDistance(behind, hem) > 0.000001 || FigureDistance(fixed, waist) > 0.000001 {
+            fail += 1
+        }
+        if sample == 90 && (lifted.y - hem.y < 0.28 || lifted.z - hem.z < 0.28) {
+            fail += 1
+        }
+        previous = lifted
+    }
+    print("cloth constraints: % findings in fold, waist, capsule and high-knee regressions\n", fail)
     return fail
 }
