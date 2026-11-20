@@ -9,3 +9,10 @@
   veranda for astral projection. Their originals, prompts and checks are
   in `source/` (`provenance.json`); the stored backdrops have their colour
   made about 1.3 times as strong and are sized for phones.
+
+Each backdrop has a same-name JSON ground registration: source-image
+horizon, a safe open-floor rectangle, cover crop, camera pitch and minimum
+view height. Coordinates exclude the Tai Chi wall/stairs, Workout deck
+edges/railings, Sun Salutation foliage and astral veranda railing. The
+preview transforms these marks through the actual image crop and fits the
+entire motion and contact shadow into the remaining floor.

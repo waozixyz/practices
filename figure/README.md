@@ -25,10 +25,13 @@ The modules:
   as she moves and turns, and her eyes blink every few seconds
   (`FigureBlink`); a still pose has the hair hanging at rest. Its
   humanoid bones are found by name (VRoid's `J_Bip_*`, Mixamo's
-  `mixamorig` and common Blender names). Each pose turns them so the limbs
-  point where the solver's joints are, keeping the model's own
-  proportions, scales the model so its legs match the solver's and stands
-  its ankles on the solver's ankles. `FigureModelToon` gives it a
+  `mixamorig` and common Blender names). Each pose solves the limbs with
+  the model's own segment lengths to reach the solver's wrists and ankles,
+  keeping its proportions. It scales the model to the solver's leg length and stands
+  its measured slipper support on the solver's heel/ball contacts. The wrist uses the solver's palm
+  frame, converted from the model's bind pose; the fingers curl gently
+  unless the technique calls for a fist or hook. Eyes follow cued head
+  turns gently. `FigureModelToon` gives it a
   cel-shaded look on its own textures.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
@@ -36,13 +39,37 @@ references for the render quality are in `design/reference/`.
 
 ## Tests
 
-Run from the repository root through the build queue:
+Run from the repository root in a managed Harmony command.
 
 ```sh
-build-queue -- ziran build --project --target=c --exe --entry figure_parts_test:main -o build/figure-parts-test tests/figure_parts_test.zi
-build-queue -- ./build/figure-parts-test/figure_parts_test
+for suite in figure_parts_test figure_model_pose_test figure_model_sole_test figure_cloth_test; do
+    ziran build --project --target=c --exe --entry "$suite:main" -o "build/$suite" "tests/$suite.zi" &&
+        "build/$suite/$suite" || exit
+done
+python3 tests/slippers_test.py
+python3 tests/attire_test.py --source-dir backup/figure-source
 ```
 
 `figure_parts_test` checks that a skinned vertex follows its bone's motion,
 the contact shadow, a picture laid over a covering backdrop, and that a
 missing model file is refused cleanly.
+
+`figure_model_pose_test` loads both selected VRM skeletons and checks the
+rendered hand direction, wrist alignment and planted ankle alignment as the pelvis moves
+over fixed foot targets. It does not need a window or display.
+
+`figure_model_sole_test` measures actual skinned underside vertices for both
+models during flat stances and heel/ball pivots, with a 1 mm floor,
+flatness and pivot limit. `slippers_test.py` validates the shipped CC0
+models, rigid foot weights, matte cloth materials and flat soles; with
+`--source-dir` it also proves every original bitmap/accessor byte and every
+non-shoe primitive is retained. See `shared/figure/MODELS.md` for the
+reproducible footwear pipeline.
+
+`figure_cloth` drapes the skirt hem, resolves leg-capsule contacts and
+shares displacement across nearby fabric edges. `figure_model` applies
+those constraints to the named skirt after skinning. `figure_cloth_test`
+covers the fold through ninety degrees, waist anchoring and capsule
+contacts. The preview's `--clothing-audit` checks actual named garment
+surfaces throughout every timeline. Its private capture commands render
+complete items and slow transitions for visual review.

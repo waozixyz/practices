@@ -1,6 +1,5 @@
-# The shared practice figure's model-independent parts: the joint pose every
-# practice reports, skinning, and setting a figure into a practice's
-# backdrop (shared/figure/backdrops/). The figure model itself is pending.
+# Shared practice figures, pose and skinning APIs, cloth, and the assets
+# that place the figures in each practice stage (shared/figure/backdrops/).
 [package]
 name = "practices"
 module_roots = ["figure", "tests"]
@@ -17,6 +16,7 @@ ref = "ac6c8f47b8d52251213bd416ea373fc60bfd447f"
 
 [exports]
 figure_math = "figure/figure_math.zi"
+figure_cloth = "figure/figure_cloth.zi"
 figure_joints = "figure/figure_joints.zi"
 figure_skin = "figure/figure_skin.zi"
 figure_finish = "figure/figure_finish.zi"

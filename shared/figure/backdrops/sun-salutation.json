@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "image_width": 1280,
+  "image_height": 853,
+  "horizon": 0.79,
+  "floor_left": 0.4,
+  "floor_top": 0.87,
+  "floor_right": 0.6,
+  "floor_bottom": 0.97,
+  "zoom": 2.0,
+  "focus": 1.0,
+  "pitch": 0.22,
+  "minimum_view_height": 2.4,
+  "description": "Normalized source-image coordinates. Usable ground excludes walls, rails, plants, stairs and foreground edges. Camera fits the entire motion and shadow inside this area, with additional screen margins."
+}

@@ -27,6 +27,9 @@ FigureJoints :: struct {
     knees: [2]Vector3
     ankles: [2]Vector3
     toes: [2]Vector3
+    // Actual solver heel/ball contacts, including lift and pivots.
+    heels: [2]Vector3
+    balls: [2]Vector3
     feet: [2]FigureQuat
 }
 

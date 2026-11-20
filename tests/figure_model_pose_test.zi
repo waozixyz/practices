@@ -1,0 +1,92 @@
+// Regression checks on the selected VRM skeletons, after model retargeting.
+#import "figure_math"
+#import "figure_joints"
+#import "figure_model"
+#import "kryon/scene"
+#import "kryon/scene_gltf"
+#import "std/math"
+
+ModelPoint :: (figure: *FigureModel, scene: *Scene, role: s32) -> Vector3 {
+    world := figure.instance.node_world[figure.bones[role]]
+    root := scene.nodes[figure.instance.root_node]
+    return FigureAdd(root.position, FigureScale(FigureRotate(figure.facing,
+        FigureV3(world.m[3], world.m[7], world.m[11])), root.scale.x))
+}
+
+ModelPose :: (phase: float64) -> FigureJoints {
+    pose: FigureJoints
+    pose.height = 1.65
+    pose.pelvis = .{0.04 * Sin(phase), 0.82 + 0.025 * Cos(phase), 0.025 * Sin(phase)}
+    pose.pelvis_turn = FigureIdentity()
+    pose.chest_turn = FigureIdentity()
+    pose.head_turn = FigureIdentity()
+    pose.spine = FigureAdd(pose.pelvis, FigureV3(0.0, 0.12, 0.0))
+    pose.chest = FigureAdd(pose.pelvis, FigureV3(0.0, 0.35, 0.0))
+    pose.neck = FigureAdd(pose.pelvis, FigureV3(0.0, 0.55, 0.0))
+    for side: cast(s32)0..1 {
+        sign := ifx side == 0 then 1.0 else -1.0
+        hip := FigureAdd(pose.pelvis, FigureV3(sign * 0.09, -0.04, 0.0))
+        ankle := FigureV3(sign * 0.12, 0.08, 0.0)
+        direction := FigureNormalize(FigureSub(ankle, hip))
+        pole := FigureNormalize(FigureAddScaled(FigureV3(0.0, 0.0, 1.0), direction, -direction.z))
+        half := FigureDistance(hip, ankle) * 0.5
+        pose.hips[side] = hip
+        pose.knees[side] = FigureAddScaled(FigureLerp(hip, ankle, 0.5), pole, Sqrt(0.16 - half * half))
+        pose.ankles[side] = ankle
+        pose.toes[side] = FigureAdd(ankle, FigureV3(0.0, -0.055, 0.14))
+        pose.feet[side] = FigureIdentity()
+        pose.shoulders[side] = FigureAdd(pose.chest, FigureV3(sign * 0.17, 0.02, 0.0))
+        pose.elbows[side] = FigureAdd(pose.chest, FigureV3(sign * 0.32, -0.12, 0.05))
+        pose.wrists[side] = FigureAdd(pose.chest, FigureV3(sign * 0.4, -0.25, 0.15))
+        pose.hands[side] = FigureMultiply(FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), phase),
+            FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), 0.35 * Sin(phase)))
+    }
+    return pose
+}
+
+main :: () -> s32 {
+    fail: s32
+    paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
+    for path: paths {
+        scene: Scene
+        SceneInit(*scene)
+        defer SceneFree(*scene)
+        model: FigureModel
+        defer FigureModelRelease(*model)
+        if !FigureModelLoad(*model, *scene, path) {
+            print("model pose: could not load %\n", path)
+            return 1
+        }
+        worst_ankle: float64
+        worst_drift: float64
+        worst_hand: float64
+        worst_wrist: float64
+        planted: [2]Vector3
+        for sample: 0..12 {
+            pose := ModelPose(cast(float64)sample * FIGURE_PI / 6.0)
+            if !FigureModelPose(*model, *scene, *pose) {
+                return 1
+            }
+            for side: cast(s32)0..1 {
+                ankle := ModelPoint(*model, *scene, FigureSideRole(side, FIGURE_FOOT))
+                if sample == 0 {
+                    planted[side] = ankle
+                }
+                worst_ankle = FigureMax(worst_ankle, FigureDistance(ankle, pose.ankles[side]))
+                worst_drift = FigureMax(worst_drift, FigureDistance(ankle, planted[side]))
+                wrist := ModelPoint(*model, *scene, FigureSideRole(side, FIGURE_HAND))
+                worst_wrist = FigureMax(worst_wrist, FigureDistance(wrist, pose.wrists[side]))
+                middle := ModelPoint(*model, *scene, FigureFingerRole(side, 2, 0))
+                pointing := FigureNormalize(FigureSub(middle, wrist))
+                wanted := FigureRotate(pose.hands[side], FigureV3(0.0, -1.0, 0.0))
+                worst_hand = FigureMax(worst_hand, FigureDistance(pointing, wanted))
+            }
+        }
+        print("model pose: % ankle error % m, planted drift % m, wrist error % m, hand direction error %\n",
+            path, worst_ankle, worst_drift, worst_wrist, worst_hand)
+        if worst_ankle > 0.0001 || worst_drift > 0.0001 || worst_wrist > 0.0001 || worst_hand > 0.001 {
+            fail += 1
+        }
+    }
+    return fail
+}

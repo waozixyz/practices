@@ -1,0 +1,47 @@
+// Gravity drape and body-contact constraints, independent of rendering.
+#import "figure_math"
+#import "figure_cloth"
+#import "kryon/scene"
+#import "std/math"
+
+main :: () -> s32 {
+    fail: s32
+    hips := FigureV3(0.0, 0.90, 0.0)
+    rest_hips := FigureV3(0.0, 0.94, 0.0)
+    hem := FigureV3(0.2, 0.64, 0.05)
+    // A forward fold must not rotate the hem over the pelvis/head, even
+    // when the underlying rigid hip rotation crosses ninety degrees.
+    previous: Vector3
+    for sample: 0..180 {
+        angle := cast(float64)sample * FIGURE_PI / 180.0
+        rigid := FigureAdd(hips, FigureRotate(FigureAxisAngle(.{1.0, 0.0, 0.0}, angle), FigureSub(hem, rest_hips)))
+        draped := FigureClothHang(rigid, hem, rest_hips, hips, FigureIdentity(), 0.0, 1.0)
+        if FigureAbs(draped.y - 0.60) > 0.000001 || (sample > 0 && FigureDistance(draped, previous) > 0.001) {
+            fail += 1
+        }
+        previous = draped
+    }
+    waist := FigureV3(0.1, 0.95, 0.0)
+    rigid_waist := FigureV3(0.12, 0.91, 0.02)
+    if FigureDistance(FigureClothHang(rigid_waist, waist, rest_hips, hips, FigureIdentity(), 0.0, 1.0), rigid_waist) > 0.000001 {
+        fail += 1
+    }
+    // Cloth inside a thigh, its endpoint, or exactly on the centerline is
+    // projected outside the capsule without NaNs or moving the skeleton.
+    from := FigureV3(0.0, 0.8, 0.0)
+    to := FigureV3(0.0, 0.4, 0.0)
+    for sample: 0..20 {
+        point := FigureV3(0.01, 0.35 + cast(float64)sample * 0.025, 0.0)
+        out := FigureClothOutside(point, from, to, 0.078, .{1.0, 0.0, 0.0})
+        nearest := FigureV3(0.0, FigureClamp(out.y, 0.4, 0.8), 0.0)
+        if !FigureFinite(out) || FigureDistance(out, nearest) < 0.077999 {
+            fail += 1
+        }
+    }
+    center := FigureClothOutside(.{0.0, 0.6, 0.0}, from, to, 0.078, .{1.0, 0.0, 0.0})
+    if !FigureFinite(center) || FigureAbs(center.x - 0.078) > 0.000001 {
+        fail += 1
+    }
+    print("cloth constraints: % findings in fold/waist/capsule regressions\n", fail)
+    return fail
+}

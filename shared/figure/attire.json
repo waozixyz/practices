@@ -1,0 +1,32 @@
+{
+  "woman": {
+    "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
+    "output_sha256": "f677800f355982139bdc59c471846c262eda6bbc2b13bd89a00a5591bac3a75c",
+    "changed_body_primitives": [
+      {
+        "original_primitive": 4,
+        "original_material": "F00_002_01_Tops_01_CLOTH"
+      }
+    ],
+    "skirt_preserved": true,
+    "identity": "Original face, hair, body, skeleton and flat slippers retained",
+    "style": "Matte linen cross-collar wrap, plain sash and flared skirt"
+  },
+  "man": {
+    "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
+    "output_sha256": "727443b67b3c30856976446cc3e644dc4074107bb67b970b5d342010a138c1ea",
+    "changed_body_primitives": [
+      {
+        "original_primitive": 4,
+        "original_material": "M00_006_01_Tops_01_CLOTH"
+      },
+      {
+        "original_primitive": 5,
+        "original_material": "M00_001_01_Bottoms_01_CLOTH"
+      }
+    ],
+    "skirt_preserved": false,
+    "identity": "Original face, hair, body, skeleton and flat slippers retained",
+    "style": "Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed"
+  }
+}

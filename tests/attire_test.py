@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Verify real garment edits preserve both selected identities and plain soles."""
+import argparse
+from pathlib import Path
+import sys
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'figure/tools'))
+from prepare_attire import Asset, ORIGINAL, sha
+import json
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source-dir', required=True, type=Path)
+    args = parser.parse_args()
+    root = Path('shared/figure')
+    receipts = json.loads((root / 'attire.json').read_text())
+    for person in ('woman', 'man'):
+        original_path = args.source_dir / f'{person}.vrm'
+        target = root / f'{person}.vrm'
+        assert sha(original_path) == ORIGINAL[person]
+        old, new = Asset(original_path), Asset(target)
+        d, o = new.doc, old.doc
+        assert sha(target) == receipts[person]['output_sha256']
+        assert new.binary[:len(old.binary)] == old.binary
+        assert d['extensions']['VRM']['meta'] == o['extensions']['VRM']['meta']
+        assert d['extensions']['VRM']['meta']['licenseName'] == 'CC0'
+        for key in ('images', 'textures', 'samplers', 'skins'):
+            assert d[key] == o[key], (person, key)
+        for i, node in enumerate(o['nodes']):
+            # Appended garment nodes may be new children; original nodes stay.
+            assert {k: v for k, v in node.items() if k != 'children'} == {k: v for k, v in d['nodes'][i].items() if k != 'children'}
+            assert d['nodes'][i].get('children', [])[:len(node.get('children', []))] == node.get('children', [])
+        for i, mesh in enumerate(o['meshes']):
+            expected = [p for p in mesh['primitives'] if 'CLOTH' not in o['materials'][p['material']]['name']]
+            actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
+            assert actual == expected, (person, mesh.get('name'))
+        garments = []
+        for mesh in d['meshes']:
+            for primitive in mesh['primitives']:
+                name = d['materials'][primitive['material']]['name']
+                if not name.startswith('Practice_') or name == 'Practice_Matte_Cloth':
+                    continue
+                garments.append((mesh, primitive))
+                a = primitive['attributes']
+                p, n = new.read(a['POSITION']), new.read(a['NORMAL'])
+                weights = new.read(a['WEIGHTS_0'])
+                indices = new.read(primitive['indices'])
+                assert np.isfinite(p).all() and np.isfinite(n).all()
+                assert np.allclose(weights.sum(1), 1, atol=1e-5)
+                assert indices.max() < len(p)
+                mat = d['materials'][primitive['material']]['pbrMetallicRoughness']
+                assert mat['roughnessFactor'] == 1 and mat['metallicFactor'] == 0
+                assert 'baseColorTexture' not in mat
+        assert garments and any(mesh['name'] == 'PracticeWrapFacings' for mesh, _ in garments)
+        if person == 'woman':
+            skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
+            points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
+            assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45
+        else:
+            body_node = next(n for n in d['nodes'] if n.get('name') == 'Body')
+            skin = d['skins'][body_node['skin']]
+            hood = [j for j, node in enumerate(skin['joints']) if 'Hood' in d['nodes'][node].get('name', '')]
+            for _, primitive in garments:
+                a = primitive['attributes']
+                joints, weights = new.read(a['JOINTS_0']), new.read(a['WEIGHTS_0'])
+                assert np.max(np.where(np.isin(joints, hood), weights, 0)) < .01
+        print(f'{person}: real linen wrap geometry, identity/CC0/texture/skeleton preserved; skirt retained or hood removed')
+
+
+if __name__ == '__main__':
+    main()

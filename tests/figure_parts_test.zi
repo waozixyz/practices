@@ -97,6 +97,25 @@ main :: () -> s32 {
         open += ifx closed < 0.01 then 1 else 0
     }
     fail += Check(FigureBlink(-1.0) == 0.0 && shut >= 15 && open > 1600, "her eyes blink now and then")
+    gaze_pose: FigureJoints
+    gaze_pose.chest_turn = FigureIdentity()
+    gaze_pose.head_turn = FigureAxisAngle(FigureV3(0.0, 1.0, 0.0), FIGURE_PI / 6.0)
+    gaze := FigureGaze(*gaze_pose)
+    fail += Check(gaze.x > 5.9 && gaze.x < 6.1 && FigureAbs(gaze.y) < 0.000001,
+        "eyes gently lead a cued head turn")
+    gaze_pose.head_turn = FigureIdentity()
+    fail += Check(FigureLength(FigureGaze(*gaze_pose)) < 0.000001, "eyes rest looking forward")
+    for finger: cast(s32)0..4 {
+        for segment: cast(s32)0..2 {
+            relaxed := FigureFingerCurl(0.0, 0.0, finger, segment)
+            fist := FigureFingerCurl(1.0, 0.0, finger, segment)
+            hook := FigureFingerCurl(0.0, 1.0, finger, segment)
+            fail += Check(relaxed > 0.0 && relaxed < 0.3 && fist > relaxed && fist <= 1.35,
+                "relaxed fingers curl gently and a fist closes them")
+            fail += Check((segment == 0 && hook == relaxed) || (segment > 0 && hook > relaxed),
+                "a hook curls finger tips without clenching knuckles")
+        }
+    }
     if fail == 0 {
         print("Figure parts local tests passed\n")
     }

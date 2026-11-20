@@ -1,0 +1,37 @@
+// Small deterministic cloth constraints for the meditation skirt. The upper
+// edge follows the fitted garment skin; the hem hangs under gravity instead
+// of rotating over the head with a forward-folded pelvis. Leg capsules and
+// the real floor keep the cloth outside the body. There is no free-running
+// simulation or seek-dependent state.
+#import "figure_math"
+#import "kryon/scene"
+
+FigureClothOutside :: (point: Vector3, from: Vector3, to: Vector3, radius: float64, fallback: Vector3) -> Vector3 {
+    segment := FigureSub(to, from)
+    length := FigureDot(segment, segment)
+    along := ifx length > 0.000000001 then FigureClamp(FigureDot(FigureSub(point, from), segment) / length, 0.0, 1.0) else 0.0
+    center := FigureAddScaled(from, segment, along)
+    delta := FigureSub(point, center)
+    distance := FigureLength(delta)
+    if distance >= radius {
+        return point
+    }
+    if distance < 0.000001 {
+        delta = FigureNormalize(fallback)
+    } else {
+        delta = FigureScale(delta, 1.0 / distance)
+    }
+    return FigureAddScaled(center, delta, radius)
+}
+
+FigureClothHang :: (skinned: Vector3, rest: Vector3, rest_hips: Vector3, hips: Vector3,
+    facing: FigureQuat, yaw: float64, scale: float64) -> Vector3 {
+    local := FigureSub(rest, rest_hips)
+    depth := FigureMax(0.0, -local.y)
+    // Preserve the waist seam and let the lower skirt settle continuously.
+    loose := FigureSmooth(depth, 0.015, 0.19)
+    lateral := FigureRotate(facing, .{local.x, 0.0, local.z})
+    lateral = FigureRotate(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), lateral)
+    hanging := FigureAdd(hips, FigureScale(.{lateral.x, -depth, lateral.z}, scale))
+    return FigureLerp(skinned, hanging, loose)
+}

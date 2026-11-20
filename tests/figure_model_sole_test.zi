@@ -1,0 +1,127 @@
+// Measure the rendered, skinned slipper vertices, not ankle-bone guesses.
+#import "figure_math"
+#import "figure_joints"
+#import "figure_model"
+#import "figure_model_pose_test"
+#import "kryon/scene"
+#import "kryon/scene_gltf"
+#import "std/math"
+
+SoleWorld :: (figure: *FigureModel, matrix: GltfMatrix, point: Vector3, scene: *Scene) -> Vector3 {
+    in_model := FigureV3(matrix.m[0] * point.x + matrix.m[1] * point.y + matrix.m[2] * point.z + matrix.m[3],
+        matrix.m[4] * point.x + matrix.m[5] * point.y + matrix.m[6] * point.z + matrix.m[7],
+        matrix.m[8] * point.x + matrix.m[9] * point.y + matrix.m[10] * point.z + matrix.m[11])
+    root := scene.nodes[figure.instance.root_node]
+    return FigureAdd(root.position, FigureScale(FigureRotate(figure.facing, in_model), root.scale.x))
+}
+
+SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
+    worst_gap: float64
+    worst_flat: float64
+    worst_pivot: float64
+    measured: s64
+    for mode: 0..3 {
+        for sample: 0..16 {
+            phase := cast(float64)sample * FIGURE_PI / 8.0
+            pose := ModelPose(phase)
+            // Nearly straight, shifted stances exposed retargeting reach
+            // errors even when the solver's planted target was exact.
+            if mode == 3 {
+                shift := FigureV3(0.08 * Sin(phase), 0.06, 0.03 * Cos(phase))
+                pose.pelvis = FigureAdd(pose.pelvis, shift)
+                for side: cast(s32)0..1 {
+                    pose.hips[side] = FigureAdd(pose.hips[side], shift)
+                }
+            }
+            angle: float64
+            if mode == 1 || mode == 2 {
+                angle = (ifx mode == 1 then -0.7 else 0.7) * cast(float64)sample / 16.0
+            }
+            foot := FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), angle)
+            for side: cast(s32)0..1 {
+                x := ifx side == 0 then 0.12 else -0.12
+                contact := FigureV3(x, 0.0, ifx mode == 2 then 0.138 else -0.055)
+                relative := FigureV3(0.0, -0.08, ifx mode == 2 then 0.138 else -0.055)
+                pose.ankles[side] = FigureSub(contact, FigureRotate(foot, relative))
+                pose.feet[side] = foot
+                pose.heels[side] = FigureAdd(pose.ankles[side], FigureRotate(foot, FigureV3(0.0, -0.08, -0.055)))
+                pose.balls[side] = FigureAdd(pose.ankles[side], FigureRotate(foot, FigureV3(0.0, -0.08, 0.138)))
+                pose.toes[side] = pose.balls[side]
+                direction := FigureNormalize(FigureSub(pose.ankles[side], pose.hips[side]))
+                pole := FigureNormalize(FigureAddScaled(FigureV3(0.0, 0.0, 1.0), direction, -direction.z))
+                half := FigureDistance(pose.hips[side], pose.ankles[side]) * 0.5
+                pose.knees[side] = FigureAddScaled(FigureLerp(pose.hips[side], pose.ankles[side], 0.5),
+                    pole, Sqrt(FigureMax(0.16 - half * half, 0.0)))
+            }
+            if !FigureModelPose(figure, scene, *pose) {
+                return 1
+            }
+            for mesh_index: 0..figure.instance.meshes.count - 1 {
+                inst := *figure.instance.meshes[mesh_index]
+                source_mesh := *figure.model.meshes[inst.mesh_index]
+                if TextView(source_mesh.name[:]) != "PracticeClothSlippers" {
+                    continue
+                }
+                side := inst.primitive_index
+                mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+                low: float64 = 1000.0
+                high: float64 = -1000.0
+                back: float64 = 1000.0
+                front: float64 = -1000.0
+                heel: Vector3
+                ball: Vector3
+                for vertex: 0..inst.skin.positions.count - 1 {
+                    rest := inst.skin.positions[vertex]
+                    if FigureAbs(rest.y) > 0.000001 {
+                        continue
+                    }
+                    actual := SoleWorld(figure, figure.instance.node_world[inst.gltf_node],
+                        scene.positions[mesh.first_vertex + vertex], scene)
+                    low = FigureMin(low, actual.y)
+                    high = FigureMax(high, actual.y)
+                    facing := FigureRotate(figure.facing, rest)
+                    if facing.z < back {
+                        back = facing.z
+                        heel = actual
+                    }
+                    if facing.z > front {
+                        front = facing.z
+                        ball = actual
+                    }
+                    measured += 1
+                }
+                worst_gap = FigureMax(worst_gap, FigureAbs(low))
+                if mode == 0 || mode == 3 {
+                    worst_flat = FigureMax(worst_flat, high - low)
+                }
+                actual := ifx mode == 2 then ball else heel
+                target := ifx mode == 2 then pose.balls[side] else pose.heels[side]
+                worst_pivot = FigureMax(worst_pivot, FigureDistance(actual, target))
+            }
+        }
+    }
+    print("sole test: % vertices %, floor error % m, flatness % m, heel/ball pivot error % m\n",
+        path, measured, worst_gap, worst_flat, worst_pivot)
+    return ifx measured < 1000 || worst_gap >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 then 1 else 0
+}
+
+main :: () -> s32 {
+    fail: s32
+    paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
+    model: FigureModel
+    defer FigureModelRelease(*model)
+    for path: paths {
+        scene: Scene
+        SceneInit(*scene)
+        defer SceneFree(*scene)
+        if !FigureModelLoad(*model, *scene, path) {
+            return 1
+        }
+        if model.sole_count[0] != 33 || model.sole_count[1] != 33 {
+            print("sole test: stale measurements after loading %\n", path)
+            return 1
+        }
+        fail += SoleCheck(*model, *scene, path)
+    }
+    return fail
+}
