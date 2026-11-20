@@ -231,9 +231,11 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
     turns[FIGURE_NECK] = FigureBlend(chest, head, 0.5)
     turns[FIGURE_HEAD] = head
     for side: cast(s32)0..1 {
-        turns[FigureSideRole(side, FIGURE_SHOULDER)] = chest
-        upper := FigureModelAim(figure, chest, FigureSideRole(side, FIGURE_UPPER_ARM),
-            FigureSideRole(side, FIGURE_LOWER_ARM), FigureSub(joints.elbows[side], joints.shoulders[side]))
+        upper_direction := FigureSub(joints.elbows[side], joints.shoulders[side])
+        collar := FigureModelCollar(chest, upper_direction, side)
+        turns[FigureSideRole(side, FIGURE_SHOULDER)] = collar
+        upper := FigureModelAim(figure, collar, FigureSideRole(side, FIGURE_UPPER_ARM),
+            FigureSideRole(side, FIGURE_LOWER_ARM), upper_direction)
         turns[FigureSideRole(side, FIGURE_UPPER_ARM)] = upper
         lower := FigureModelAim(figure, upper, FigureSideRole(side, FIGURE_LOWER_ARM), FigureSideRole(side, FIGURE_HAND),
             FigureSub(joints.wrists[side], joints.elbows[side]))
@@ -334,9 +336,16 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
         FigureModelReach(figure, turns[:], pelvis, FigureSideRole(side, FIGURE_UPPER_LEG),
             FigureSideRole(side, FIGURE_LOWER_LEG), FigureSideRole(side, FIGURE_FOOT),
             feet_targets[side], joints.knees[side], offset, scale)
-        FigureModelReach(figure, turns[:], chest, FigureSideRole(side, FIGURE_UPPER_ARM),
-            FigureSideRole(side, FIGURE_LOWER_ARM), FigureSideRole(side, FIGURE_HAND),
+        shoulder := FigureSideRole(side, FIGURE_SHOULDER)
+        forearm := FigureSideRole(side, FIGURE_LOWER_ARM)
+        hand := FigureSideRole(side, FIGURE_HAND)
+        FigureModelReach(figure, turns[:], turns[shoulder], FigureSideRole(side, FIGURE_UPPER_ARM), forearm, hand,
             joints.wrists[side], joints.elbows[side], offset, scale)
+        if figure.bones[forearm] >= 0 && figure.bones[hand] >= 0 {
+            rest := FigureRotate(figure.facing, FigureSub(FigureModelRest(figure, hand, -1),
+                FigureModelRest(figure, forearm, -1)))
+            turns[forearm] = FigureModelForearm(turns[forearm], turns[hand], rest)
+        }
     }
     FigureModelSetTurns(figure, turns[:])
     root := figure.instance.root_node
@@ -637,6 +646,39 @@ FigureModelLight :: (figure: *FigureModel, light: Vector3, view: Vector3) {
 
 #scope_file
 FIGURE_BLINK_EVERY :: 3.2
+
+// The shoulder girdle lifts with an elevated arm and slides forward during
+// a reach. Use the chest frame and mirror the signs across the body. The
+// clavicle moves the shoulder socket before the exact wrist IK is solved.
+FigureModelCollar :: (chest: FigureQuat, direction: Vector3, side: s32) -> FigureQuat {
+    arm := FigureNormalize(FigureRotate(FigureConjugate(chest), direction))
+    sign := ifx side == 0 then 1.0 else -1.0
+    lift := sign * 0.18 * FigureSmooth(arm.y, -0.20, 0.76)
+    reach := -sign * 0.14 * FigureSmooth(arm.z, 0.12, 0.86)
+    forward := FigureAxisAngle(.{0.0, 1.0, 0.0}, reach)
+    upward := FigureAxisAngle(.{0.0, 0.0, 1.0}, lift)
+    return FigureMultiply(chest, FigureMultiply(forward, upward))
+}
+
+// Share the palm's signed axial turn along the forearm. The axis is the
+// solved elbow-to-wrist line, so this can change skin roll without moving
+// the wrist. Fade near an ambiguous half turn, where the short arc changes
+// sign, and near a pure swing, where the twist has no usable projection.
+FigureModelForearm :: (forearm: FigureQuat, hand: FigureQuat, rest: Vector3) -> FigureQuat {
+    axis := FigureNormalize(FigureRotate(forearm, rest))
+    delta := FigureMultiply(hand, FigureConjugate(forearm))
+    sine := FigureDot(.{delta.x, delta.y, delta.z}, axis)
+    cosine := FigureAbs(delta.w)
+    size := Sqrt(sine * sine + cosine * cosine)
+    if size < 0.000001 || FigureLength(axis) < 0.000001 {
+        return forearm
+    }
+    signed := ifx delta.w < 0.0 then -sine else sine
+    angle := 2.0 * Atan2(signed, cosine)
+    weight := FigureSmooth(cosine / size, 0.08, 0.34) * FigureSmooth(size, 0.05, 0.28)
+    roll := FigureClamp(angle * 0.52, -0.96, 0.96) * weight
+    return FigureQuatNormalize(FigureMultiply(FigureAxisAngle(axis, roll), forearm))
+}
 
 FigureHash :: (value: float64) -> float64 {
     wave := Sin(value * 12.9898 + 78.233) * 43758.5453

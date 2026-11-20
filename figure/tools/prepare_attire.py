@@ -144,11 +144,20 @@ def blend_sleeves(asset, attrs, skin):
         elbow = np.linalg.inv(bind[lower].reshape((4, 4), order='F'))[:3, 3]
         along = elbow - shoulder
         distance = (positions - elbow) @ (along / np.linalg.norm(along))
-        sleeve = np.sum(np.where((joints == upper) | (joints == lower), weights, 0), axis=1) >= .999
+        arm = (joints == upper) | (joints == lower)
+        arm_weight = np.sum(np.where(arm, weights, 0), axis=1)
+        sleeve = arm_weight >= .90
         forearm = np.clip((distance[sleeve] + .11) / .22, 0, 1)
         forearm *= forearm * (3 - 2 * forearm)
-        joints[sleeve] = [upper, lower, 0, 0]
-        weights[sleeve] = np.column_stack((1 - forearm, forearm, np.zeros((len(forearm), 2))))
+        # A secondary sleeve bone can share a vertex with the elbow. Keep
+        # that spring weight and smooth the arm contribution across the seam.
+        remaining = np.where(arm[sleeve], 0, weights[sleeve])
+        order = np.argsort(-remaining, axis=1, kind='stable')[:, :2]
+        others = np.take_along_axis(joints[sleeve], order, axis=1)
+        values = np.column_stack(((1 - forearm) * arm_weight[sleeve], forearm * arm_weight[sleeve],
+                                  np.take_along_axis(remaining, order, axis=1)))
+        joints[sleeve] = np.column_stack((np.full(len(forearm), upper), np.full(len(forearm), lower), others))
+        weights[sleeve] = values / values.sum(axis=1, keepdims=True)
 
 
 def blend_trouser_seat(asset, attrs, skin):
@@ -198,6 +207,29 @@ def diffuse_garment_weights(attrs, triangles, joint_count):
     attrs['WEIGHTS_0'][used] = values / np.sum(values, axis=1, keepdims=True)
 
 
+def fit_garment_weights(attrs, joint_count, body, vertices, blend, body_region):
+    """Blend the nearby skin weights into an existing graded cloth pattern."""
+    blend *= blend * (3 - 2 * blend)
+    selected = vertices[blend > 0]
+    blend = blend[blend > 0, None]
+    body_pos, body_joints, body_weights = (body[key][body_region] for key in ('POSITION', 'JOINTS_0', 'WEIGHTS_0'))
+    delta = attrs['POSITION'][selected, None] - body_pos[None]
+    distance = np.sum(delta ** 2, axis=2)
+    nearest = np.argsort(distance, axis=1, kind='stable')[:, :4]
+    sample = 1 / np.maximum(np.take_along_axis(distance, nearest, axis=1), .0001)
+    sample /= sample.sum(axis=1, keepdims=True)
+    row = np.arange(len(selected))[:, None]
+    weights = np.zeros((len(selected), joint_count), dtype=np.float64)
+    np.add.at(weights, (row, attrs['JOINTS_0'][selected]), attrs['WEIGHTS_0'][selected] * (1 - blend))
+    for lane in range(nearest.shape[1]):
+        index = nearest[:, lane]
+        np.add.at(weights, (row, body_joints[index]), body_weights[index] * sample[:, lane, None] * blend)
+    strongest = np.argsort(-weights, axis=1, kind='stable')[:, :4]
+    weights = np.take_along_axis(weights, strongest, axis=1)
+    attrs['JOINTS_0'][selected] = strongest
+    attrs['WEIGHTS_0'][selected] = weights / weights.sum(axis=1, keepdims=True)
+
+
 def dress(source, target, person):
     slippers = prepare(source, target, person)
     asset = Asset(target)
@@ -205,6 +237,15 @@ def dress(source, target, person):
     body_node = next(i for i, n in enumerate(d['nodes']) if n.get('name') == 'Body')
     body = d['meshes'][d['nodes'][body_node]['mesh']]
     skin = d['skins'][d['nodes'][body_node]['skin']]
+    skin_parts = [p for p in body['primitives'] if 'SKIN' in d['materials'][p['material']]['name']]
+    # The skin and clothes share accessors. Only vertices indexed by skin
+    # primitives belong to the surface we want to fit against.
+    skin_vertices = np.unique(np.concatenate([asset.read(p['indices']) for p in skin_parts]))
+    body_surface = {key: asset.read(skin_parts[0]['attributes'][key])[skin_vertices]
+                    for key in ('POSITION', 'JOINTS_0', 'WEIGHTS_0')}
+    body_y = body_surface['POSITION'][:, 1]
+    body_x = np.abs(body_surface['POSITION'][:, 0])
+    joint_count = len(skin['joints'])
     top = asset.material('Practice_Linen_Wrap', [.76, .79, .69, 1] if person == 'woman' else [.36, .46, .39, 1])
     bottom = asset.material('Practice_Linen_Skirt' if person == 'woman' else 'Practice_Relaxed_Trousers',
                             [.22, .36, .33, 1] if person == 'woman' else [.25, .29, .27, 1])
@@ -229,7 +270,18 @@ def dress(source, target, person):
                 skirt.append(asset.primitive(attrs, triangles[lower], bottom))
                 triangles = triangles[~lower]
             if person == 'man':
-                diffuse_garment_weights(attrs, triangles, len(skin['joints']))
+                diffuse_garment_weights(attrs, triangles, joint_count)
+                used = np.unique(triangles)
+                positions = attrs['POSITION'][used]
+                x = np.abs(positions[:, 0])
+                y = positions[:, 1]
+                # Grade the armhole into the tunic and leave the collar and
+                # elbow pattern alone. Lift the upper seam over the skin.
+                shoulder = np.clip((x - .065) / .07, 0, 1) * np.clip((.28 - x) / .08, 0, 1)
+                shoulder *= np.clip((y - 1.32) / .08, 0, 1)
+                fit_garment_weights(attrs, joint_count, body_surface, used, shoulder.copy(),
+                                    (body_y > 1.26) & (body_y < 1.49) & (body_x < .32))
+                attrs['POSITION'][used, 1] += .012 * shoulder
             top_attrs = copy.deepcopy(attrs)
             cloth.append(asset.primitive(attrs, triangles, top))
             # Two overlapping facings describe a left-over-right wrap closure.
@@ -249,9 +301,15 @@ def dress(source, target, person):
         else:
             # Relax the trousers around each leg while leaving the ankle cuff.
             blend_trouser_seat(asset, attrs, skin)
-            diffuse_garment_weights(attrs, triangles, len(skin['joints']))
+            diffuse_garment_weights(attrs, triangles, joint_count)
             xyz = attrs['POSITION']
             used = np.unique(triangles)
+            # A high knee folds the hip farther than the imported trouser
+            # weights follow. Match the thigh through the fold, tapering to
+            # the original seat and knee weights outside it.
+            depth = .965 - xyz[used, 1]
+            thigh = np.clip((depth + .045) / .07, 0, 1) * np.clip((.30 - depth) / .14, 0, 1)
+            fit_garment_weights(attrs, joint_count, body_surface, used, thigh, (body_y > .65) & (body_y < 1.04))
             u = np.clip((xyz[used, 1] - .10) / .88, 0, 1)
             expansion = .022 * np.sin(np.pi * u)
             # Expand around each leg's centre, rather than translating both

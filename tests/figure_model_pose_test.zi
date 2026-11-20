@@ -44,6 +44,63 @@ ModelPose :: (phase: float64) -> FigureJoints {
     return pose
 }
 
+ModelTurn :: (model: *FigureModel, role: s32) -> FigureQuat {
+    return model.turn[model.bones[role]]
+}
+
+RotationDistance :: (a: FigureQuat, b: FigureQuat) -> float64 {
+    return 2.0 * Acos(FigureClamp(FigureAbs(FigureQuatDot(a, b)), 0.0, 1.0))
+}
+
+ArmMotion :: (model: *FigureModel, scene: *Scene, path: string) -> bool {
+    pose := ModelPose(0.0)
+    side: s32 = 0
+    shoulder := FigureSideRole(side, FIGURE_SHOULDER)
+    forearm := FigureSideRole(side, FIGURE_LOWER_ARM)
+    hand := FigureSideRole(side, FIGURE_HAND)
+    pose.elbows[side] = FigureAdd(pose.shoulders[side], .{0.03, -0.22, 0.0})
+    if !FigureModelPose(model, scene, *pose) {
+        return false
+    }
+    resting := ModelTurn(model, shoulder)
+    pose.elbows[side] = FigureAdd(pose.shoulders[side], .{0.13, 0.16, 0.17})
+    pose.wrists[side] = FigureAdd(pose.shoulders[side], .{0.25, 0.22, 0.22})
+    if !FigureModelPose(model, scene, *pose) {
+        return false
+    }
+    shoulder_change := RotationDistance(resting, ModelTurn(model, shoulder))
+    wrist := pose.wrists[side]
+    axis := FigureNormalize(FigureSub(wrist, ModelPoint(model, scene, forearm)))
+    initial := ModelTurn(model, forearm)
+    previous := initial
+    largest_step: float64
+    largest_turn: float64
+    for sample: 1..180 {
+        angle := cast(float64)sample * 2.0 * FIGURE_PI / 180.0
+        pose.hands[side] = FigureAxisAngle(axis, angle)
+        if !FigureModelPose(model, scene, *pose) ||
+        FigureDistance(ModelPoint(model, scene, hand), wrist) > 0.0001 {
+            return false
+        }
+        elbow := ModelPoint(model, scene, forearm)
+        if FigureDistance(FigureNormalize(FigureSub(wrist, elbow)), axis) > 0.0001 {
+            return false
+        }
+        middle := ModelPoint(model, scene, FigureFingerRole(side, 2, 0))
+        if FigureDistance(FigureNormalize(FigureSub(middle, wrist)),
+            FigureRotate(pose.hands[side], .{0.0, -1.0, 0.0})) > 0.001 {
+            return false
+        }
+        turn := ModelTurn(model, forearm)
+        largest_step = FigureMax(largest_step, RotationDistance(previous, turn))
+        largest_turn = FigureMax(largest_turn, RotationDistance(initial, turn))
+        previous = turn
+    }
+    print("arm motion: % clavicle change % rad, largest forearm step % rad, maximum forearm turn % rad\n",
+        path, shoulder_change, largest_step, largest_turn)
+    return shoulder_change > 0.12 && shoulder_change < 0.24 && largest_step < 0.18 && largest_turn > 0.45
+}
+
 main :: () -> s32 {
     fail: s32
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
@@ -85,6 +142,9 @@ main :: () -> s32 {
         print("model pose: % ankle error % m, planted drift % m, wrist error % m, hand direction error %\n",
             path, worst_ankle, worst_drift, worst_wrist, worst_hand)
         if worst_ankle > 0.0001 || worst_drift > 0.0001 || worst_wrist > 0.0001 || worst_hand > 0.001 {
+            fail += 1
+        }
+        if !ArmMotion(*model, *scene, path) {
             fail += 1
         }
     }

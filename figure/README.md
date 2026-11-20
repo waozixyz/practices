@@ -28,9 +28,11 @@ The modules:
   `mixamorig` and common Blender names). Each pose solves the limbs with
   the model's own segment lengths to reach the solver's wrists and ankles,
   keeping its proportions. It scales the model to the solver's leg length and stands
-  its measured slipper support on the solver's heel/ball contacts. The wrist uses the solver's palm
-  frame, converted from the model's bind pose; the fingers curl gently
-  unless the technique calls for a fist or hook. Eyes follow cued head
+  its measured slipper support on the solver's heel/ball contacts. The
+  clavicles lift and move forward with the upper arms. The wrist follows the
+  solver's palm frame and shares part of its axial turn with the forearm.
+  The fingers curl gently unless the technique calls for a fist or hook.
+  Eyes follow cued head
   turns gently. `FigureModelToon` gives it a
   cel-shaded look on its own textures.
 
@@ -55,8 +57,9 @@ the contact shadow, a picture laid over a covering backdrop, and that a
 missing model file is refused cleanly.
 
 `figure_model_pose_test` loads both selected VRM skeletons and checks the
-rendered hand direction, wrist alignment and planted ankle alignment as the pelvis moves
-over fixed foot targets. It does not need a window or display.
+rendered hand direction, wrist alignment and planted ankles as the pelvis
+moves over fixed foot targets. It also checks clavicle motion on a high
+reach and sweeps the palm through a full turn at a fixed wrist and elbow.
 
 `figure_model_sole_test` measures actual skinned underside vertices for both
 models during flat stances and heel/ball pivots, with a 1 mm floor,
@@ -68,7 +71,9 @@ reproducible footwear pipeline.
 
 `figure_cloth` drapes the skirt hem, resolves leg-capsule contacts and
 shares displacement across nearby fabric edges. `figure_model` applies
-those constraints to the named skirt after skinning. `figure_cloth_test`
+those constraints to the named skirt after skinning. The attire generator
+grades sleeve weights across the elbow and fits the man's shoulder and
+thigh weights to the underlying body. `figure_cloth_test`
 covers the fold through ninety degrees, waist anchoring and capsule
 contacts. The preview's `--clothing-audit` checks actual named garment
 surfaces throughout every timeline. Its private capture commands render
