@@ -76,6 +76,7 @@ FigureModel :: struct {
     clock: float64
     has_training: bool
     training: bool
+    training_skirt: bool
     ready: bool
 }
 
@@ -220,6 +221,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     FigureModelReadSoles(figure)
     figure.has_training = false
     figure.training = false
+    figure.training_skirt = false
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         mesh := *figure.model.meshes[inst.mesh_index]
@@ -238,8 +240,9 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
 
 // Switch the woman's wardrobe on the retained scene. Her skin, springs and
 // bare feet are shared by every practice.
-FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool) {
-    if !figure.has_training || figure.training == training {
+FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool, skirt: bool = true) {
+    show_skirt := training && skirt
+    if !figure.has_training || (figure.training == training && figure.training_skirt == show_skirt) {
         return
     }
     for index: 0..figure.instance.meshes.count - 1 {
@@ -247,7 +250,9 @@ FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool) {
         mesh := *figure.model.meshes[inst.mesh_index]
         node := *figure.model.nodes[inst.gltf_node]
         name := TextView(mesh.name[:])
-        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" {
+        if name == "PracticeTrainingSkirt" {
+            unused SetVisible(scene, inst.scene_node, show_skirt)
+        } else if name == "PracticeTrainingBody" {
             unused SetVisible(scene, inst.scene_node, training)
         } else if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" ||
         TextView(node.name[:]) == "Body" {
@@ -255,6 +260,7 @@ FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool) {
         }
     }
     figure.training = training
+    figure.training_skirt = show_skirt
 }
 
 // Poses the loaded model in SCENE at JOINTS. Played at SECONDS of the

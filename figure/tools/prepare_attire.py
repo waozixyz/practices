@@ -315,14 +315,33 @@ def barefoot(asset, body_node, primitive, person):
         fore = used[(xyz[used, 2] > -.112) & (xyz[used, 2] < -.078)]
         heel = rear[xyz[rear, 1].argmin()]
         ball = fore[xyz[fore, 1].argmin()]
-        plane = np.interp(xyz[used, 2], [xyz[ball, 2], xyz[heel, 2]], [xyz[ball, 1], xyz[heel, 1]])
-        # Correct the shoe ramp through the instep, then fade the change before
-        # reaching the untouched shin ring. This keeps the heel from forming a
-        # wedge below the ankle in deep bends.
         original_height = xyz[used, 1].copy()
-        blend = np.clip((original_height - .096) / .049, 0, 1)
-        drop = (plane + .0013) * (1 - blend * blend * (3 - 2 * blend))
-        xyz[used, 1] = np.maximum(0, xyz[used, 1] - drop)
+        if person == 'woman':
+            # Rotate the original heel and toes onto the ground together. Keep
+            # their original shape and smooth normals, blending into the ankle.
+            rise = xyz[heel, 1] - xyz[ball, 1]
+            run = xyz[heel, 2] - xyz[ball, 2]
+            pitch = np.arctan2(rise, run)
+            blend = np.clip((original_height - .072) / .073, 0, 1)
+            move = 1 - blend * blend * (3 - 2 * blend)
+            y = original_height - xyz[ball, 1]
+            z = xyz[used, 2] - xyz[ball, 2]
+            cosine, sine = np.cos(pitch), np.sin(pitch)
+            leveled_y = cosine * y - sine * z - .0013
+            leveled_z = sine * y + cosine * z + xyz[ball, 2]
+            xyz[used, 1] = np.maximum(0, original_height + (leveled_y - original_height) * move)
+            xyz[used, 2] += (leveled_z - xyz[used, 2]) * move
+            normals = attrs['NORMAL'][used].copy()
+            ny, nz = normals[:, 1].copy(), normals[:, 2].copy()
+            cosine, sine = np.cos(pitch * move), np.sin(pitch * move)
+            normals[:, 1] = cosine * ny - sine * nz
+            normals[:, 2] = sine * ny + cosine * nz
+            attrs['NORMAL'][used] = normals
+        else:
+            plane = np.interp(xyz[used, 2], [xyz[ball, 2], xyz[heel, 2]], [xyz[ball, 1], xyz[heel, 1]])
+            blend = np.clip((original_height - .096) / .049, 0, 1)
+            drop = (plane + .0013) * (1 - blend * blend * (3 - 2 * blend))
+            xyz[used, 1] = np.maximum(0, original_height - drop)
         # Skin on the plantar surface follows the sole affine, while skin at
         # the ankle still blends through the original lower-leg weights.
         foot_node = next(i for i, node in enumerate(doc['nodes']) if node.get('name') == f'J_Bip_{side}_Foot')
@@ -341,14 +360,15 @@ def barefoot(asset, body_node, primitive, person):
         weights += (attrs['JOINTS_0'][used] == foot) * release.sum(axis=1, keepdims=True)
         has_foot = np.any(attrs['JOINTS_0'][used] == foot, axis=1)
         attrs['WEIGHTS_0'][used[has_foot]] = weights[has_foot]
-        normals = np.zeros_like(attrs['NORMAL'])
-        cross = np.cross(xyz[triangles[:, 1]] - xyz[triangles[:, 0]], xyz[triangles[:, 2]] - xyz[triangles[:, 0]])
-        for corner in range(3):
-            np.add.at(normals, triangles[:, corner], cross)
-        length = np.linalg.norm(normals, axis=1)
-        # Some UV seams have coincident vertices and zero-area bridge triangles.
-        valid = used[length[used] > 1e-8]
-        attrs['NORMAL'][valid] = normals[valid] / length[valid, None]
+        if person == 'man':
+            normals = np.zeros_like(attrs['NORMAL'])
+            cross = np.cross(xyz[triangles[:, 1]] - xyz[triangles[:, 0]], xyz[triangles[:, 2]] - xyz[triangles[:, 0]])
+            for corner in range(3):
+                np.add.at(normals, triangles[:, corner], cross)
+            length = np.linalg.norm(normals, axis=1)
+            # Some UV seams have coincident vertices and zero-area bridge triangles.
+            valid = used[length[used] > 1e-8]
+            attrs['NORMAL'][valid] = normals[valid] / length[valid, None]
         feet.append(asset.primitive(attrs, triangles, primitive['material']))
         contact = xyz[used][xyz[used, 1] == 0]
         if len(contact) < 8 or np.ptp(contact[:, 2]) < .12:

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'figure/tools'))
 from prepare_attire import Asset, ORIGINAL, is_foot_skin, sha
 
 
-def verify_feet(old, new, receipts):
+def verify_feet(old, new, receipts, person):
     original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
     source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
     triangles = old.read(original['indices']).reshape(-1, 3)
@@ -26,7 +26,22 @@ def verify_feet(old, new, receipts):
         assert len(np.unique(indices)) == receipt['vertices']
         attrs = {name: new.read(accessor) for name, accessor in primitive['attributes'].items()}
         position = attrs['POSITION']
-        assert np.array_equal(position[indices][..., [0, 2]], source['POSITION'][expected][..., [0, 2]])
+        original_positions = source['POSITION'][expected]
+        assert np.array_equal(position[indices][..., 0], original_positions[..., 0])
+        if person == 'woman':
+            leveled = position[indices]
+            assert np.abs(leveled[..., 2] - original_positions[..., 2]).max() < .01
+            shin = original_positions[..., 1] >= .145
+            assert np.array_equal(leveled[shin], original_positions[shin])
+            assert np.array_equal(attrs['NORMAL'][indices][shin], source['NORMAL'][expected][shin])
+            forefoot = (original_positions[..., 1] <= .072) & (leveled[..., 1] > 0)
+            before = original_positions[forefoot]
+            after = leveled[forefoot]
+            assert len(before) > 20
+            assert np.allclose(np.linalg.norm(before - before[0], axis=1),
+                               np.linalg.norm(after - after[0], axis=1), atol=1e-7)
+        else:
+            assert np.array_equal(position[indices][..., 2], original_positions[..., 2])
         assert np.array_equal(attrs['TEXCOORD_0'][indices], source['TEXCOORD_0'][expected])
         assert np.isfinite(position).all() and np.isfinite(attrs['NORMAL']).all()
         assert np.allclose(np.linalg.norm(attrs['NORMAL'], axis=1), 1, atol=1e-5)
@@ -78,7 +93,7 @@ def main():
                         if 'CLOTH' not in o['materials'][p['material']]['name'] and not is_foot_skin(old, p)]
             actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
             assert actual == expected, (person, mesh.get('name'))
-        verify_feet(old, new, receipts[person]['bare_feet'])
+        verify_feet(old, new, receipts[person]['bare_feet'], person)
         garments = []
         for mesh in d['meshes']:
             for primitive in mesh['primitives']:

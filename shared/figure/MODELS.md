@@ -30,8 +30,9 @@ triangle and contact counts, and each heel-to-ball span.
 
 Kryon's importer loads these models through `figure_model`. The retargeter
 measures the skinned soles and places the loaded heel or forefoot at the
-solver's pivot. Each avatar keeps its original foot proportions. The toes
-flex at the floor as the feet roll.
+solver's pivot. The woman's original heel and forefoot are rotated onto that
+plane together and retain their original shape and smooth shading through the
+ankle. The toes flex at the floor as the feet roll.
 
 The matte linen colors, crossed facings and fitted sash form a traditional
 wrap. The woman keeps the long-sleeve top and flared skirt. The man wears a

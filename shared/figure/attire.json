@@ -1,21 +1,21 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "4adfc2e5a4f51a1418f800499677dd4766cdba4ddb9b4aed470a15dfefc65fb3",
+    "output_sha256": "f8cda5bbd22d4ef962683ef586968475d361c100aafb7bf25c2a9350f433e7c0",
     "bare_feet": [
       {
         "side": "L",
         "vertices": 608,
         "triangles": 878,
         "support_vertices": 36,
-        "heel_to_ball": 0.1543569266796112
+        "heel_to_ball": 0.15606488287448883
       },
       {
         "side": "R",
         "vertices": 608,
         "triangles": 878,
         "support_vertices": 36,
-        "heel_to_ball": 0.15435673296451569
+        "heel_to_ball": 0.1560646891593933
       }
     ],
     "changed_body_primitives": [

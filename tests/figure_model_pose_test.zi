@@ -138,14 +138,30 @@ SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
 }
 
 TrainingSkirtFollowsSkin :: (model: *FigureModel, scene: *Scene) -> bool {
-    FigureModelTraining(model, scene, true)
+    FigureModelTraining(model, scene, true, false)
     defer FigureModelTraining(model, scene, false)
     pose := ModelPose(1.0)
     if !FigureModelPose(model, scene, *pose, 0.5) { return false }
+    training_body := false
+    for index: 0..model.instance.meshes.count - 1 {
+        inst := *model.instance.meshes[index]
+        source := *model.model.meshes[inst.mesh_index]
+        name := TextView(source.name[:])
+        visible := scene.nodes[inst.scene_node].visible
+        if name == "PracticeTrainingBody" { training_body = training_body || visible }
+        if name == "PracticeTrainingSkirt" && visible {
+            print("Training skirt is visible in the shorts outfit\n")
+            return false
+        }
+    }
+    if !training_body { return false }
+    FigureModelTraining(model, scene, true)
+    if !FigureModelPose(model, scene, *pose, 0.6) { return false }
     for index: 0..model.instance.meshes.count - 1 {
         inst := *model.instance.meshes[index]
         source := *model.model.meshes[inst.mesh_index]
         if TextView(source.name[:]) != "PracticeTrainingSkirt" { continue }
+        if !scene.nodes[inst.scene_node].visible { return false }
         mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
         points: [512]Vector3
         count := inst.skin.positions.count
