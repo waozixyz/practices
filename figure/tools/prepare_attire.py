@@ -361,21 +361,34 @@ def barefoot(asset, body_node, primitive, person):
     return measurements
 
 
-def training_clothes(asset, body_node, skin_parts):
-    """Cut a fitted exercise top and leggings from the same avatar's body mesh."""
+def training_clothes(asset, body_node, skin_parts, skirt):
+    """Make a crop top and lined training skirt on the original body rig."""
     primary, *uncovered = skin_parts
     attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
     triangles = asset.read(primary['indices']).reshape(-1, 3)
     centers = attrs['POSITION'][triangles].mean(axis=1)
     x, y = np.abs(centers[:, 0]), centers[:, 1]
-    leggings = (y >= .19) & (y < .99)
-    t_shirt = (y >= .99) & (y < 1.38) & (x < .32)
-    training_top = asset.material('Practice_Training_Top', [.24, .35, .48, 1])
-    training_leggings = asset.material('Practice_Training_Leggings', [.11, .16, .25, 1])
-    parts = [asset.primitive(attrs, triangles[~(leggings | t_shirt)], primary['material']),
-             asset.primitive(attrs, triangles[leggings], training_leggings),
-             asset.primitive(attrs, triangles[t_shirt], training_top)]
+    shorts = (y >= .76) & (y < 1.00)
+    crop_top = (y >= 1.13) & (y < 1.38) & (x < .23)
+    top_material = asset.material('Practice_Training_Top', [.25, .52, .46, 1])
+    shorts_material = asset.material('Practice_Training_Shorts', [.13, .24, .28, 1])
+    parts = [asset.primitive(attrs, triangles[~(shorts | crop_top)], primary['material']),
+             asset.primitive(attrs, triangles[shorts], shorts_material),
+             asset.primitive(attrs, triangles[crop_top], top_material)]
     asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
+    skirt_material = asset.material('Practice_Training_Skirt', [.16, .29, .33, 1])
+    panels = []
+    for primitive in skirt:
+        attrs = {key: asset.read(index) for key, index in primitive['attributes'].items()}
+        triangles = asset.read(primitive['indices']).reshape(-1, 3)
+        used = np.unique(triangles)
+        positions = attrs['POSITION']
+        depth = np.maximum(.97 - positions[used, 1], 0)
+        # Preserve the fitted waist and shorten the free panels above the knee.
+        positions[used, 1] += .38 * depth
+        positions[used, 0] *= 1 - .48 * depth
+        panels.append(asset.primitive(attrs, triangles, skirt_material))
+    asset.mesh(body_node, 'PracticeTrainingSkirt', panels)
 
 
 def dress(source, target, person):
@@ -491,7 +504,7 @@ def dress(source, target, person):
         asset.mesh(body_node, 'PracticeSkirt', skirt)
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
     if person == 'woman':
-        training_clothes(asset, body_node, skin_parts)
+        training_clothes(asset, body_node, skin_parts, skirt)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),

@@ -48,10 +48,11 @@ sets these constraints so seeking and playback produce the same drape.
 Airborne drape opens with the legs. In a low prone pose, spare length follows
 the legs along the floor.
 
-Workout uses fitted training clothes on the same woman. `PracticeTrainingBody`
-assigns the existing body faces to a crew-neck top and leggings. The renderer
-switches the clothing meshes in the retained scene and keeps the face, hair,
-skin and bare feet shared across practices.
+Workout uses a crop top and lined sports skirt on the same woman.
+`PracticeTrainingBody` assigns body faces to the crop top and undershorts.
+`PracticeTrainingSkirt` shortens the draping skirt panels above the knee.
+The renderer switches the wardrobe in the retained scene and shares the face,
+hair, skin and bare feet across practices.
 
 Reproduce from the checksummed originals in `backup/figure-source/` with NumPy
 and Pillow installed.

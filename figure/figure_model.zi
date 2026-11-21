@@ -223,8 +223,11 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         mesh := *figure.model.meshes[inst.mesh_index]
-        if TextView(mesh.name[:]) == "PracticeTrainingBody" {
+        name := TextView(mesh.name[:])
+        if name == "PracticeTrainingBody" {
             figure.has_training = true
+        }
+        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" {
             unused SetVisible(scene, inst.scene_node, false)
         }
     }
@@ -244,7 +247,7 @@ FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool) {
         mesh := *figure.model.meshes[inst.mesh_index]
         node := *figure.model.nodes[inst.gltf_node]
         name := TextView(mesh.name[:])
-        if name == "PracticeTrainingBody" {
+        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" {
             unused SetVisible(scene, inst.scene_node, training)
         } else if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" ||
         TextView(node.name[:]) == "Body" {
@@ -443,10 +446,6 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
 // Drape only the named skirt emitted by prepare_attire.py. Other garment,
 // body, hair and foot skins retain their existing deformation.
 FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
-    if figure.training {
-        // Fitted exercise clothes use the calibrated body skin directly.
-        return
-    }
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
     rest_hips := figure.rest_at[figure.bones[FIGURE_HIPS]]
@@ -493,8 +492,8 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
         inst := *figure.instance.meshes[index]
         source := *figure.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
-        skirt := name == "PracticeSkirt"
-        tailored := !inst.skin.dual_quaternion && (name == "PracticeClothing" || name == "PracticeWrapFacings")
+        skirt := name == (ifx figure.training then "PracticeTrainingSkirt" else "PracticeSkirt")
+        tailored := !figure.training && !inst.skin.dual_quaternion && (name == "PracticeClothing" || name == "PracticeWrapFacings")
         if !skirt && !tailored {
             continue
         }
@@ -765,6 +764,12 @@ FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
         figure.uniforms[first + 2] = .{0.70, 0.64, 0.78, 1.0}
         figure.uniforms[first + 3] = .{0.0, 0.0, 1.0, 0.0}
         figure.uniforms[first + 4] = .{0.18, 0.20, 0.26, 0.0}
+        source := *figure.model.meshes[placed.mesh_index]
+        if TextView(source.name[:]) == "PracticeBareFeet" {
+            // The small sole and toe facets need a softer shade and rim.
+            figure.uniforms[first + 2] = .{0.91, 0.87, 0.88, 1.0}
+            figure.uniforms[first + 4] = .{0.045, 0.05, 0.06, 0.0}
+        }
         material.kind = .MaterialUnlit
         material.vertex_colors = false
         material.shader = *figure.toon

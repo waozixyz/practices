@@ -102,9 +102,13 @@ def main():
             original_body = next(n for n in o['nodes'] if n['name'] == 'Body')
             primary = o['meshes'][original_body['mesh']]['primitives'][0]
             assert sum(len(new.read(p['indices'])) for p in training['primitives'][:3]) == len(old.read(primary['indices']))
-            for part, name in zip(training['primitives'][1:3], ('Leggings', 'Top')):
+            for part, name in zip(training['primitives'][1:3], ('Shorts', 'Top')):
                 assert d['materials'][part['material']]['name'] == 'Practice_Training_' + name
                 assert len(new.read(part['indices'])) > 150
+            sports_skirt = next(mesh for mesh, _ in garments if mesh['name'] == 'PracticeTrainingSkirt')
+            panel = sports_skirt['primitives'][0]
+            hem = new.read(panel['attributes']['POSITION'])[new.read(panel['indices']).ravel()]
+            assert .73 < hem[:, 1].min() < .85
             skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
             points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
             assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45
