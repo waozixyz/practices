@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "22051fc02f151c35b3fb2d422ced0a12bdf1e216b6805f9bf2d80592078be93f",
+    "output_sha256": "071ec4b4e86222810c120e379c71260268ae6cb2eaedbe934b621f04384b0479",
     "bare_feet": [
       {
         "side": "L",
@@ -30,7 +30,7 @@
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
-    "output_sha256": "4b9051fc34963a31810829cad8a54b025d81019804423bafe54cb50cbf7c3fca",
+    "output_sha256": "58a824031bccca20008b053722cc30cde9439395c37ff6f99dbdb12cc5f0825f",
     "bare_feet": [
       {
         "side": "L",

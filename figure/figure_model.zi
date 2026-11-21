@@ -74,6 +74,8 @@ FigureModel :: struct {
     // the last pose played (below zero when none was).
     avatar: VrmAvatar
     clock: float64
+    has_training: bool
+    training: bool
     ready: bool
 }
 
@@ -216,9 +218,40 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         figure.hand_rest[side] = FigureModelHandRest(figure, side)
     }
     FigureModelReadSoles(figure)
+    figure.has_training = false
+    figure.training = false
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        mesh := *figure.model.meshes[inst.mesh_index]
+        if TextView(mesh.name[:]) == "PracticeTrainingBody" {
+            figure.has_training = true
+            unused SetVisible(scene, inst.scene_node, false)
+        }
+    }
     figure.clock = -1.0
     figure.ready = true
     return true
+}
+
+// Switch the woman's wardrobe on the retained scene. Her skin, springs and
+// bare feet are shared by every practice.
+FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool) {
+    if !figure.has_training || figure.training == training {
+        return
+    }
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        mesh := *figure.model.meshes[inst.mesh_index]
+        node := *figure.model.nodes[inst.gltf_node]
+        name := TextView(mesh.name[:])
+        if name == "PracticeTrainingBody" {
+            unused SetVisible(scene, inst.scene_node, training)
+        } else if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" ||
+        TextView(node.name[:]) == "Body" {
+            unused SetVisible(scene, inst.scene_node, !training)
+        }
+    }
+    figure.training = training
 }
 
 // Poses the loaded model in SCENE at JOINTS. Played at SECONDS of the
@@ -410,6 +443,10 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
 // Drape only the named skirt emitted by prepare_attire.py. Other garment,
 // body, hair and foot skins retain their existing deformation.
 FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
+    if figure.training {
+        // Fitted exercise clothes use the calibrated body skin directly.
+        return
+    }
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
     rest_hips := figure.rest_at[figure.bones[FIGURE_HIPS]]
@@ -418,6 +455,20 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
     lateral := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{1.0, 0.0, 0.0})
     yaw := ifx lateral.x * lateral.x + lateral.z * lateral.z > 0.000001 then Atan2(-lateral.z, lateral.x) else Atan2(forward.x, forward.z)
     cloth_turn := FigureMultiply(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), figure.facing)
+    down := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{0.0, -1.0, 0.0})
+    // Only near-horizontal floor poses let the hem trail along the legs.
+    // Deep standing and kneeling forms still drape around raised thighs.
+    prone := (1.0 - FigureSmooth(hip_world.y, 0.16, 0.33)) *
+        (1.0 - FigureSmooth(FigureAbs(down.y), 0.28, 0.55))
+    legward := FigureV3(down.x * prone, 0.0, down.z * prone)
+    thigh_lift := 1.0 - prone
+    airborne := FigureMin(FigureMin(joints.heels[0].y, joints.balls[0].y),
+        FigureMin(joints.heels[1].y, joints.balls[1].y))
+    foot_span := FigureAbs(FigureDot(FigureSub(joints.ankles[0], joints.ankles[1]), lateral))
+    // Opening the legs carries the airborne fabric further. The motion fades
+    // into the ordinary drape as the soles land.
+    flutter := FigureSmooth(airborne, 0.002, 0.09) *
+        (0.65 + 0.35 * FigureSmooth(foot_span, 0.24, 0.64))
     legs: [6]Vector3
     arms: [6]Vector3
     sleeves: [2]bool
@@ -452,10 +503,13 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                 rest := inst.skin.positions[vertex]
                 skinned := FigureAdd(root.position, FigureScale(FigureRotate(figure.facing,
                     scene.positions[mesh.first_vertex + vertex]), scale))
-                point := FigureClothHang(skinned, rest, rest_hips, hip_world, figure.facing, yaw, scale)
+                point := FigureClothHang(skinned, rest, rest_hips, hip_world, figure.facing, yaw, scale, legward, flutter)
                 outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
                 depth := rest_hips.y - rest.y
-                point = FigureClothLift(point, outward, depth, scale, thighs[:])
+                if thigh_lift > 0.0 {
+                    lifted := FigureClothLift(point, outward, depth, scale, thighs[:])
+                    point = FigureLerp(point, lifted, thigh_lift)
+                }
                 point = FigureModelSkirtContact(point, outward, depth, scale, legs[:], arms[:], sleeves[:])
                 scene.positions[mesh.first_vertex + vertex] = FigureScale(FigureRotate(FigureConjugate(figure.facing),
                     FigureSub(point, root.position)), 1.0 / scale)
@@ -783,13 +837,15 @@ FigureModelLive :: (figure: *FigureModel, offset: Vector3, scale: float64, secon
     half := figure.yaw * 0.5
     VrmSetFrame(*figure.avatar, .{0.0, Sin(half), 0.0, Cos(half)}, offset, scale)
     elapsed := seconds - figure.clock
-    if seconds < 0.0 || figure.clock < 0.0 || elapsed < 0.0 || elapsed > 0.25 {
+    if seconds < 0.0 || figure.clock < 0.0 || elapsed < 0.0 || elapsed > 1.0 {
         VrmSpringsSettle(*figure.avatar, *figure.model, *figure.instance)
         for step: 0..29 {
             VrmSpringsUpdate(*figure.avatar, *figure.model, *figure.instance, 1.0 / 60.0)
         }
     } else {
-        VrmSpringsUpdate(*figure.avatar, *figure.model, *figure.instance, elapsed)
+        // Keep momentum across skipped paint frames. The solver handles
+        // eight spring steps per update, so longer gaps do not need catch-up.
+        VrmSpringsUpdate(*figure.avatar, *figure.model, *figure.instance, FigureMin(elapsed, 0.10))
     }
     figure.clock = seconds
 }

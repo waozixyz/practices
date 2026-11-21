@@ -62,6 +62,18 @@ main :: () -> s32 {
         }
         previous = lifted
     }
-    print("cloth constraints: % findings in fold, waist, capsule and high-knee regressions\n", fail)
+    // Gravitational drape uses the remaining cloth length on the legs' side
+    // when the body is almost level. The waistband still follows its skin.
+    prone := FigureV3(0.0, 0.15, 0.0)
+    legs := FigureV3(0.0, 0.0, -1.0)
+    hanging := FigureClothHang(hem, hem, rest_hips, prone, FigureIdentity(), 0.0, 1.0)
+    grounded := FigureClothHang(hem, hem, rest_hips, prone, FigureIdentity(), 0.0, 1.0, legs)
+    open := FigureClothHang(hem, hem, rest_hips, hips, FigureIdentity(), 0.0, 1.0, .{}, 1.0)
+    if grounded.z > hanging.z - 0.10 || open.x < hem.x + 0.025 || open.y < 0.625 ||
+        FigureDistance(FigureClothHang(rigid_waist, waist, rest_hips, prone, FigureIdentity(),
+            0.0, 1.0, legs, 1.0), rigid_waist) > 0.000001 {
+        fail += 1
+    }
+    print("cloth constraints: % findings in fold, waist, capsule, prone drape and airborne regressions\n", fail)
     return fail
 }

@@ -18,15 +18,14 @@
   - `woman.vrm` adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979
   - `man.vrm` 7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f
 - Format: VRM 0.x (glTF 2.0 binary with the `VRM` extension), PNG textures,
-  a VRM humanoid skeleton with hair spring bones. 27,068 and 24,858
-  triangles.
+  a VRM humanoid skeleton with hair spring bones.
 
 ## Bare feet and meditation attire
 
 The figures use the original bare feet, including toe geometry, skin texture
 and UV layout. The generator removes shoe primitives and levels the plantar
-surface below the ankle. The same original leg weights blend the skin above
-the sole into the ankle. `attire.json` records the finished asset checksums,
+surface below the ankle. A gradual blend from foot to shin weights lets the
+heel and instep retain their shape through deep knee bends. `attire.json` records the finished asset checksums,
 triangle and contact counts, and each heel-to-ball span.
 
 Kryon's importer loads these models through `figure_model`. The retargeter
@@ -46,6 +45,13 @@ The separate `PracticeSkirt` mesh keeps its skinned waist seam. Its lower
 portion drapes around the legs and sleeves, stays above the floor, and
 spreads the displacement across neighboring fabric edges. The current pose
 sets these constraints so seeking and playback produce the same drape.
+Airborne drape opens with the legs. In a low prone pose, spare length follows
+the legs along the floor.
+
+Workout uses fitted training clothes on the same woman. `PracticeTrainingBody`
+assigns the existing body faces to a crew-neck top and leggings. The renderer
+switches the clothing meshes in the retained scene and keeps the face, hair,
+skin and bare feet shared across practices.
 
 Reproduce from the checksummed originals in `backup/figure-source/` with NumPy
 and Pillow installed.

@@ -4,6 +4,7 @@
 // the real floor keep the cloth outside the body. There is no free-running
 // simulation or seek-dependent state.
 #import "figure_math"
+#import "std/math"
 #import "kryon/scene"
 
 FigureClothOutside :: (point: Vector3, from: Vector3, to: Vector3, radius: float64, fallback: Vector3) -> Vector3 {
@@ -25,14 +26,25 @@ FigureClothOutside :: (point: Vector3, from: Vector3, to: Vector3, radius: float
 }
 
 FigureClothHang :: (skinned: Vector3, rest: Vector3, rest_hips: Vector3, hips: Vector3,
-    facing: FigureQuat, yaw: float64, scale: float64) -> Vector3 {
+    facing: FigureQuat, yaw: float64, scale: float64,
+    legward: Vector3 = .{}, flutter: float64 = 0.0) -> Vector3 {
     local := FigureSub(rest, rest_hips)
     depth := FigureMax(0.0, -local.y)
     // Preserve the waist seam and let the lower skirt settle continuously.
     loose := FigureSmooth(depth, 0.015, 0.19)
     lateral := FigureRotate(facing, .{local.x, 0.0, local.z})
     lateral = FigureRotate(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), lateral)
-    hanging := FigureAdd(hips, FigureScale(.{lateral.x, -depth, lateral.z}, scale))
+    // Spread the loose panels as the legs open and the body leaves the floor.
+    fullness := flutter * (0.8 + 0.2 * Sin(local.x * 20.0 + local.z * 12.0))
+    lateral = FigureScale(lateral, 1.0 + 0.22 * fullness)
+    fall := depth * scale * (1.0 - 0.15 * fullness)
+    hanging := FigureAdd(hips, FigureScale(lateral, scale))
+    hanging.y -= fall
+    // Once the fabric reaches the floor, its remaining length lies toward
+    // the legs. A prone figure cannot push the hem toward her supporting hands.
+    clearance := FigureMax(hips.y - 0.006, 0.0)
+    spare := FigureMax(fall - clearance, 0.0)
+    hanging = FigureAddScaled(hanging, legward, spare * FigureSmooth(spare, 0.0, 0.12))
     return FigureLerp(skinned, hanging, loose)
 }
 

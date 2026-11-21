@@ -316,7 +316,11 @@ def barefoot(asset, body_node, primitive, person):
         heel = rear[xyz[rear, 1].argmin()]
         ball = fore[xyz[fore, 1].argmin()]
         plane = np.interp(xyz[used, 2], [xyz[ball, 2], xyz[heel, 2]], [xyz[ball, 1], xyz[heel, 1]])
-        blend = np.clip((xyz[used, 1] - .086) / .048, 0, 1)
+        # Correct the shoe ramp through the instep, then fade the change before
+        # reaching the untouched shin ring. This keeps the heel from forming a
+        # wedge below the ankle in deep bends.
+        original_height = xyz[used, 1].copy()
+        blend = np.clip((original_height - .096) / .049, 0, 1)
         drop = (plane + .0013) * (1 - blend * blend * (3 - 2 * blend))
         xyz[used, 1] = np.maximum(0, xyz[used, 1] - drop)
         # Skin on the plantar surface follows the sole affine, while skin at
@@ -326,6 +330,17 @@ def barefoot(asset, body_node, primitive, person):
         sole = used[xyz[used, 1] < .002]
         attrs['JOINTS_0'][sole] = [foot, 0, 0, 0]
         attrs['WEIGHTS_0'][sole] = [1, 0, 0, 0]
+        # The lower heel belongs to the foot. Keep progressive shin weights
+        # at the ankle and match the source's shin ring exactly at the seam.
+        shin_node = next(i for i, node in enumerate(doc['nodes']) if node.get('name') == f'J_Bip_{side}_LowerLeg')
+        shin = skin['joints'].index(shin_node)
+        mix = np.clip((original_height - .084) / .061, 0, 1)
+        mix = mix * mix * (3 - 2 * mix)
+        release = np.where(attrs['JOINTS_0'][used] == shin, attrs['WEIGHTS_0'][used] * (1 - mix[:, None]), 0)
+        weights = attrs['WEIGHTS_0'][used] - release
+        weights += (attrs['JOINTS_0'][used] == foot) * release.sum(axis=1, keepdims=True)
+        has_foot = np.any(attrs['JOINTS_0'][used] == foot, axis=1)
+        attrs['WEIGHTS_0'][used[has_foot]] = weights[has_foot]
         normals = np.zeros_like(attrs['NORMAL'])
         cross = np.cross(xyz[triangles[:, 1]] - xyz[triangles[:, 0]], xyz[triangles[:, 2]] - xyz[triangles[:, 0]])
         for corner in range(3):
@@ -344,6 +359,23 @@ def barefoot(asset, body_node, primitive, person):
         raise ValueError(f'{person}: foot extraction dropped original triangles')
     asset.mesh(body_node, 'PracticeBareFeet', feet)
     return measurements
+
+
+def training_clothes(asset, body_node, skin_parts):
+    """Cut a fitted exercise top and leggings from the same avatar's body mesh."""
+    primary, *uncovered = skin_parts
+    attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
+    triangles = asset.read(primary['indices']).reshape(-1, 3)
+    centers = attrs['POSITION'][triangles].mean(axis=1)
+    x, y = np.abs(centers[:, 0]), centers[:, 1]
+    leggings = (y >= .19) & (y < .99)
+    t_shirt = (y >= .99) & (y < 1.38) & (x < .32)
+    training_top = asset.material('Practice_Training_Top', [.24, .35, .48, 1])
+    training_leggings = asset.material('Practice_Training_Leggings', [.11, .16, .25, 1])
+    parts = [asset.primitive(attrs, triangles[~(leggings | t_shirt)], primary['material']),
+             asset.primitive(attrs, triangles[leggings], training_leggings),
+             asset.primitive(attrs, triangles[t_shirt], training_top)]
+    asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
 
 
 def dress(source, target, person):
@@ -458,6 +490,8 @@ def dress(source, target, person):
     if skirt:
         asset.mesh(body_node, 'PracticeSkirt', skirt)
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
+    if person == 'woman':
+        training_clothes(asset, body_node, skin_parts)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),

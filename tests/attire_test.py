@@ -98,6 +98,13 @@ def main():
                 assert 'baseColorTexture' not in mat
         assert garments and any(mesh['name'] == 'PracticeWrapFacings' for mesh, _ in garments)
         if person == 'woman':
+            training = next(mesh for mesh in d['meshes'] if mesh['name'] == 'PracticeTrainingBody')
+            original_body = next(n for n in o['nodes'] if n['name'] == 'Body')
+            primary = o['meshes'][original_body['mesh']]['primitives'][0]
+            assert sum(len(new.read(p['indices'])) for p in training['primitives'][:3]) == len(old.read(primary['indices']))
+            for part, name in zip(training['primitives'][1:3], ('Leggings', 'Top')):
+                assert d['materials'][part['material']]['name'] == 'Practice_Training_' + name
+                assert len(new.read(part['indices'])) > 150
             skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
             points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
             assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45
