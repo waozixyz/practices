@@ -64,7 +64,6 @@ FigureModel :: struct {
     sole_count: [2]s32
     sole_heel: [2]Vector3
     sole_ball: [2]Vector3
-    foot_stretch: [2]float64
     // The toon look: a shader, and per scene mesh its uniforms. Each mesh
     // keeps the importer's own base colour texture, which the renderer
     // uploads once and samples into the shader's vertex data.
@@ -137,8 +136,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         return false
     }
     GltfSetDualQuaternion(*figure.instance, true)
-    // Feet use their exact affine transform: the calibrated sole length
-    // needs nonuniform Z scale, which a rigid dual quaternion cannot encode.
+    // Blend both sides of the ankle seam with the same affine transform.
     // Tailored garments use affine blending so adjacent vertices keep
     // following the same rotation path in deep reaches and lunges.
     for index: 0..figure.instance.meshes.count - 1 {
@@ -295,17 +293,7 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
     scale := ifx model_leg > 0.000001 then solver_leg / model_leg else 1.0
     feet_targets: [2]Vector3
     for side: cast(s32)0..1 {
-        figure.foot_stretch[side] = 1.0
-        span := FigureDistance(joints.heels[side], joints.balls[side])
-        model_span := FigureDistance(figure.sole_heel[side], figure.sole_ball[side]) * scale
-        if figure.sole_count[side] > 0 && span > 0.01 && model_span > 0.01 {
-            figure.foot_stretch[side] = span / model_span
-        }
-        foot_node := figure.bones[FigureSideRole(side, FIGURE_FOOT)]
-        if foot_node >= 0 {
-            figure.instance.scales[foot_node].z = figure.model.nodes[foot_node].scale.z * figure.foot_stretch[side]
-            figure.instance.trs_dirty[foot_node] = true
-        }
+        // Place the measured contact without changing the avatar’s foot proportions.
         feet_targets[side] = FigureModelSoleTarget(figure, joints, side, scale)
     }
     // Keep authored pelvis translation. Averaging the ankles inferred from
@@ -405,8 +393,7 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
         changed := false
         for vertex: 0..inst.skin.positions.count - 1 {
             from_ankle := FigureRotate(figure.facing, FigureSub(inst.skin.positions[vertex], ankle))
-            from_pivot := FigureV3(from_ankle.x - rest.x, 0.0,
-                (from_ankle.z - rest.z) * figure.foot_stretch[side])
+            from_pivot := FigureV3(from_ankle.x - rest.x, 0.0, from_ankle.z - rest.z)
             level := anchor.y + FigureRotate(turn, FigureScale(from_pivot, root.scale.x)).y
             point := *scene.positions[mesh.first_vertex + vertex]
             height := root.position.y + (FigureDot(local_up, <<point) + matrix.m[7]) * root.scale.x
@@ -469,29 +456,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                 outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
                 depth := rest_hips.y - rest.y
                 point = FigureClothLift(point, outward, depth, scale, thighs[:])
-                loose := FigureSmooth(depth, 0.015, 0.10)
-                if loose > 0.0 {
-                    // Resolve contact on the lifted drape, then let adjacent
-                    // edges distribute the displacement across the fabric.
-                    for pass: 0..3 {
-                        for side: 0..1 {
-                            outside := FigureClothOutside(point, legs[side * 3], legs[side * 3 + 1], 0.078 * scale, outward)
-                            point = FigureLerp(point, outside, loose)
-                            outside = FigureClothOutside(point, legs[side * 3 + 1], legs[side * 3 + 2], 0.054 * scale, outward)
-                            point = FigureLerp(point, outside, loose)
-                            // Loose cloth can reach the forearm in low reaches
-                            // and the upper sleeve during a fold. Resolve both
-                            // against the skinned rig, keeping the waist pinned.
-                            if sleeves[side] {
-                                outside = FigureClothOutside(point, arms[side * 3], arms[side * 3 + 1], 0.071 * scale, outward)
-                                point = FigureLerp(point, outside, loose)
-                                outside = FigureClothOutside(point, arms[side * 3 + 1], arms[side * 3 + 2], 0.062 * scale, outward)
-                                point = FigureLerp(point, outside, loose)
-                            }
-                        }
-                    }
-                }
-                point.y = FigureMax(point.y, 0.006)
+                point = FigureModelSkirtContact(point, outward, depth, scale, legs[:], arms[:], sleeves[:])
                 scene.positions[mesh.first_vertex + vertex] = FigureScale(FigureRotate(FigureConjugate(figure.facing),
                     FigureSub(point, root.position)), 1.0 / scale)
             }
@@ -534,11 +499,54 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                 break
             }
             refresh_normals = true
+            // Edge relaxation can pull a free panel back through the legs or
+            // sleeves. Project those points before the next edge pass.
+            if skirt {
+                for vertex: 0..inst.skin.positions.count - 1 {
+                    rest := inst.skin.positions[vertex]
+                    depth := rest_hips.y - rest.y
+                    if depth <= 0.015 { continue }
+                    outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                    point := *scene.positions[mesh.first_vertex + vertex]
+                    world := FigureAdd(root.position, FigureScale(FigureRotate(figure.facing, <<point), scale))
+                    cleared := FigureModelSkirtContact(world, outward, depth, scale, legs[:], arms[:], sleeves[:])
+                    <<point = FigureScale(FigureRotate(FigureConjugate(figure.facing),
+                        FigureSub(cleared, root.position)), 1.0 / scale)
+                }
+            }
         }
         if refresh_normals {
             ComputeNormals(scene, inst.scene_node)
         }
     }
+}
+
+FigureModelSkirtContact :: (point: Vector3, outward: Vector3, depth: float64, scale: float64,
+    legs: []Vector3, arms: []Vector3, sleeves: []bool) -> Vector3 {
+    loose := FigureSmooth(depth, 0.015, 0.10)
+    if loose <= 0.0 {
+        point.y = FigureMax(point.y, 0.006)
+        return point
+    }
+    for pass: 0..3 {
+        previous := point
+        for side: 0..1 {
+            joint := side * 3
+            outside := FigureClothOutside(point, legs[joint], legs[joint + 1], 0.078 * scale, outward)
+            point = FigureLerp(point, outside, loose)
+            outside = FigureClothOutside(point, legs[joint + 1], legs[joint + 2], 0.054 * scale, outward)
+            point = FigureLerp(point, outside, loose)
+            if sleeves[side] {
+                outside = FigureClothOutside(point, arms[joint], arms[joint + 1], 0.071 * scale, outward)
+                point = FigureLerp(point, outside, loose)
+                outside = FigureClothOutside(point, arms[joint + 1], arms[joint + 2], 0.062 * scale, outward)
+                point = FigureLerp(point, outside, loose)
+            }
+        }
+        if FigureDistance(point, previous) < 0.000001 { break }
+    }
+    point.y = FigureMax(point.y, 0.006)
+    return point
 }
 
 FigureModelWorld :: (figure: *FigureModel, scene: *Scene, role: s32) -> Vector3 {
@@ -579,13 +587,11 @@ FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32
     heel := joints.heels[side].y <= joints.balls[side].y
     contact := ifx heel then joints.heels[side] else joints.balls[side]
     relative := ifx heel then figure.sole_heel[side] else figure.sole_ball[side]
-    relative.z *= figure.foot_stretch[side]
     turned := FigureRotate(FigureQuatNormalize(joints.feet[side]), FigureScale(relative, scale))
     target := FigureSub(contact, turned)
     lowest: float64 = 1000.0
     for index: cast(s32)0..figure.sole_count[side] - 1 {
         relative_point := figure.sole_points[side * 64 + index]
-        relative_point.z *= figure.foot_stretch[side]
         point := FigureRotate(FigureQuatNormalize(joints.feet[side]), FigureScale(relative_point, scale))
         lowest = FigureMin(lowest, point.y)
     }

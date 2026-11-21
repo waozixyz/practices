@@ -30,10 +30,9 @@ the sole into the ankle. `attire.json` records the finished asset checksums,
 triangle and contact counts, and each heel-to-ball span.
 
 Kryon's importer loads these models through `figure_model`. The retargeter
-measures the skinned soles and fits the foot length to the solver's heel/ball
-span. It keeps the loaded pivot in contact as the feet roll and lets the toes
-flex at the floor. The foot mesh uses affine skinning for the length fit,
-and the rest uses dual quaternions.
+measures the skinned soles and places the loaded heel or forefoot at the
+solver's pivot. Each avatar keeps its original foot proportions. The toes
+flex at the floor as the feet roll.
 
 The matte linen colors, crossed facings and fitted sash form a traditional
 wrap. The woman keeps the long-sleeve top and flared skirt. The man wears a

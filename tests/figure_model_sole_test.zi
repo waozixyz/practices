@@ -20,6 +20,7 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
     worst_penetration: float64
     worst_flat: float64
     worst_pivot: float64
+    worst_span: float64
     measured: s64
     for mode: 0..3 {
         for sample: 0..16 {
@@ -95,6 +96,9 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
                 worst_gap = FigureMax(worst_gap, FigureAbs(low))
                 if mode == 0 || mode == 3 {
                     worst_flat = FigureMax(worst_flat, high - low)
+                    root := scene.nodes[figure.instance.root_node]
+                    original := FigureDistance(figure.sole_heel[side], figure.sole_ball[side]) * root.scale.x
+                    worst_span = FigureMax(worst_span, FigureAbs(FigureDistance(heel, ball) - original))
                 }
                 heel_down := pose.heels[side].y <= pose.balls[side].y
                 actual := ifx heel_down then heel else ball
@@ -103,9 +107,9 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             }
         }
     }
-    print("sole test: % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m\n",
-        path, measured, worst_gap, worst_penetration, worst_flat, worst_pivot)
-    return ifx measured < 1000 || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 then 1 else 0
+    print("sole test: % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m, anatomical span error % m\n",
+        path, measured, worst_gap, worst_penetration, worst_flat, worst_pivot, worst_span)
+    return ifx measured < 1000 || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 || worst_span >= 0.001 then 1 else 0
 }
 
 main :: () -> s32 {
