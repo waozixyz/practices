@@ -21,10 +21,12 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
     worst_flat: float64
     worst_pivot: float64
     worst_span: float64
+    penetration_mode: s32
+    penetration_point: Vector3
     measured: s64
     for mode: 0..3 {
-        for sample: 0..16 {
-            phase := cast(float64)sample * FIGURE_PI / 8.0
+        for sample: 0..32 {
+            phase := cast(float64)sample * FIGURE_PI / 16.0
             pose := ModelPose(phase)
             // Nearly straight, shifted stances exposed retargeting reach
             // errors even when the solver's planted target was exact.
@@ -37,7 +39,7 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             }
             angle: float64
             if mode == 1 || mode == 2 {
-                angle = (ifx mode == 1 then -0.7 else 0.7) * cast(float64)sample / 16.0
+                angle = (ifx mode == 1 then -0.7 else 0.7) * cast(float64)sample / 32.0
             }
             foot := FigureAxisAngle(FigureV3(1.0, 0.0, 0.0), angle)
             for side: cast(s32)0..1 {
@@ -61,10 +63,14 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             for mesh_index: 0..figure.instance.meshes.count - 1 {
                 inst := *figure.instance.meshes[mesh_index]
                 source_mesh := *figure.model.meshes[inst.mesh_index]
-                if TextView(source_mesh.name[:]) != "PracticeBareFeet" {
+                name := TextView(source_mesh.name[:])
+                if name != "PracticeBareFeet" && name != "PracticeArticulatedFeet" {
                     continue
                 }
+                articulated := name == "PracticeArticulatedFeet"
                 side := inst.primitive_index
+                heel_down := pose.heels[side].y <= pose.balls[side].y
+                target := ifx heel_down then pose.heels[side] else pose.balls[side]
                 mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
                 low: float64 = 1000.0
                 high: float64 = -1000.0
@@ -72,12 +78,21 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
                 front: float64 = -1000.0
                 heel: Vector3
                 ball: Vector3
+                surface: float64 = 1000.0
+                pivot: float64 = 1000.0
                 for vertex: 0..inst.skin.positions.count - 1 {
                     rest := inst.skin.positions[vertex]
                     actual := SoleWorld(figure, figure.instance.node_world[inst.gltf_node],
                         scene.positions[mesh.first_vertex + vertex], scene)
-                    worst_penetration = FigureMax(worst_penetration, -actual.y)
-                    if FigureAbs(rest.y) > 0.000001 {
+                    if -actual.y > worst_penetration {
+                        worst_penetration = -actual.y
+                        penetration_mode = cast(s32)mode
+                        penetration_point = rest
+                    }
+                    surface = FigureMin(surface, actual.y)
+                    pivot = FigureMin(pivot, FigureDistance(actual, target))
+                    band := ifx articulated then 0.0005 else 0.000001
+                    if FigureAbs(rest.y) > band {
                         continue
                     }
                     low = FigureMin(low, actual.y)
@@ -93,22 +108,26 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
                     }
                     measured += 1
                 }
-                worst_gap = FigureMax(worst_gap, FigureAbs(low))
+                worst_gap = FigureMax(worst_gap, FigureAbs(ifx articulated then surface else low))
                 if mode == 0 || mode == 3 {
                     worst_flat = FigureMax(worst_flat, high - low)
                     root := scene.nodes[figure.instance.root_node]
                     original := FigureDistance(figure.sole_heel[side], figure.sole_ball[side]) * root.scale.x
                     worst_span = FigureMax(worst_span, FigureAbs(FigureDistance(heel, ball) - original))
                 }
-                heel_down := pose.heels[side].y <= pose.balls[side].y
-                actual := ifx heel_down then heel else ball
-                target := ifx heel_down then pose.heels[side] else pose.balls[side]
-                worst_pivot = FigureMax(worst_pivot, FigureDistance(actual, target))
+                if !articulated || mode != 1 {
+                    pivot = FigureDistance(ifx heel_down then heel else ball, target)
+                }
+                worst_pivot = FigureMax(worst_pivot, pivot)
             }
         }
     }
     print("sole test: % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m, anatomical span error % m\n",
         path, measured, worst_gap, worst_penetration, worst_flat, worst_pivot, worst_span)
+    if worst_penetration >= 0.001 {
+        print("sole test: penetration in pose mode % at bind (%, %, %)\n",
+            penetration_mode, penetration_point.x, penetration_point.y, penetration_point.z)
+    }
     return ifx measured < 1000 || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 || worst_span >= 0.001 then 1 else 0
 }
 
@@ -117,7 +136,7 @@ main :: () -> s32 {
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
     model: FigureModel
     defer FigureModelRelease(*model)
-    expected: [2]s32 = .[36, 8]
+    expected: [2]s32 = .[5, 8]
     for index: 0..paths.count - 1 {
         path := paths[index]
         scene: Scene
