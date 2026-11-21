@@ -137,6 +137,35 @@ SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
     return measured >= 17 * 100 && min_gap >= 0.060 * scene.nodes[model.instance.root_node].scale.x
 }
 
+TrainingSkirtFollowsSkin :: (model: *FigureModel, scene: *Scene) -> bool {
+    FigureModelTraining(model, scene, true)
+    defer FigureModelTraining(model, scene, false)
+    pose := ModelPose(1.0)
+    if !FigureModelPose(model, scene, *pose, 0.5) { return false }
+    for index: 0..model.instance.meshes.count - 1 {
+        inst := *model.instance.meshes[index]
+        source := *model.model.meshes[inst.mesh_index]
+        if TextView(source.name[:]) != "PracticeTrainingSkirt" { continue }
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        points: [512]Vector3
+        count := inst.skin.positions.count
+        if count <= 0 || count > points.count { return false }
+        for vertex: 0..count - 1 {
+            points[vertex] = scene.positions[mesh.first_vertex + vertex]
+        }
+        if !GltfUpdateScene(*model.model, *model.instance, scene) { return false }
+        for vertex: 0..count - 1 {
+            if FigureDistance(points[vertex], scene.positions[mesh.first_vertex + vertex]) > 0.000001 {
+                print("Training skirt changed after restoring the skinned vertices\n")
+                return false
+            }
+        }
+        print("Training skirt retains its skinned shape during movement\n")
+        return true
+    }
+    return false
+}
+
 main :: () -> s32 {
     fail: s32
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
@@ -187,6 +216,9 @@ main :: () -> s32 {
             fail += 1
         }
         if !ArmMotion(*model, *scene, path) {
+            fail += 1
+        }
+        if path == paths[0] && !TrainingSkirtFollowsSkin(*model, *scene) {
             fail += 1
         }
     }

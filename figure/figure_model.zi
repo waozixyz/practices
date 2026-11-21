@@ -443,9 +443,10 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
     }
 }
 
-// Drape only the named skirt emitted by prepare_attire.py. Other garment,
-// body, hair and foot skins retain their existing deformation.
+// The meditation layers drape around the body. The short training skirt
+// already follows the hips and thighs using its own skin weights.
 FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
+    if figure.training { return }
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
     rest_hips := figure.rest_at[figure.bones[FIGURE_HIPS]]
@@ -492,8 +493,8 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
         inst := *figure.instance.meshes[index]
         source := *figure.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
-        skirt := name == (ifx figure.training then "PracticeTrainingSkirt" else "PracticeSkirt")
-        tailored := !figure.training && !inst.skin.dual_quaternion && (name == "PracticeClothing" || name == "PracticeWrapFacings")
+        skirt := name == "PracticeSkirt"
+        tailored := !inst.skin.dual_quaternion && (name == "PracticeClothing" || name == "PracticeWrapFacings")
         if !skirt && !tailored {
             continue
         }
