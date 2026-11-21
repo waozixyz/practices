@@ -63,3 +63,21 @@ FigureClothLift :: (point: Vector3, outward: Vector3, depth: float64, scale: flo
     loose := FigureSmooth(depth, 0.025, 0.19)
     return FigureAddScaled(point, motion, loose * depth * scale / FigureMax(1.0, coverage))
 }
+
+// The front waist tips down during a hinge, while a raised thigh carries the
+// nearby panels in a lunge. Lift the fabric between the sewn waist and the hem.
+FigureClothSeat :: (point: Vector3, outward: Vector3, depth: float64, scale: float64,
+    thighs: []Vector3, forward: Vector3, pelvis_down: float64, thigh_lift: float64) -> Vector3 {
+    seat := FigureSmooth(depth, 0.003, 0.055) * (1.0 - FigureSmooth(depth, 0.18, 0.30))
+    if seat <= 0.0 { return point }
+    folded := FigureSmooth(pelvis_down, -0.22, 0.28)
+    bent := FigureSmooth(pelvis_down, -0.76, -0.27) * thigh_lift
+    front := folded * FigureSmooth(FigureDot(outward, forward), -0.38, 0.55)
+    raised := 0.0
+    for thigh: thighs {
+        over := FigureSmooth(thigh.y, -0.55, -0.05) * FigureSmooth(FigureDot(thigh, outward), -0.58, 0.22)
+        raised = FigureMax(raised, over)
+    }
+    point.y += seat * scale * (0.245 * front + 0.225 * bent * (1.0 - folded) * raised)
+    return FigureAddScaled(point, outward, seat * scale * 0.12 * front)
+}

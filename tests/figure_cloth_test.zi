@@ -62,6 +62,18 @@ main :: () -> s32 {
         }
         previous = lifted
     }
+    // Deep fold and lunge keep the close panels above the seat. The waist,
+    // loose hem and back panel can still follow their original drape.
+    thigh[0] = .{0.0, 0.0, 1.0}
+    seat := FigureV3(0.0, 0.60, 0.16)
+    folded := FigureClothSeat(seat, front, 0.06, 1.0, thigh[:], front, 0.28, 1.0)
+    lunging := FigureClothSeat(seat, front, 0.06, 1.0, thigh[:], front, -0.34, 1.0)
+    if folded.y < 0.83 || folded.z < 0.27 || lunging.y < 0.79 ||
+        FigureDistance(FigureClothSeat(seat, front, 0.0, 1.0, thigh[:], front, 0.28, 1.0), seat) > 0.000001 ||
+        FigureDistance(FigureClothSeat(seat, front, 0.31, 1.0, thigh[:], front, 0.28, 1.0), seat) > 0.000001 ||
+        FigureDistance(FigureClothSeat(seat, .{0.0, 0.0, -1.0}, 0.06, 1.0, thigh[:], front, -0.34, 1.0), seat) > 0.000001 {
+        fail += 1
+    }
     // Gravitational drape uses the remaining cloth length on the legs' side
     // when the body is almost level. The waistband still follows its skin.
     prone := FigureV3(0.0, 0.15, 0.0)
@@ -74,6 +86,6 @@ main :: () -> s32 {
             0.0, 1.0, legs, 1.0), rigid_waist) > 0.000001 {
         fail += 1
     }
-    print("cloth constraints: % findings in fold, waist, capsule, prone drape and airborne regressions\n", fail)
+    print("cloth constraints: % findings in fold, waist, seat, capsule, prone drape and airborne regressions\n", fail)
     return fail
 }

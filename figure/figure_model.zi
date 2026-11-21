@@ -462,6 +462,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
         (1.0 - FigureSmooth(FigureAbs(down.y), 0.28, 0.55))
     legward := FigureV3(down.x * prone, 0.0, down.z * prone)
     thigh_lift := 1.0 - prone
+    skirt_forward := FigureV3(Sin(yaw), 0.0, Cos(yaw))
     airborne := FigureMin(FigureMin(joints.heels[0].y, joints.balls[0].y),
         FigureMin(joints.heels[1].y, joints.balls[1].y))
     foot_span := FigureAbs(FigureDot(FigureSub(joints.ankles[0], joints.ankles[1]), lateral))
@@ -510,6 +511,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                     lifted := FigureClothLift(point, outward, depth, scale, thighs[:])
                     point = FigureLerp(point, lifted, thigh_lift)
                 }
+                point = FigureClothSeat(point, outward, depth, scale, thighs[:], skirt_forward, down.y, thigh_lift)
                 point = FigureModelSkirtContact(point, outward, depth, scale, legs[:], arms[:], sleeves[:])
                 scene.positions[mesh.first_vertex + vertex] = FigureScale(FigureRotate(FigureConjugate(figure.facing),
                     FigureSub(point, root.position)), 1.0 / scale)
