@@ -388,7 +388,7 @@ def training_clothes(asset, body_node, skin_parts):
     triangles = asset.read(primary['indices']).reshape(-1, 3)
     centers = attrs['POSITION'][triangles].mean(axis=1)
     x, y = np.abs(centers[:, 0]), centers[:, 1]
-    shorts = (y >= .76) & (y < 1.00)
+    shorts = (y >= .738) & (y < 1.00)
     crop_top = (y >= 1.13) & (y < 1.38) & (x < .23)
     top_material = asset.material('Practice_Training_Top', [.25, .52, .46, 1])
     shorts_material = asset.material('Practice_Training_Shorts', [.13, .24, .28, 1])

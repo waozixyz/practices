@@ -120,6 +120,10 @@ def main():
             for part, name in zip(training['primitives'][1:3], ('Shorts', 'Top')):
                 assert d['materials'][part['material']]['name'] == 'Practice_Training_' + name
                 assert len(new.read(part['indices'])) > 150
+            shorts = training['primitives'][1]
+            shorts_faces = new.read(shorts['indices']).reshape(-1, 3)
+            shorts_y = new.read(shorts['attributes']['POSITION'])[shorts_faces, 1].mean(axis=1)
+            assert .738 <= shorts_y.min() < .76
             sports_skirt = next(mesh for mesh, _ in garments if mesh['name'] == 'PracticeTrainingSkirt')
             panel, binding = sports_skirt['primitives']
             silhouette = new.read(panel['attributes']['POSITION'])
