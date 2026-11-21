@@ -7,8 +7,8 @@ module_roots = ["figure", "tests"]
 links = ["EGL", "GLESv2", "GLX", "X11", "z", "m", "pthread"]
 
 [toolchain]
-git = "https://github.com/ziranlang/ziran.git"
-ref = "1934aae05eadec28f3f96ea8c3cfe3a21888487d"
+git = "https://git.waozi.xyz/ziranlang/ziran.git"
+ref = "5db3d3c39425d5dfe4bfe4a84e6f6e2e5a810ad0"
 
 [dependencies.kryon]
 git = "https://git.waozi.xyz/kryonlabs/kryon.git"

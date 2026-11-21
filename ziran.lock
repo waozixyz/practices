@@ -124,8 +124,8 @@
     "name": "practices"
   },
   "toolchain": {
-    "commit": "1934aae05eadec28f3f96ea8c3cfe3a21888487d",
-    "ref": "1934aae05eadec28f3f96ea8c3cfe3a21888487d",
-    "url": "https://github.com/ziranlang/ziran.git"
+    "commit": "5db3d3c39425d5dfe4bfe4a84e6f6e2e5a810ad0",
+    "ref": "5db3d3c39425d5dfe4bfe4a84e6f6e2e5a810ad0",
+    "url": "https://git.waozi.xyz/ziranlang/ziran.git"
   }
 }
