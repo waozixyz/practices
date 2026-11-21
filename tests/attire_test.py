@@ -106,9 +106,12 @@ def main():
                 assert d['materials'][part['material']]['name'] == 'Practice_Training_' + name
                 assert len(new.read(part['indices'])) > 150
             sports_skirt = next(mesh for mesh, _ in garments if mesh['name'] == 'PracticeTrainingSkirt')
-            panel = sports_skirt['primitives'][0]
-            hem = new.read(panel['attributes']['POSITION'])[new.read(panel['indices']).ravel()]
-            assert .73 < hem[:, 1].min() < .85
+            panel, binding = sports_skirt['primitives']
+            silhouette = new.read(panel['attributes']['POSITION'])
+            hem = new.read(binding['attributes']['POSITION'])
+            assert .81 < hem[:, 1].min() < .84
+            assert .34 < np.ptp(silhouette[:, 0]) < .37 and np.ptp(silhouette[:, 2]) < .25
+            assert d['materials'][binding['material']]['name'] == 'Practice_Training_Skirt_Binding'
             skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
             points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
             assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45

@@ -50,7 +50,8 @@ the legs along the floor.
 
 Workout uses a crop top and lined sports skirt on the same woman.
 `PracticeTrainingBody` assigns body faces to the crop top and undershorts.
-`PracticeTrainingSkirt` shortens the draping skirt panels above the knee.
+`PracticeTrainingSkirt` has a fitted waist, shallow pleats and a contrasting hem.
+Its front panels follow the thighs while the back stays close to the hips.
 The renderer switches the wardrobe in the retained scene and shares the face,
 hair, skin and bare feet across practices.
 

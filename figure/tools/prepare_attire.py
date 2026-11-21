@@ -361,7 +361,7 @@ def barefoot(asset, body_node, primitive, person):
     return measurements
 
 
-def training_clothes(asset, body_node, skin_parts, skirt):
+def training_clothes(asset, body_node, skin_parts):
     """Make a crop top and lined training skirt on the original body rig."""
     primary, *uncovered = skin_parts
     attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
@@ -376,19 +376,62 @@ def training_clothes(asset, body_node, skin_parts, skirt):
              asset.primitive(attrs, triangles[shorts], shorts_material),
              asset.primitive(attrs, triangles[crop_top], top_material)]
     asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
-    skirt_material = asset.material('Practice_Training_Skirt', [.16, .29, .33, 1])
-    panels = []
-    for primitive in skirt:
-        attrs = {key: asset.read(index) for key, index in primitive['attributes'].items()}
-        triangles = asset.read(primitive['indices']).reshape(-1, 3)
-        used = np.unique(triangles)
-        positions = attrs['POSITION']
-        depth = np.maximum(.97 - positions[used, 1], 0)
-        # Preserve the fitted waist and shorten the free panels above the knee.
-        positions[used, 1] += .38 * depth
-        positions[used, 0] *= 1 - .48 * depth
-        panels.append(asset.primitive(attrs, triangles, skirt_material))
-    asset.mesh(body_node, 'PracticeTrainingSkirt', panels)
+    training_skirt(asset, body_node)
+
+
+def training_skirt(asset, body_node):
+    """A fitted waistband, shallow pleats and a bound hem over the shorts."""
+    doc = asset.doc
+    skin = doc['skins'][doc['nodes'][body_node]['skin']]
+    indices = {doc['nodes'][node]['name']: joint for joint, node in enumerate(skin['joints'])}
+    joints = [indices[name] for name in ('J_Bip_C_Hips', 'J_Bip_L_UpperLeg', 'J_Bip_R_UpperLeg')]
+    skirt = asset.material('Practice_Training_Skirt', [.18, .32, .34, 1])
+    binding = asset.material('Practice_Training_Skirt_Binding', [.44, .69, .61, 1])
+    # Heights and radii follow the original body's waist, hips and upper thighs.
+    profile = [(1.018, .132, .113), (.995, .140, .115), (.946, .157, .111),
+               (.891, .167, .109), (.833, .174, .111), (.822, .176, .112)]
+    sectors = 48
+    angles = np.arange(sectors) * (2 * np.pi / sectors)
+    x, z = np.cos(angles), np.sin(angles)
+    count = sectors * len(profile)
+    positions = np.empty((count, 3))
+    uv = np.empty((count, 2))
+    weights = np.zeros((count, 4))
+    for row, (height, radius_x, radius_z) in enumerate(profile):
+        ring = slice(row * sectors, (row + 1) * sectors)
+        drop = (profile[0][0] - height) / (profile[0][0] - profile[-1][0])
+        fold = .004 * drop * np.cos(8 * angles)
+        positions[ring] = np.column_stack(((radius_x + fold) * x,
+                                           np.full(sectors, height), (radius_z + fold) * z - .008))
+        uv[ring] = np.column_stack((np.arange(sectors) / sectors, np.full(sectors, drop)))
+        # Front panels travel with the thighs in the wall sit. The back
+        # stays near the hips so the skirt clears the wall and the bench.
+        front = -z  # The original VRM faces negative Z.
+        follow = drop ** 1.4 * (.55 + .30 * np.maximum(front, 0) - .36 * np.maximum(-front, 0))
+        left = np.clip(.5 - 2.3 * x, 0, 1)
+        weights[ring, 0] = 1 - follow
+        weights[ring, 1] = follow * left
+        weights[ring, 2] = follow * (1 - left)
+    triangles = []
+    for row in range(len(profile) - 1):
+        for col in range(sectors):
+            a = row * sectors + col
+            b = row * sectors + (col + 1) % sectors
+            triangles.extend(((a, b, a + sectors), (b, b + sectors, a + sectors)))
+    triangles = np.asarray(triangles)
+    norms = np.zeros_like(positions)
+    cross = np.cross(positions[triangles[:, 1]] - positions[triangles[:, 0]],
+                     positions[triangles[:, 2]] - positions[triangles[:, 0]])
+    for corner in range(3):
+        np.add.at(norms, triangles[:, corner], cross)
+    norms /= np.linalg.norm(norms, axis=1)[:, None]
+    attrs = {'POSITION': positions, 'NORMAL': norms, 'TEXCOORD_0': uv,
+             'JOINTS_0': np.tile([*joints, 0], (count, 1)), 'WEIGHTS_0': weights}
+    hem = 2 * sectors
+    asset.mesh(body_node, 'PracticeTrainingSkirt', [
+        asset.primitive(attrs, triangles[:-hem], skirt),
+        asset.primitive(attrs, triangles[-hem:], binding),
+    ])
 
 
 def dress(source, target, person):
@@ -504,7 +547,7 @@ def dress(source, target, person):
         asset.mesh(body_node, 'PracticeSkirt', skirt)
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
     if person == 'woman':
-        training_clothes(asset, body_node, skin_parts, skirt)
+        training_clothes(asset, body_node, skin_parts)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
