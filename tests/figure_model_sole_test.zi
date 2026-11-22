@@ -92,7 +92,7 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
                     surface = FigureMin(surface, actual.y)
                     pivot = FigureMin(pivot, FigureDistance(actual, target))
                     band := ifx articulated then 0.0005 else 0.000001
-                    if FigureAbs(rest.y) > band {
+                    if FigureAbs(rest.y - figure.sole_rest_height[side]) > band {
                         continue
                     }
                     low = FigureMin(low, actual.y)
@@ -115,7 +115,7 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
                     original := FigureDistance(figure.sole_heel[side], figure.sole_ball[side]) * root.scale.x
                     worst_span = FigureMax(worst_span, FigureAbs(FigureDistance(heel, ball) - original))
                 }
-                if !articulated || mode != 1 {
+                if !articulated {
                     pivot = FigureDistance(ifx heel_down then heel else ball, target)
                 }
                 worst_pivot = FigureMax(worst_pivot, pivot)
@@ -128,7 +128,8 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
         print("sole test: penetration in pose mode % at bind (%, %, %)\n",
             penetration_mode, penetration_point.x, penetration_point.y, penetration_point.z)
     }
-    return ifx measured < 1000 || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 || worst_span >= 0.001 then 1 else 0
+    expected_samples := 4 * 33 * (figure.sole_count[0] + figure.sole_count[1])
+    return ifx measured != expected_samples || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 || worst_span >= 0.001 then 1 else 0
 }
 
 main :: () -> s32 {
@@ -136,7 +137,7 @@ main :: () -> s32 {
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
     model: FigureModel
     defer FigureModelRelease(*model)
-    expected: [2]s32 = .[5, 8]
+    expected: [2]s32 = .[5, 3]
     for index: 0..paths.count - 1 {
         path := paths[index]
         scene: Scene

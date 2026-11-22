@@ -147,11 +147,11 @@ TrainingVisibility :: (model: *FigureModel, scene: *Scene, training: bool) -> bo
         visible := scene.nodes[inst.scene_node].visible
         if name == "PracticeTrainingSkirt" { return false }
         if name == "PracticeTrainingBody" {
-            if visible != training || inst.skin.dual_quaternion { return false }
+            if visible != training || !inst.skin.dual_quaternion { return false }
             outfits += 1
         }
         if name == "PracticeArticulatedFeet" {
-            if !visible { return false }
+            if !visible || !inst.skin.dual_quaternion { return false }
             feet += 1
         }
         if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" {

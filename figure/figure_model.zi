@@ -62,9 +62,11 @@ FigureModel :: struct {
     // Measured sole vertices in foot-relative, facing-corrected bind space.
     sole_points: [128]Vector3
     sole_count: [2]s32
+    sole_rest_height: [2]float64
     sole_heel: [2]Vector3
     sole_ball: [2]Vector3
     articulated_sole_mesh: s32
+    sole_toe_joint: [2]s32
     // The toon look: a shader, and per scene mesh its uniforms. Each mesh
     // keeps the importer's own base colour texture, which the renderer
     // uploads once and samples into the shader's vertex data.
@@ -140,9 +142,9 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         return false
     }
     GltfSetDualQuaternion(*figure.instance, true)
-    // Blend both sides of the ankle seam with the same affine transform.
-    // Tailored garments use affine blending so adjacent vertices keep
-    // following the same rotation path in deep reaches and lunges.
+    // Keep volume across the articulated toe joint. All of the adjacent
+    // Workout skin and fabric uses the same blend across its cut seams.
+    // Legacy flat soles and tailored meditation overlays keep affine skinning.
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         mesh := *figure.model.meshes[inst.mesh_index]
@@ -152,8 +154,8 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         for vertex: primitive.indices[:] {
             high = FigureMax(high, primitive.positions[vertex].y)
         }
-        if high < 0.30 || name == "PracticeClothing" || name == "PracticeWrapFacings" ||
-        name == "PracticeTrainingBody" {
+        if (high < 0.30 && name != "PracticeArticulatedFeet" && name != "PracticeTrainingBody") ||
+        name == "PracticeClothing" || name == "PracticeWrapFacings" {
             inst.skin.dual_quaternion = false
         }
     }
@@ -420,16 +422,9 @@ FigureModelFlexToes :: (figure: *FigureModel, joints: *FigureJoints, turns: []Fi
     node := figure.bones[toes]
     if node < 0 { return }
     figure.instance.translations[node] = figure.model.nodes[node].translation
-    if joints.heels[side].y <= joints.balls[side].y ||
-        FigureDistance(joints.heels[side], joints.balls[side]) < 0.01 {
-        return
-    }
     foot := turns[FigureSideRole(side, FIGURE_FOOT)]
-    up := FigureAxis(foot, 0.0, 1.0, 0.0)
-    forward := FigureAxis(foot, 0.0, 0.0, 1.0)
-    if up.y < 0.1 || forward.y >= 0.0 { return }
-    load := 1.0 - FigureSmooth(joints.balls[side].y, 0.001, 0.045)
-    flex := FigureAxisAngle(.{1.0, 0.0, 0.0}, Atan2(forward.y, up.y) * load)
+    flex := FigureModelToeBend(joints, side, foot)
+    if flex.x == 0.0 { return }
     turns[toes] = FigureMultiply(foot, flex)
     parent := figure.model.nodes[node].parent
     from_ankle := FigureRotate(figure.facing, FigureSub(figure.rest_at[node], figure.rest_at[parent]))
@@ -437,6 +432,20 @@ FigureModelFlexToes :: (figure: *FigureModel, joints: *FigureJoints, turns: []Fi
     shift := FigureSub(FigureRotate(flex, lever), lever)
     to_parent := FigureConjugate(FigureMultiply(figure.facing, figure.rest_turn[parent]))
     figure.instance.translations[node] = FigureAdd(figure.instance.translations[node], FigureRotate(to_parent, shift))
+}
+
+FigureModelToeBend :: (joints: *FigureJoints, side: s32, foot: FigureQuat) -> FigureQuat {
+    up := FigureAxis(foot, 0.0, 1.0, 0.0)
+    forward := FigureAxis(foot, 0.0, 0.0, 1.0)
+    if up.y < 0.1 || forward.y >= 0.0 || joints.heels[side].y <= joints.balls[side].y ||
+    FigureDistance(joints.heels[side], joints.balls[side]) < 0.01 {
+        return FigureIdentity()
+    }
+    load := 1.0 - FigureSmooth(joints.balls[side].y, 0.001, 0.045)
+    // Let the rounded toes roll onto their tips in a high heel raise.
+    // Fully counter-rotating the forefoot makes it hinge flat at the ball.
+    bend := FigureMax(Atan2(forward.y, up.y), -0.60) * load
+    return FigureAxisAngle(.{1.0, 0.0, 0.0}, bend)
 }
 
 // Let the toes flex along the floor as the heel rises. The surface beyond
@@ -800,8 +809,13 @@ FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32
     contact := ifx heel then joints.heels[side] else joints.balls[side]
     relative := ifx heel then figure.sole_heel[side] else figure.sole_ball[side]
     turn := FigureQuatNormalize(joints.feet[side])
-    if figure.articulated_sole_mesh >= 0 && heel && FigureAxis(turn, 0.0, 1.0, 0.0).y > 0.1 {
-        relative = FigureModelHeelSupport(figure, side, turn)
+    if figure.articulated_sole_mesh >= 0 && FigureAxis(turn, 0.0, 1.0, 0.0).y > 0.1 {
+        load := ifx heel then 1.0 else 1.0 - FigureSmooth(contact.y, 0.001, 0.045)
+        if load > 0.0 {
+            flex := FigureModelToeBend(joints, side, turn)
+            support := FigureModelFootSupport(figure, side, turn, flex, relative)
+            relative = FigureLerp(relative, support, load)
+        }
     }
     turned := FigureRotate(turn, FigureScale(relative, scale))
     target := FigureSub(contact, turned)
@@ -816,24 +830,37 @@ FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32
     return target
 }
 
-// As the foot rolls back, its rounded heel contacts the floor farther
-// behind the flat-stance pad. Use that point as the rigid support.
-FigureModelHeelSupport :: (figure: *FigureModel, side: s32, turn: FigureQuat) -> Vector3 {
-    support := figure.sole_heel[side]
-    normal := FigureAxis(FigureConjugate(FigureMultiply(turn, figure.facing)), 0.0, 1.0, 0.0)
+// Find the actual rounded support of the foot before solving the leg.
+// Both foot and toe transforms preserve the ball, so their dual-quaternion
+// blend reduces to a blended rotation around that point in foot space.
+FigureModelFootSupport :: (figure: *FigureModel, side: s32, turn: FigureQuat, bend: FigureQuat,
+    support: Vector3) -> Vector3 {
+    normal := FigureAxis(FigureConjugate(turn), 0.0, 1.0, 0.0)
     ankle := FigureModelRest(figure, FigureSideRole(side, FIGURE_FOOT), -1)
-    closest := FigureRotate(FigureConjugate(figure.facing), support)
+    ball := figure.sole_ball[side]
+    closest := support
     low := FigureDot(normal, closest)
     primitive := *figure.model.meshes[figure.articulated_sole_mesh].primitives[side]
-    for point: primitive.positions[:] {
-        relative := FigureSub(point, ankle)
-        height := FigureDot(relative, normal)
+    toe := figure.sole_toe_joint[side]
+    for index: 0..primitive.positions.count - 1 {
+        point := primitive.positions[index]
+        relative := FigureRotate(figure.facing, FigureSub(point, ankle))
+        if bend.x != 0.0 && toe >= 0 {
+            influence := primitive.influences[index]
+            weight: float64
+            for lane: 0..3 {
+                if influence.joints[lane] == toe { weight += influence.weights[lane] }
+            }
+            flex := FigureQuatNormalize(.{bend.x * weight, 0.0, 0.0, 1.0 + (bend.w - 1.0) * weight})
+            relative = FigureAdd(ball, FigureRotate(flex, FigureSub(relative, ball)))
+        }
+        height := FigureDot(normal, relative)
         if height < low - 0.0000001 {
             closest = relative
             low = height
         }
     }
-    return FigureRotate(figure.facing, closest)
+    return closest
 }
 
 // Measurements from the actual skinned plantar vertices in the scene.
@@ -874,7 +901,7 @@ FigureModelContacts :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoin
         ball: Vector3
         for vertex: 0..inst.skin.positions.count - 1 {
             rest := inst.skin.positions[vertex]
-            contact := FigureAbs(rest.y) <= FigureSoleBand(articulated)
+            contact := FigureAbs(rest.y - figure.sole_rest_height[side]) <= FigureSoleBand(articulated)
             if !contact && !articulated {
                 continue
             }
@@ -966,10 +993,11 @@ FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
             prefix := "Practice_Training_"
             fabric = label.count >= prefix.count && label[:prefix.count] == prefix
         }
-        if name == "PracticeBareFeet" {
-            // The small sole and toe facets need a softer shade and rim.
+        if name == "PracticeArticulatedFeet" || name == "PracticeBareFeet" {
+            // Keep the original skin atlas visible through a soft shadow
+            // and a restrained rim, particularly along the small toes.
             figure.uniforms[first + 2] = .{0.91, 0.87, 0.88, 1.0}
-            figure.uniforms[first + 4] = .{0.045, 0.05, 0.06, 0.0}
+            figure.uniforms[first + 4] = .{0.025, 0.030, 0.035, 0.0}
         } else if name == "PracticeTrainingSkirt" || fabric {
             // Matte fabric, including the fitted top and leggings, keeps a
             // soft fold without the glossy rim used on the skin and hair.
@@ -1123,7 +1151,9 @@ FigureSoleBand :: (articulated: bool) -> float64 {
 FigureModelReadSoles :: (figure: *FigureModel) {
     figure.sole_count[0] = 0
     figure.sole_count[1] = 0
+    figure.sole_rest_height = float64.[0.0, 0.0]
     figure.articulated_sole_mesh = -1
+    figure.sole_toe_joint = s32.[-1, -1]
     for mesh_index: 0..figure.model.meshes.count - 1 {
         mesh := *figure.model.meshes[mesh_index]
         name := TextView(mesh.name[:])
@@ -1133,6 +1163,21 @@ FigureModelReadSoles :: (figure: *FigureModel) {
         articulated := name == "PracticeArticulatedFeet"
         if articulated {
             figure.articulated_sole_mesh = cast(s32)mesh_index
+            for instance_index: 0..figure.instance.meshes.count - 1 {
+                instance := *figure.instance.meshes[instance_index]
+                if instance.mesh_index != mesh_index { continue }
+                skin := figure.model.nodes[instance.gltf_node].skin
+                if skin < 0 { continue }
+                bind := *figure.model.skins[skin]
+                for joint: 0..bind.joints.count - 1 {
+                    for side: cast(s32)0..1 {
+                        if bind.joints[joint] == figure.bones[FigureSideRole(side, FIGURE_TOES)] {
+                            figure.sole_toe_joint[side] = cast(s32)joint
+                        }
+                    }
+                }
+                break
+            }
         }
         for side: cast(s32)0..1 {
             primitive := *mesh.primitives[side]
@@ -1140,11 +1185,12 @@ FigureModelReadSoles :: (figure: *FigureModel) {
             for point: primitive.positions[:] {
                 low = FigureMin(low, point.y)
             }
+            figure.sole_rest_height[side] = low
             ankle := FigureModelRest(figure, FigureSideRole(side, FIGURE_FOOT), -1)
             back: float64 = 1000.0
             front: float64 = -1000.0
             for point: primitive.positions[:] {
-                cutoff := ifx articulated then FigureSoleBand(true) else low + FigureSoleBand(false)
+                cutoff := low + FigureSoleBand(articulated)
                 if point.y > cutoff || figure.sole_count[side] >= 64 {
                     continue
                 }

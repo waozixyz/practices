@@ -16,8 +16,7 @@ def verify_feet(old, new, receipts, person):
     original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
     source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
     triangles = old.read(original['indices']).reshape(-1, 3)
-    name = 'PracticeArticulatedFeet' if person == 'woman' else 'PracticeBareFeet'
-    feet = next(mesh for mesh in new.doc['meshes'] if mesh['name'] == name)
+    feet = next(mesh for mesh in new.doc['meshes'] if mesh['name'] == 'PracticeArticulatedFeet')
     assert len(feet['primitives']) == len(receipts) == 2
     for sign, primitive, receipt in zip((-1, 1), feet['primitives'], receipts):
         assert primitive['material'] == original['material']
@@ -29,51 +28,53 @@ def verify_feet(old, new, receipts, person):
         position = attrs['POSITION']
         original_positions = source['POSITION'][expected]
         assert np.array_equal(position[indices][..., 0], original_positions[..., 0])
-        if person == 'woman':
-            leveled = position[indices]
+        leveled = position[indices]
+        if person == 'man':
             assert np.abs(leveled[..., 2] - original_positions[..., 2]).max() < .01
-            shin = original_positions[..., 1] >= .145
-            assert np.array_equal(leveled[shin], original_positions[shin])
-            assert np.array_equal(attrs['NORMAL'][indices][shin], source['NORMAL'][expected][shin])
-            assert np.array_equal(attrs['JOINTS_0'][indices], source['JOINTS_0'][expected])
-            assert np.array_equal(attrs['WEIGHTS_0'][indices][shin], source['WEIGHTS_0'][expected][shin])
-            body = next(node for node in old.doc['nodes'] if node['name'] == 'Body')
-            skeleton = old.doc['skins'][body['skin']]['joints']
-            toe_name = f"J_Bip_{receipt['side']}_ToeBase"
-            toe = next(i for i, node in enumerate(skeleton) if old.doc['nodes'][node]['name'] == toe_name)
-            toe_slots = source['JOINTS_0'][expected] == toe
-            assert np.array_equal(attrs['WEIGHTS_0'][indices][toe_slots], source['WEIGHTS_0'][expected][toe_slots])
-            # Fit one rotation to the entire lower foot, including the low
-            # heel and toe vertices previously omitted by the clamp test.
-            lower = original_positions[..., 1] <= .072
-            before = original_positions[lower].astype(np.float64)
-            after = leveled[lower].astype(np.float64)
-            assert len(before) > 300
-            u, _, vh = np.linalg.svd((before - before.mean(0)).T @ (after - after.mean(0)))
-            rotation = u @ vh
-            assert np.linalg.det(rotation) > 0
-            assert np.allclose((before - before.mean(0)) @ rotation, after - after.mean(0), atol=1e-7)
-            assert np.allclose(source['NORMAL'][expected][lower] @ rotation,
-                               attrs['NORMAL'][indices][lower], atol=1e-6)
-        else:
-            assert np.array_equal(position[indices][..., 2], original_positions[..., 2])
+        shin = original_positions[..., 1] >= .145
+        assert np.array_equal(leveled[shin], original_positions[shin])
+        assert np.array_equal(attrs['NORMAL'][indices][shin], source['NORMAL'][expected][shin])
+        assert np.array_equal(attrs['JOINTS_0'][indices], source['JOINTS_0'][expected])
+        assert np.array_equal(attrs['WEIGHTS_0'][indices][shin], source['WEIGHTS_0'][expected][shin])
+        body = next(node for node in old.doc['nodes'] if node['name'] == 'Body')
+        skeleton = old.doc['skins'][body['skin']]['joints']
+        toe_name = f"J_Bip_{receipt['side']}_ToeBase"
+        toe = next(i for i, node in enumerate(skeleton) if old.doc['nodes'][node]['name'] == toe_name)
+        toe_slots = source['JOINTS_0'][expected] == toe
+        assert np.array_equal(attrs['WEIGHTS_0'][indices][toe_slots], source['WEIGHTS_0'][expected][toe_slots])
+        # Fit one rotation to the entire lower foot, including the low
+        # heel and toe vertices previously omitted by the clamp test.
+        lower = original_positions[..., 1] <= .072
+        before = original_positions[lower].astype(np.float64)
+        after = leveled[lower].astype(np.float64)
+        assert len(before) > 100
+        assert np.ptp(before[:, 2]) > .12
+        u, _, vh = np.linalg.svd((before - before.mean(0)).T @ (after - after.mean(0)))
+        rotation = u @ vh
+        assert np.linalg.det(rotation) > 0
+        assert np.allclose((before - before.mean(0)) @ rotation, after - after.mean(0), atol=1e-7)
+        assert np.allclose(source['NORMAL'][expected][lower] @ rotation,
+                           attrs['NORMAL'][indices][lower], atol=1e-6)
+        if person == 'woman':
+            skin = old.doc['skins'][body['skin']]
+            foot = next(i for i, node in enumerate(skeleton)
+                        if old.doc['nodes'][node]['name'] == f"J_Bip_{receipt['side']}_Foot")
+            bind = old.read(skin['inverseBindMatrices'])[foot].reshape(4, 4, order='F')
+            ankle = np.linalg.inv(bind)[:3, 3]
+            assert np.allclose((ankle - before.mean(0)) @ rotation + after.mean(0), ankle, atol=1e-7)
         assert np.array_equal(attrs['TEXCOORD_0'][indices], source['TEXCOORD_0'][expected])
         assert np.isfinite(position).all() and np.isfinite(attrs['NORMAL']).all()
         assert np.allclose(np.linalg.norm(attrs['NORMAL'], axis=1), 1, atol=1e-5)
         assert np.allclose(attrs['WEIGHTS_0'].sum(1), 1, atol=1e-5)
         used = np.unique(indices)
-        assert position[used, 1].min() == 0
-        band = ARTICULATED_SOLE_BAND if person == 'woman' else 0
-        contact = used[position[used, 1] <= band]
-        assert len(contact) == receipt['support_vertices']
-        assert .12 < np.ptp(position[contact, 2]) == receipt['heel_to_ball']
-        if person == 'woman':
-            assert len(contact) >= 4
-            for zone in (position[contact, 2] > 0, position[contact, 2] < 0):
-                assert zone.any() and position[contact[zone], 1].min() < 1e-6
-        else:
-            assert len(contact) >= 8
-            assert np.all(attrs['WEIGHTS_0'][contact] == [1, 0, 0, 0])
+        plane = float(position[used, 1].min())
+        if person == 'man':
+            assert plane == 0
+        contact = used[position[used, 1] <= plane + ARTICULATED_SOLE_BAND]
+        assert len(contact) == receipt['support_vertices'] >= 3
+        assert .09 < np.ptp(position[contact, 2]) == receipt['heel_to_ball']
+        for zone in (position[contact, 2] > .016, position[contact, 2] < -.035):
+            assert zone.any() and position[contact[zone], 1].min() - plane < 1e-6
         material = new.doc['materials'][primitive['material']]['pbrMetallicRoughness']
         texture = new.doc['textures'][material['baseColorTexture']['index']]
         image = new.doc['images'][texture['source']]
@@ -81,7 +82,8 @@ def verify_feet(old, new, receipts, person):
         offset = view.get('byteOffset', 0)
         atlas = np.asarray(Image.open(BytesIO(new.binary[offset:offset + view['byteLength']])).convert('RGB'))
         x, y = np.rint(attrs['TEXCOORD_0'][used] * [atlas.shape[1] - 1, atlas.shape[0] - 1]).astype(int).T
-        toes = position[used, 1] < .04
+        toes = position[used, 1] < plane + .04
+        assert toes.any()
         assert np.quantile(atlas[y[toes], x[toes], 0], .05) > 215, 'The atlas still paints dark socks on the foot'
 
 

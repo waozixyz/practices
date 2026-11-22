@@ -299,7 +299,7 @@ def remove_sock_dye(asset, body, material_id):
 ARTICULATED_SOLE_BAND = .0005
 
 
-def level_woman_foot(attrs, used):
+def level_foot(attrs, used, ankle=None):
     """Rest the heel and ball on their common tangent, preserving the toe rig."""
     positions = attrs['POSITION'][used].astype(np.float64)
     y, z = positions[:, 1:].T
@@ -318,11 +318,16 @@ def level_woman_foot(attrs, used):
     pitch = (lower + upper) / 2
     cosine, sine = np.cos(pitch), np.sin(pitch)
     rotation = np.array([[1, 0, 0], [0, cosine, -sine], [0, sine, cosine]])
-    # Rotate around the ball's depth to keep the foot centred under the leg.
-    ball_index = np.argmin(np.where(ball, cosine * y - sine * z, np.inf))
-    pivot = np.array([0, (y[ball_index] + y[heel].min()) / 2, z[ball_index]])
-    leveled = (positions - pivot) @ rotation.T + pivot
-    leveled[:, 1] -= leveled[:, 1].min()
+    if ankle is None:
+        # Keep the accepted Man asset's existing calibration.
+        ball_index = np.argmin(np.where(ball, cosine * y - sine * z, np.inf))
+        pivot = np.array([0, (y[ball_index] + y[heel].min()) / 2, z[ball_index]])
+        leveled = (positions - pivot) @ rotation.T + pivot
+        leveled[:, 1] -= leveled[:, 1].min()
+    else:
+        # The pose solver plants the measured sole. Keep the rest foot at
+        # its authored ankle height so leveling cannot lengthen the heel.
+        leveled = (positions - ankle) @ rotation.T + ankle
     delta = leveled - positions
 
     # The lower foot is rigid. Fade the pitch into the unmodified shin and
@@ -344,6 +349,7 @@ def barefoot(asset, body_node, primitive, person):
     skin = doc['skins'][doc['nodes'][body_node]['skin']]
     src = {key: asset.read(i) for key, i in primitive['attributes'].items()}
     src_triangles = asset.read(primitive['indices']).reshape(-1, 3)
+    inverse_bind = asset.read(skin['inverseBindMatrices']) if person == 'woman' else None
     feet = []
     measurements = []
     for side, sign in (('L', -1), ('R', 1)):
@@ -360,47 +366,19 @@ def barefoot(asset, body_node, primitive, person):
         # the foot while retaining toe motion and the original ankle seam.
         mix = np.clip((original_height - .084) / .061, 0, 1)
         mix = mix * mix * (3 - 2 * mix)
-        if person == 'woman':
-            level_woman_foot(attrs, used)
-            release_heel_weights(attrs, used, foot, shin, mix)
-            feet.append(asset.primitive(attrs, triangles, primitive['material']))
-            contact = xyz[used][xyz[used, 1] <= ARTICULATED_SOLE_BAND]
-            measurements.append({'side': side, 'vertices': len(used), 'triangles': len(triangles),
-                                 'support_vertices': len(contact), 'heel_to_ball': float(np.ptp(contact[:, 2]))})
-            continue
-        # The source models stand inside slightly elevated shoes. Measure the
-        # bare heel and forefoot on both sides and remove that ramp below the ankle.
-        rear = used[(xyz[used, 2] > .016) & (xyz[used, 2] < .063)]
-        fore = used[(xyz[used, 2] > -.112) & (xyz[used, 2] < -.078)]
-        heel = rear[xyz[rear, 1].argmin()]
-        ball = fore[xyz[fore, 1].argmin()]
-        plane = np.interp(xyz[used, 2], [xyz[ball, 2], xyz[heel, 2]], [xyz[ball, 1], xyz[heel, 1]])
-        blend = np.clip((original_height - .096) / .049, 0, 1)
-        drop = (plane + .0013) * (1 - blend * blend * (3 - 2 * blend))
-        xyz[used, 1] = np.maximum(0, original_height - drop)
-        # Skin on the plantar surface follows the sole affine, while skin at
-        # the ankle still blends through the original lower-leg weights.
-        sole = used[xyz[used, 1] < .002]
-        attrs['JOINTS_0'][sole] = [foot, 0, 0, 0]
-        attrs['WEIGHTS_0'][sole] = [1, 0, 0, 0]
+        ankle = np.linalg.inv(inverse_bind[foot].reshape(4, 4, order='F'))[:3, 3] if inverse_bind is not None else None
+        level_foot(attrs, used, ankle)
         release_heel_weights(attrs, used, foot, shin, mix)
-        normals = np.zeros_like(attrs['NORMAL'])
-        cross = np.cross(xyz[triangles[:, 1]] - xyz[triangles[:, 0]], xyz[triangles[:, 2]] - xyz[triangles[:, 0]])
-        for corner in range(3):
-            np.add.at(normals, triangles[:, corner], cross)
-        length = np.linalg.norm(normals, axis=1)
-        # Some UV seams have coincident vertices and zero-area bridge triangles.
-        valid = used[length[used] > 1e-8]
-        attrs['NORMAL'][valid] = normals[valid] / length[valid, None]
         feet.append(asset.primitive(attrs, triangles, primitive['material']))
-        contact = xyz[used][xyz[used, 1] == 0]
-        if len(contact) < 8 or np.ptp(contact[:, 2]) < .12:
-            raise ValueError(f'{person} {side}: heel and forefoot do not share the contact plane')
+        plane = xyz[used, 1].min()
+        contact = xyz[used][xyz[used, 1] <= float(plane) + ARTICULATED_SOLE_BAND]
+        if not np.any(contact[:, 2] > .016) or not np.any(contact[:, 2] < -.035):
+            raise ValueError(f'{side}: heel and forefoot do not share a support plane')
         measurements.append({'side': side, 'vertices': len(used), 'triangles': len(triangles),
                              'support_vertices': len(contact), 'heel_to_ball': float(np.ptp(contact[:, 2]))})
     if sum(m['triangles'] for m in measurements) != len(src_triangles):
-        raise ValueError(f'{person}: foot extraction dropped original triangles')
-    asset.mesh(body_node, 'PracticeArticulatedFeet' if person == 'woman' else 'PracticeBareFeet', feet)
+        raise ValueError('Foot extraction dropped original triangles')
+    asset.mesh(body_node, 'PracticeArticulatedFeet', feet)
     return measurements
 
 

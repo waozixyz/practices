@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "cae7c944f00695b552c91d40b1c8c7116cd97b2276e34799326e8ff325b04662",
+    "output_sha256": "9c27e91276490db49a11cf6bc6cfa4807caf143acbb8d68ffb6b0dc2ab102970",
     "bare_feet": [
       {
         "side": "L",
@@ -30,21 +30,21 @@
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
-    "output_sha256": "58a824031bccca20008b053722cc30cde9439395c37ff6f99dbdb12cc5f0825f",
+    "output_sha256": "45febfdd6382cb34744d8ca7ed217c817de94d4fdd6ee28d5b4bfd948444b0d2",
     "bare_feet": [
       {
         "side": "L",
         "vertices": 254,
         "triangles": 422,
-        "support_vertices": 8,
-        "heel_to_ball": 0.13664749264717102
+        "support_vertices": 3,
+        "heel_to_ball": 0.09422203153371811
       },
       {
         "side": "R",
         "vertices": 254,
         "triangles": 422,
-        "support_vertices": 8,
-        "heel_to_ball": 0.1366473287343979
+        "support_vertices": 3,
+        "heel_to_ball": 0.09422186762094498
       }
     ],
     "changed_body_primitives": [
