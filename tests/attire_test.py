@@ -85,35 +85,55 @@ def verify_feet(old, new, receipts, person):
         assert np.quantile(atlas[y[toes], x[toes], 0], .05) > 215, 'The atlas still paints dark socks on the foot'
 
 
-def verify_training_skirt(asset, mesh, original_body):
-    """The shell has smooth circular rows and only waist and hem boundaries."""
-    panel, = mesh['primitives']
-    attrs = panel['attributes']
-    points = asset.read(attrs['POSITION'])
-    normals = asset.read(attrs['NORMAL'])
-    triangles = asset.read(panel['indices']).reshape(-1, 3)
-    skin = asset.doc['skins'][original_body['skin']]
-    bind = asset.read(skin['inverseBindMatrices'])
-    knee_joints = [index for index, node in enumerate(skin['joints'])
-                   if asset.doc['nodes'][node]['name'] in ('J_Bip_L_LowerLeg', 'J_Bip_R_LowerLeg')]
-    assert len(knee_joints) == 2
-    for joint in knee_joints:
-        knee = np.linalg.inv(bind[joint].reshape(4, 4, order='F'))[1, 3]
-        assert abs(points[:, 1].min() - knee) < .001
-    edges = np.sort(np.concatenate([triangles[:, [a, b]] for a, b in ((0, 1), (1, 2), (2, 0))]), axis=1)
-    edges, uses = np.unique(edges, axis=0, return_counts=True)
-    assert np.all((uses == 1) | (uses == 2))
-    boundary = edges[uses == 1]
-    heights = points[boundary, 1]
-    assert np.all(heights[:, 0] == heights[:, 1])
-    assert np.array_equal(np.unique(heights), np.array([points[:, 1].min(), points[:, 1].max()]))
-    for height in np.unique(heights):
-        _, degree = np.unique(boundary[heights[:, 0] == height], return_counts=True)
-        assert len(degree) >= 32 and np.all(degree == 2)
-    assert np.min(np.sum(normals[edges[:, 0]] * normals[edges[:, 1]], axis=1)) > .85
-    assert .45 < np.ptp(points[:, 0]) < .50 and .35 < np.ptp(points[:, 2]) < .41
-    material = asset.doc['materials'][panel['material']]
-    assert material['name'] == 'Practice_Training_Skirt' and material['doubleSided']
+def triangle_area(asset, primitive):
+    triangles = asset.read(primitive['indices']).reshape(-1, 3)
+    points = asset.read(primitive['attributes']['POSITION'])[triangles].astype(np.float64)
+    return np.linalg.norm(np.cross(points[:, 1] - points[:, 0], points[:, 2] - points[:, 0]), axis=1)
+
+
+def verify_training_outfit(old, asset, primary, training):
+    names = ('skin', 'Leggings', 'Waistband', 'Cuffs', 'Top', 'Top_Hem')
+    parts = training['primitives'][:len(names)]
+    assert len(parts) == len(names) and parts[0]['material'] == primary['material']
+    profiles = {}
+    for name, part in zip(names, parts):
+        material = asset.doc['materials'][part['material']]
+        if name != 'skin':
+            assert material['name'] == 'Practice_Training_' + name
+            assert material.get('alphaMode', 'OPAQUE') == 'OPAQUE'
+            assert material['pbrMetallicRoughness']['baseColorFactor'][3] == 1
+        attrs = {key: asset.read(part['attributes'][key]) for key in primary['attributes']
+                 if key in part['attributes']}
+        assert np.allclose(np.linalg.norm(attrs['NORMAL'], axis=1), 1, atol=1e-5)
+        profiles[name] = attrs
+    areas = [triangle_area(asset, part) for part in parts]
+    assert all(np.all(area > 0) for area in areas)
+    assert np.isclose(sum(area.sum() for area in areas), triangle_area(old, primary).sum(), rtol=1e-6)
+
+    for name, minimum, maximum in (('Cuffs', .173, .188), ('Leggings', .188, 1.000),
+                                   ('Waistband', 1.000, 1.024), ('Top_Hem', 1.125, 1.142)):
+        y = profiles[name]['POSITION'][:, 1]
+        assert np.allclose((y.min(), y.max()), (minimum, maximum), atol=2e-7), name
+    skin_faces = asset.read(parts[0]['indices']).reshape(-1, 3)
+    skin_y = profiles['skin']['POSITION'][skin_faces, 1]
+    assert np.all((skin_y.max(axis=1) < .1730001) | (skin_y.min(axis=1) > 1.0239999))
+    top = profiles['Top']['POSITION']
+    assert np.isclose(top[:, 1].min(), 1.142, atol=2e-7, rtol=0)
+    shoulders = top[top[:, 1] > 1.33, 0]
+    assert (shoulders < -.08).sum() > 10 and (shoulders > .08).sum() > 10
+    front_neck = top[(np.abs(top[:, 0]) < .03) & (top[:, 2] < -.07), 1]
+    assert len(front_neck) > 20 and front_neck.max() < 1.32
+
+    def seam(name, height):
+        attrs = profiles[name]
+        on_cut = np.isclose(attrs['POSITION'][:, 1], height, atol=2e-7, rtol=0)
+        return set(map(tuple, np.column_stack([attrs[key][on_cut] for key in attrs])))
+
+    for first, second, height in (('skin', 'Cuffs', .173), ('Cuffs', 'Leggings', .188),
+                                  ('Leggings', 'Waistband', 1.000), ('Waistband', 'skin', 1.024),
+                                  ('skin', 'Top_Hem', 1.125), ('Top_Hem', 'Top', 1.142)):
+        edges = seam(first, height)
+        assert len(edges) > 20 and edges == seam(second, height), (first, second)
 
 
 def main():
@@ -169,16 +189,8 @@ def main():
             training = next(mesh for mesh in d['meshes'] if mesh['name'] == 'PracticeTrainingBody')
             original_body = next(n for n in o['nodes'] if n['name'] == 'Body')
             primary = o['meshes'][original_body['mesh']]['primitives'][0]
-            assert sum(len(new.read(p['indices'])) for p in training['primitives'][:3]) == len(old.read(primary['indices']))
-            for part, name in zip(training['primitives'][1:3], ('Shorts', 'Top')):
-                assert d['materials'][part['material']]['name'] == 'Practice_Training_' + name
-                assert len(new.read(part['indices'])) > 150
-            shorts = training['primitives'][1]
-            shorts_faces = new.read(shorts['indices']).reshape(-1, 3)
-            shorts_y = new.read(shorts['attributes']['POSITION'])[shorts_faces, 1].mean(axis=1)
-            assert .738 <= shorts_y.min() < .76
-            sports_skirt = next(mesh for mesh, _ in garments if mesh['name'] == 'PracticeTrainingSkirt')
-            verify_training_skirt(new, sports_skirt, original_body)
+            assert all(mesh['name'] != 'PracticeTrainingSkirt' for mesh in d['meshes'])
+            verify_training_outfit(old, new, primary, training)
             skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
             points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
             assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45

@@ -137,63 +137,73 @@ SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
     return measured >= 17 * 100 && min_gap >= 0.060 * scene.nodes[model.instance.root_node].scale.x
 }
 
-TrainingSkirtDrape :: (model: *FigureModel, scene: *Scene) -> bool {
-    FigureModelTraining(model, scene, true, false)
-    defer FigureModelTraining(model, scene, false)
-    pose := ModelPose(1.0)
-    if !FigureModelPose(model, scene, *pose, 0.5) { return false }
-    training_body := false
+TrainingVisibility :: (model: *FigureModel, scene: *Scene, training: bool) -> bool {
+    outfits: s64
+    feet: s64
     for index: 0..model.instance.meshes.count - 1 {
         inst := *model.instance.meshes[index]
         source := *model.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
         visible := scene.nodes[inst.scene_node].visible
-        if name == "PracticeTrainingBody" { training_body = training_body || visible }
-        if name == "PracticeTrainingSkirt" && visible {
-            print("Training skirt is visible in the shorts outfit\n")
-            return false
+        if name == "PracticeTrainingSkirt" { return false }
+        if name == "PracticeTrainingBody" {
+            if visible != training || inst.skin.dual_quaternion { return false }
+            outfits += 1
+        }
+        if name == "PracticeArticulatedFeet" {
+            if !visible { return false }
+            feet += 1
+        }
+        if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" {
+            if visible == training { return false }
         }
     }
-    if !training_body { return false }
-    FigureModelTraining(model, scene, true)
-    if !FigureModelPose(model, scene, *pose, 0.6) { return false }
+    return outfits > 0 && feet > 0
+}
+
+TrainingOutfitPose :: (model: *FigureModel, scene: *Scene) -> bool {
+    if !TrainingVisibility(model, scene, false) { return false }
+    FigureModelTraining(model, scene, true, false)
+    if !TrainingVisibility(model, scene, true) { return false }
+    FigureModelTraining(model, scene, true, true)
+    if !TrainingVisibility(model, scene, true) { return false }
     for index: 0..model.instance.meshes.count - 1 {
         inst := *model.instance.meshes[index]
         source := *model.model.meshes[inst.mesh_index]
-        if TextView(source.name[:]) != "PracticeTrainingSkirt" { continue }
-        if !scene.nodes[inst.scene_node].visible { return false }
+        if TextView(source.name[:]) != "PracticeTrainingBody" { continue }
+        primitive := *source.primitives[inst.primitive_index]
+        material := *model.model.materials[primitive.material]
+        if TextView(material.name[:]) != "Practice_Training_Leggings" { continue }
         mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
-        points: [512]Vector3
-        count := inst.skin.positions.count
-        if count <= 0 || count > points.count { return false }
-        for vertex: 0..count - 1 {
-            points[vertex] = scene.positions[mesh.first_vertex + vertex]
-        }
-        if !GltfUpdateScene(*model.model, *model.instance, scene) { return false }
-        waist := inst.skin.positions[0].y
-        reshaped := false
-        for vertex: 0..count - 1 {
+        knee: s64 = -1
+        for vertex: 0..inst.skin.positions.count - 1 {
             rest := inst.skin.positions[vertex]
-            difference := FigureDistance(points[vertex], scene.positions[mesh.first_vertex + vertex])
-            if rest.y >= waist - 0.000001 && difference > 0.000001 {
-                print("Training skirt waist detached from the skinned seam\n")
-                return false
-            }
-            reshaped = reshaped || (rest.y < waist - 0.3 && difference > 0.005)
+            if rest.x > 0.06 && rest.y > 0.48 && rest.y < 0.55 { knee = vertex }
         }
-        if !reshaped || !FigureModelPose(model, scene, *pose, 0.6) { return false }
-        root := scene.nodes[model.instance.root_node]
-        for vertex: 0..count - 1 {
-            point := scene.positions[mesh.first_vertex + vertex]
-            normal := scene.normals[mesh.first_vertex + vertex]
-            if !FigureFinite(point) || !FigureFinite(normal) || FigureLength(normal) < 0.9 ||
-            root.position.y + point.y * root.scale.x < 0.005 || FigureDistance(points[vertex], point) > 0.000001 {
-                print("Training skirt produced invalid or seek-dependent cloth\n")
-                return false
+        if knee < 0 { continue }
+        starting: Vector3
+        for sample: 0..2 {
+            phase := ifx sample == 1 then FIGURE_PI else 0.0
+            pose := ModelPose(phase)
+            if !FigureModelPose(model, scene, *pose) { return false }
+            root := scene.nodes[model.instance.root_node]
+            for vertex: 0..inst.skin.positions.count - 1 {
+                point := scene.positions[mesh.first_vertex + vertex]
+                normal := scene.normals[mesh.first_vertex + vertex]
+                if !FigureFinite(point) || !FigureFinite(normal) || FigureLength(normal) < 0.9 ||
+                root.position.y + point.y * root.scale.x < 0.005 {
+                    print("Training outfit produced invalid skinned geometry\n")
+                    return false
+                }
             }
+            point := scene.positions[mesh.first_vertex + knee]
+            if sample == 0 { starting = point }
+            if sample == 1 && FigureDistance(starting, point) < 0.01 { return false }
+            if sample == 2 && FigureDistance(starting, point) > 0.000001 { return false }
         }
-        print("Training skirt drapes continuously while retaining the skinned waist and floor clearance\n")
-        return true
+        FigureModelTraining(model, scene, false)
+        print("Training outfit follows the rig and switches practices with the original feet visible\n")
+        return TrainingVisibility(model, scene, false)
     }
     return false
 }
@@ -250,7 +260,7 @@ main :: () -> s32 {
         if !ArmMotion(*model, *scene, path) {
             fail += 1
         }
-        if path == paths[0] && !TrainingSkirtDrape(*model, *scene) {
+        if path == paths[0] && !TrainingOutfitPose(*model, *scene) {
             fail += 1
         }
     }

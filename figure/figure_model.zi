@@ -152,7 +152,8 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         for vertex: primitive.indices[:] {
             high = FigureMax(high, primitive.positions[vertex].y)
         }
-        if high < 0.30 || name == "PracticeClothing" || name == "PracticeWrapFacings" {
+        if high < 0.30 || name == "PracticeClothing" || name == "PracticeWrapFacings" ||
+        name == "PracticeTrainingBody" {
             inst.skin.dual_quaternion = false
         }
     }
@@ -956,12 +957,22 @@ FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
         figure.uniforms[first + 3] = .{0.0, 0.0, 1.0, 0.0}
         figure.uniforms[first + 4] = .{0.18, 0.20, 0.26, 0.0}
         source := *figure.model.meshes[placed.mesh_index]
-        if TextView(source.name[:]) == "PracticeBareFeet" {
+        name := TextView(source.name[:])
+        material_id := source.primitives[placed.primitive_index].material
+        fabric := false
+        if name == "PracticeTrainingBody" && material_id >= 0 && material_id < figure.model.materials.count {
+            cloth := *figure.model.materials[material_id]
+            label := TextView(cloth.name[:])
+            prefix := "Practice_Training_"
+            fabric = label.count >= prefix.count && label[:prefix.count] == prefix
+        }
+        if name == "PracticeBareFeet" {
             // The small sole and toe facets need a softer shade and rim.
             figure.uniforms[first + 2] = .{0.91, 0.87, 0.88, 1.0}
             figure.uniforms[first + 4] = .{0.045, 0.05, 0.06, 0.0}
-        } else if TextView(source.name[:]) == "PracticeTrainingSkirt" {
-            // Keep the folds and the inside of the double-sided fabric matte.
+        } else if name == "PracticeTrainingSkirt" || fabric {
+            // Matte fabric, including the fitted top and leggings, keeps a
+            // soft fold without the glossy rim used on the skin and hair.
             figure.uniforms[first + 2] = .{0.88, 0.88, 0.88, 1.0}
             figure.uniforms[first + 4] = .{0.006, 0.010, 0.010, 0.0}
         }

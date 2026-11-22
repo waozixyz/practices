@@ -414,77 +414,100 @@ def release_heel_weights(attrs, used, foot, shin, mix):
     attrs['WEIGHTS_0'][used[has_foot]] = weights[has_foot]
 
 
+def training_surface(attrs, triangles):
+    """Partition the skin at garment seams, creating shared cut vertices."""
+    x, y, z = attrs['POSITION'].T
+    # The fitted armhole tapers from the ribs toward the shoulder. The
+    # front neckline scoops lower, with broad straps over each shoulder.
+    armhole = .133 + .049 * np.exp(-((y - 1.235) / .072) ** 2)
+    scoop = np.clip((np.abs(x) - .025) / .074, 0, 1)
+    scoop = scoop * scoop * (3 - 2 * scoop)
+    neck_base = np.interp(z, [-.07, .03], [1.300, 1.346])
+    fields = np.column_stack((y - .173, y - .188, 1.024 - y, 1.000 - y,
+                              y - 1.125, y - 1.142, armhole - np.abs(x),
+                              neck_base + (1.453 - neck_base) * scoop - y))
+    values = list(fields)
+    vertices = {key: list(data) for key, data in attrs.items()}
+    polygons = [(list(map(int, tri)), 0) for tri in triangles]
+    for field in range(fields.shape[1]):
+        # All garments share the same position, normal, UV and skin weights
+        # at each cut, including the pieces on opposite sides of a seam.
+        edges = {}
+        clipped = []
+        for polygon, flags in polygons:
+            inside, outside = [], []
+            for a, b in zip(polygon[-1:] + polygon[:-1], polygon):
+                av, bv = values[a][field], values[b][field]
+                if (av >= 0) != (bv >= 0):
+                    edge = tuple(sorted((a, b)))
+                    if edge not in edges:
+                        lo, hi = edge
+                        fraction = values[lo][field] / (values[lo][field] - values[hi][field])
+                        if fraction <= 1e-7 or fraction >= 1 - 1e-7:
+                            edges[edge] = lo if fraction <= 1e-7 else hi
+                        else:
+                            edges[edge] = len(values)
+                            boundary = values[lo] + fraction * (values[hi] - values[lo])
+                            boundary[field] = 0
+                            values.append(boundary)
+                            for key in ('POSITION', 'NORMAL', 'TEXCOORD_0'):
+                                first, last = vertices[key][lo], vertices[key][hi]
+                                value = first + fraction * (last - first)
+                                if key == 'NORMAL':
+                                    value /= max(float(np.linalg.norm(value)), 1e-8)
+                                vertices[key].append(value)
+                            joint = np.r_[vertices['JOINTS_0'][lo], vertices['JOINTS_0'][hi]]
+                            weight = np.r_[(1 - fraction) * vertices['WEIGHTS_0'][lo],
+                                           fraction * vertices['WEIGHTS_0'][hi]]
+                            joint, inverse = np.unique(joint, return_inverse=True)
+                            weight = np.bincount(inverse, weights=weight)
+                            use = np.argsort(-weight, kind='stable')[:4]
+                            pad = (0, 4 - len(use))
+                            vertices['JOINTS_0'].append(np.pad(joint[use], pad))
+                            vertices['WEIGHTS_0'].append(np.pad(weight[use] / weight[use].sum(), pad))
+                    seam = edges[edge]
+                    inside.append(seam)
+                    outside.append(seam)
+                (inside if bv >= 0 else outside).append(b)
+            for side, mark in ((outside, flags), (inside, flags | (1 << field))):
+                side = list(dict.fromkeys(side))
+                if len(side) >= 3:
+                    clipped.append((side, mark))
+        polygons = clipped
+
+    regions = {name: [] for name in ('skin', 'leggings', 'waist', 'cuffs', 'top', 'hem')}
+    for poly, bits in polygons:
+        above_ankle, above_cuff, below_waist, below_band, above_hem, above_trim, in_armhole, below_neck = (
+            bool(bits & (1 << field)) for field in range(fields.shape[1]))
+        name = 'skin'
+        if above_ankle and below_waist:
+            if not above_cuff:
+                name = 'cuffs'
+            else:
+                name = 'leggings' if below_band else 'waist'
+        elif above_hem and in_armhole and below_neck:
+            name = 'top' if above_trim else 'hem'
+        regions[name].extend((poly[0], a, b) for a, b in zip(poly[1:-1], poly[2:]))
+    return {key: np.asarray(data) for key, data in vertices.items()}, regions
+
+
 def training_clothes(asset, body_node, skin_parts):
-    """Make a crop top and lined training skirt on the original body rig."""
+    """Fit an opaque crop tank and ankle-length leggings to the original rig."""
     primary, *uncovered = skin_parts
-    attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
+    keys = ('POSITION', 'NORMAL', 'TEXCOORD_0', 'JOINTS_0', 'WEIGHTS_0')
+    attrs = {key: asset.read(primary['attributes'][key]) for key in keys}
     triangles = asset.read(primary['indices']).reshape(-1, 3)
-    centers = attrs['POSITION'][triangles].mean(axis=1)
-    x, y = np.abs(centers[:, 0]), centers[:, 1]
-    shorts = (y >= .738) & (y < 1.00)
-    crop_top = (y >= 1.13) & (y < 1.38) & (x < .23)
-    top_material = asset.material('Practice_Training_Top', [.25, .52, .46, 1])
-    shorts_material = asset.material('Practice_Training_Shorts', [.13, .24, .28, 1])
-    parts = [asset.primitive(attrs, triangles[~(shorts | crop_top)], primary['material']),
-             asset.primitive(attrs, triangles[shorts], shorts_material),
-             asset.primitive(attrs, triangles[crop_top], top_material)]
+    attrs, regions = training_surface(attrs, triangles)
+    materials = {
+        'skin': primary['material'],
+        'leggings': asset.material('Practice_Training_Leggings', [.12, .245, .25, 1]),
+        'waist': asset.material('Practice_Training_Waistband', [.10, .205, .21, 1]),
+        'cuffs': asset.material('Practice_Training_Cuffs', [.10, .205, .21, 1]),
+        'top': asset.material('Practice_Training_Top', [.25, .52, .46, 1]),
+        'hem': asset.material('Practice_Training_Top_Hem', [.21, .46, .40, 1]),
+    }
+    parts = [asset.primitive(attrs, faces, materials[region]) for region, faces in regions.items()]
     asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
-    training_skirt(asset, body_node)
-
-
-def training_skirt(asset, body_node):
-    """A continuous knee-length skirt with a fitted waist and an even hem."""
-    doc = asset.doc
-    skin = doc['skins'][doc['nodes'][body_node]['skin']]
-    indices = {doc['nodes'][node]['name']: joint for joint, node in enumerate(skin['joints'])}
-    joints = [indices[name] for name in ('J_Bip_C_Hips', 'J_Bip_L_UpperLeg', 'J_Bip_R_UpperLeg')]
-    bind = asset.read(skin['inverseBindMatrices'])
-    knees = [indices[f'J_Bip_{side}_LowerLeg'] for side in ('L', 'R')]
-    knee_height = np.mean([np.linalg.inv(bind[knee].reshape((4, 4), order='F'))[1, 3]
-                           for knee in knees])
-    skirt = asset.material('Practice_Training_Skirt', [.15, .33, .32, 1])
-    # Sample the fitted waist and hip before opening out toward the kneecaps.
-    heights = np.r_[1.020, 1.002, .974, np.linspace(.945, knee_height, 9)]
-    sectors = 40
-    angles = np.arange(sectors) * (2 * np.pi / sectors)
-    x, z = np.cos(angles), np.sin(angles)
-    count = sectors * len(heights)
-    positions = np.empty((count, 3))
-    uv = np.empty((count, 2))
-    weights = np.zeros((count, 4))
-    for row, height in enumerate(heights):
-        ring = slice(row * sectors, (row + 1) * sectors)
-        drop = (heights[0] - height) / (heights[0] - knee_height)
-        # The side seam opens over the hips, then eases into the flare.
-        hip = 1 - (1 - min(drop / .32, 1)) ** 2
-        radius_x = .132 + .049 * hip + .050 * drop ** 1.6
-        radius_z = .112 + .029 * hip + .050 * drop ** 1.6
-        positions[ring] = np.column_stack((radius_x * x, np.full(sectors, height), radius_z * z - .008))
-        uv[ring] = np.column_stack((np.arange(sectors) / sectors, np.full(sectors, drop)))
-        # The waist follows the pelvis. Below the seat the skirt travels
-        # with both thighs, with continuous weights around the front and back.
-        travel = np.clip((drop - .04) / .85, 0, 1)
-        follow = travel * travel * (3 - 2 * travel) * .92
-        left = .5 - .5 * x
-        weights[ring, 0] = 1 - follow
-        weights[ring, 1] = follow * left
-        weights[ring, 2] = follow * (1 - left)
-    triangles = []
-    for row in range(len(heights) - 1):
-        for col in range(sectors):
-            a = row * sectors + col
-            b = row * sectors + (col + 1) % sectors
-            triangles.extend(((a, b, a + sectors), (b, b + sectors, a + sectors)))
-    triangles = np.asarray(triangles)
-    norms = np.zeros_like(positions)
-    cross = np.cross(positions[triangles[:, 1]] - positions[triangles[:, 0]],
-                     positions[triangles[:, 2]] - positions[triangles[:, 0]])
-    for corner in range(3):
-        np.add.at(norms, triangles[:, corner], cross)
-    norms /= np.linalg.norm(norms, axis=1)[:, None]
-    attrs = {'POSITION': positions, 'NORMAL': norms, 'TEXCOORD_0': uv,
-             'JOINTS_0': np.tile([*joints, 0], (count, 1)), 'WEIGHTS_0': weights}
-    asset.mesh(body_node, 'PracticeTrainingSkirt', [asset.primitive(attrs, triangles, skirt)])
 
 
 def dress(source, target, person):
