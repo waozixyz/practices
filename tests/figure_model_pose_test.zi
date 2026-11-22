@@ -137,7 +137,7 @@ SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
     return measured >= 17 * 100 && min_gap >= 0.060 * scene.nodes[model.instance.root_node].scale.x
 }
 
-TrainingSkirtFollowsSkin :: (model: *FigureModel, scene: *Scene) -> bool {
+TrainingSkirtDrape :: (model: *FigureModel, scene: *Scene) -> bool {
     FigureModelTraining(model, scene, true, false)
     defer FigureModelTraining(model, scene, false)
     pose := ModelPose(1.0)
@@ -170,13 +170,29 @@ TrainingSkirtFollowsSkin :: (model: *FigureModel, scene: *Scene) -> bool {
             points[vertex] = scene.positions[mesh.first_vertex + vertex]
         }
         if !GltfUpdateScene(*model.model, *model.instance, scene) { return false }
+        waist := inst.skin.positions[0].y
+        reshaped := false
         for vertex: 0..count - 1 {
-            if FigureDistance(points[vertex], scene.positions[mesh.first_vertex + vertex]) > 0.000001 {
-                print("Training skirt changed after restoring the skinned vertices\n")
+            rest := inst.skin.positions[vertex]
+            difference := FigureDistance(points[vertex], scene.positions[mesh.first_vertex + vertex])
+            if rest.y >= waist - 0.000001 && difference > 0.000001 {
+                print("Training skirt waist detached from the skinned seam\n")
+                return false
+            }
+            reshaped = reshaped || (rest.y < waist - 0.3 && difference > 0.005)
+        }
+        if !reshaped || !FigureModelPose(model, scene, *pose, 0.6) { return false }
+        root := scene.nodes[model.instance.root_node]
+        for vertex: 0..count - 1 {
+            point := scene.positions[mesh.first_vertex + vertex]
+            normal := scene.normals[mesh.first_vertex + vertex]
+            if !FigureFinite(point) || !FigureFinite(normal) || FigureLength(normal) < 0.9 ||
+            root.position.y + point.y * root.scale.x < 0.005 || FigureDistance(points[vertex], point) > 0.000001 {
+                print("Training skirt produced invalid or seek-dependent cloth\n")
                 return false
             }
         }
-        print("Training skirt retains its skinned shape during movement\n")
+        print("Training skirt drapes continuously while retaining the skinned waist and floor clearance\n")
         return true
     }
     return false
@@ -234,7 +250,7 @@ main :: () -> s32 {
         if !ArmMotion(*model, *scene, path) {
             fail += 1
         }
-        if path == paths[0] && !TrainingSkirtFollowsSkin(*model, *scene) {
+        if path == paths[0] && !TrainingSkirtDrape(*model, *scene) {
             fail += 1
         }
     }

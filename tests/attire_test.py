@@ -85,6 +85,37 @@ def verify_feet(old, new, receipts, person):
         assert np.quantile(atlas[y[toes], x[toes], 0], .05) > 215, 'The atlas still paints dark socks on the foot'
 
 
+def verify_training_skirt(asset, mesh, original_body):
+    """The shell has smooth circular rows and only waist and hem boundaries."""
+    panel, = mesh['primitives']
+    attrs = panel['attributes']
+    points = asset.read(attrs['POSITION'])
+    normals = asset.read(attrs['NORMAL'])
+    triangles = asset.read(panel['indices']).reshape(-1, 3)
+    skin = asset.doc['skins'][original_body['skin']]
+    bind = asset.read(skin['inverseBindMatrices'])
+    knee_joints = [index for index, node in enumerate(skin['joints'])
+                   if asset.doc['nodes'][node]['name'] in ('J_Bip_L_LowerLeg', 'J_Bip_R_LowerLeg')]
+    assert len(knee_joints) == 2
+    for joint in knee_joints:
+        knee = np.linalg.inv(bind[joint].reshape(4, 4, order='F'))[1, 3]
+        assert abs(points[:, 1].min() - knee) < .001
+    edges = np.sort(np.concatenate([triangles[:, [a, b]] for a, b in ((0, 1), (1, 2), (2, 0))]), axis=1)
+    edges, uses = np.unique(edges, axis=0, return_counts=True)
+    assert np.all((uses == 1) | (uses == 2))
+    boundary = edges[uses == 1]
+    heights = points[boundary, 1]
+    assert np.all(heights[:, 0] == heights[:, 1])
+    assert np.array_equal(np.unique(heights), np.array([points[:, 1].min(), points[:, 1].max()]))
+    for height in np.unique(heights):
+        _, degree = np.unique(boundary[heights[:, 0] == height], return_counts=True)
+        assert len(degree) >= 32 and np.all(degree == 2)
+    assert np.min(np.sum(normals[edges[:, 0]] * normals[edges[:, 1]], axis=1)) > .85
+    assert .45 < np.ptp(points[:, 0]) < .50 and .35 < np.ptp(points[:, 2]) < .41
+    material = asset.doc['materials'][panel['material']]
+    assert material['name'] == 'Practice_Training_Skirt' and material['doubleSided']
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-dir', required=True, type=Path)
@@ -147,12 +178,7 @@ def main():
             shorts_y = new.read(shorts['attributes']['POSITION'])[shorts_faces, 1].mean(axis=1)
             assert .738 <= shorts_y.min() < .76
             sports_skirt = next(mesh for mesh, _ in garments if mesh['name'] == 'PracticeTrainingSkirt')
-            panel, binding = sports_skirt['primitives']
-            silhouette = new.read(panel['attributes']['POSITION'])
-            hem = new.read(binding['attributes']['POSITION'])
-            assert .81 < hem[:, 1].min() < .84
-            assert .34 < np.ptp(silhouette[:, 0]) < .37 and np.ptp(silhouette[:, 2]) < .25
-            assert d['materials'][binding['material']]['name'] == 'Practice_Training_Skirt_Binding'
+            verify_training_skirt(new, sports_skirt, original_body)
             skirt = next(mesh for mesh, _ in garments if mesh.get('name') == 'PracticeSkirt')
             points = new.read(skirt['primitives'][0]['attributes']['POSITION'])
             assert .60 < points[:, 1].min() < .70 and np.ptp(points[:, 0]) > .45

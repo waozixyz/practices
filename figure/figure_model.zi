@@ -404,6 +404,9 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
         return false
     }
     FigureModelToeContact(figure, scene, joints)
+    if figure.training_skirt {
+        FigureModelTrainingDrape(figure, scene)
+    }
     FigureModelCloth(figure, scene, joints)
     return true
 }
@@ -641,11 +644,127 @@ FigureModelSkirtContact :: (point: Vector3, outward: Vector3, depth: float64, sc
     return point
 }
 
-FigureModelWorld :: (figure: *FigureModel, scene: *Scene, role: s32) -> Vector3 {
+// Each section below the fitted waist surrounds both thighs in a common
+// frame. In a lunge the hem follows the knees together with a continuous panel.
+FigureModelTrainingDrape :: (figure: *FigureModel, scene: *Scene) {
+    right := FigureSideRole(1, FIGURE_UPPER_LEG)
+    left := FigureSideRole(0, FIGURE_UPPER_LEG)
+    right_knee := FigureSideRole(1, FIGURE_LOWER_LEG)
+    left_knee := FigureSideRole(0, FIGURE_LOWER_LEG)
+    rest_right := figure.rest_at[figure.bones[right]]
+    rest_left := figure.rest_at[figure.bones[left]]
+    rest_right_knee := figure.rest_at[figure.bones[right_knee]]
+    rest_left_knee := figure.rest_at[figure.bones[left_knee]]
+    rest_hip := FigureLerp(rest_right, rest_left, 0.5)
+    rest_knee := FigureLerp(rest_right_knee, rest_left_knee, 0.5)
+    rest_hip_span := FigureSub(rest_right, rest_left)
+    rest_knee_span := FigureSub(rest_right_knee, rest_left_knee)
+    right_at := FigureModelLocal(figure, right)
+    left_at := FigureModelLocal(figure, left)
+    right_knee_at := FigureModelLocal(figure, right_knee)
+    left_knee_at := FigureModelLocal(figure, left_knee)
+    hip := FigureLerp(right_at, left_at, 0.5)
+    knee := FigureLerp(right_knee_at, left_knee_at, 0.5)
+    sign := ifx rest_hip_span.x >= 0.0 then 1.0 else -1.0
+    hip_span := FigureScale(FigureSub(right_at, left_at), sign)
+    knee_span := FigureScale(FigureSub(right_knee_at, left_knee_at), sign)
+    away := FigureNormalize(FigureSub(knee, hip))
+    right_thigh := FigureNormalize(FigureSub(right_knee_at, right_at))
+    left_thigh := FigureNormalize(FigureSub(left_knee_at, left_at))
+    hip_turn := FigureMultiply(FigureMultiply(FigureConjugate(figure.facing),
+        figure.turn[figure.bones[FIGURE_HIPS]]), figure.facing)
+    down := FigureAxis(hip_turn, 0.0, -1.0, 0.0)
+    back := FigureAxis(hip_turn, 0.0, 0.0, 1.0)
+    // Bending consumes length in folds at the hip. The turned hem gathers
+    // near the thighs as they rise, keeping the cloth from forming a bell.
+    bent := FigureSmooth(1.0 - FigureDot(away, down), 0.08, 0.61)
+    split := FigureSmooth(1.0 - FigureDot(right_thigh, left_thigh), 0.12, 0.8)
+    gather := FigureMax(bent, split)
+    lap := FigureSmooth(knee.y - hip.y, -0.10, 0.04) * FigureSmooth(-down.y, 0.58, 0.77) *
+        (1.0 - FigureSmooth(FigureAbs(knee_span.y), 0.06, 0.20))
+    lap_forward := FigureNormalize(.{away.x, 0.0, away.z})
+    root := scene.nodes[figure.instance.root_node]
+    floor := (0.006 - root.position.y) / root.scale.x
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        source := *figure.model.meshes[inst.mesh_index]
+        if TextView(source.name[:]) != "PracticeTrainingSkirt" || inst.skin.positions.count == 0 { continue }
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        hem := inst.skin.positions[0].y
+        for rest: inst.skin.positions { hem = FigureMin(hem, rest.y) }
+        // Older media has a short skirt and uses its original skin weights.
+        if hem > rest_knee.y + 0.025 { return }
+        for vertex: 0..inst.skin.positions.count - 1 {
+            rest := inst.skin.positions[vertex]
+            depth := rest_hip.y - rest.y
+            if depth <= -0.06 { continue }
+            drop := FigureClamp(depth / (rest_hip.y - rest_knee.y), 0.0, 1.0)
+            t := drop * (1.0 - 0.16 * gather)
+            span := FigureLerp(hip_span, knee_span, t)
+            across := FigureNormalize(span)
+            axis := FigureNormalize(FigureLerp(down, away, FigureSmooth(drop, 0.0, 0.36)))
+            forward := FigureNormalize(FigureCross(axis, across))
+            rest_span := FigureLerp(rest_hip_span, rest_knee_span, drop)
+            spread := FigureMax(0.0, FigureLength(span) - FigureLength(rest_span))
+            rest_center := FigureLerp(rest_hip, rest_knee, drop)
+            depth_offset := rest.z - rest_center.z
+            // The upper panel carries over the raised knees. Below the
+            // thighs, the free panel hangs closer to the seat.
+            over := FigureSmooth(forward.y * depth_offset, 0.0, 0.095)
+            cover := gather * drop * drop * over
+            // Deep squats raise both knees above the hip sockets. The
+            // front panel folds down over their forward edge.
+            lap_cover := lap * drop * drop * FigureSmooth(forward.y * depth_offset, -0.015, 0.042)
+            t += 0.21 * cover * (1.0 - lap) + 0.44 * lap_cover
+            center := FigureAddScaled(FigureLerp(hip, knee, t), down, FigureMin(0.0, depth))
+            width := 1.0 + spread / 0.48 - 0.09 * gather * drop
+            fullness := 1.0 - 0.48 * gather * FigureSmooth(drop, 0.05, 0.7)
+            radial := FigureAdd(FigureScale(across, (rest.x - rest_center.x) * width),
+                FigureScale(forward, depth_offset * fullness))
+            point := FigureAdd(center, radial)
+            outward := FigureNormalize(radial)
+            point = FigureTrainingSkirtClear(point, outward, right_at, right_knee_at, 0.090)
+            point = FigureTrainingSkirtClear(point, outward, left_at, left_knee_at, 0.090)
+            point = FigureAddScaled(point, lap_forward, 0.11 * lap_cover)
+            point.y -= 0.15 * lap_cover * FigureSmooth(drop, 0.68, 1.0)
+            slot := *scene.positions[mesh.first_vertex + vertex]
+            loose := FigureSmooth(depth, -0.035, 0.12)
+            // Leave room for the seat when the waist tilts into a squat.
+            seat := FigureSmooth(depth, -0.06, -0.012) * (1.0 - FigureSmooth(depth, 0.04, 0.17))
+            rear := FigureSmooth(depth_offset, 0.015, 0.11)
+            <<slot = FigureAddScaled(FigureLerp(<<slot, point, loose), back, 0.052 * bent * seat * rear)
+            slot.y = FigureMax(slot.y, floor)
+        }
+        ComputeNormals(scene, inst.scene_node)
+    }
+}
+
+// Project along the panel's outward direction. A panel that has crossed a
+// thigh still returns to the same side, even following a direct timeline seek.
+FigureTrainingSkirtClear :: (point: Vector3, outward: Vector3, from: Vector3, to: Vector3, radius: float64) -> Vector3 {
+    segment := FigureSub(to, from)
+    across := FigureAddScaled(segment, outward, -FigureDot(segment, outward))
+    length := FigureDot(across, across)
+    along := ifx length > 0.000001 then FigureClamp(FigureDot(FigureSub(point, from), across) / length, 0.0, 1.0) else 0.5
+    center := FigureAddScaled(from, segment, along)
+    delta := FigureSub(point, center)
+    depth := FigureDot(delta, outward)
+    room := radius * radius - FigureDot(delta, delta) + depth * depth
+    if room <= 0.0 { return point }
+    reach := Sqrt(room)
+    move := FigureClamp(reach - depth, 0.0, 0.078) * FigureSmooth(reach, 0.0, 0.045)
+    return FigureAddScaled(point, outward, move)
+}
+
+FigureModelLocal :: (figure: *FigureModel, role: s32) -> Vector3 {
     world := figure.instance.node_world[figure.bones[role]]
+    return .{world.m[3], world.m[7], world.m[11]}
+}
+
+FigureModelWorld :: (figure: *FigureModel, scene: *Scene, role: s32) -> Vector3 {
     root := scene.nodes[figure.instance.root_node]
     return FigureAdd(root.position, FigureScale(FigureRotate(figure.facing,
-        .{world.m[3], world.m[7], world.m[11]}), root.scale.x))
+        FigureModelLocal(figure, role)), root.scale.x))
 }
 
 // Relaxed fingers have a small graduated curl; fists close every joint,
@@ -841,6 +960,10 @@ FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
             // The small sole and toe facets need a softer shade and rim.
             figure.uniforms[first + 2] = .{0.91, 0.87, 0.88, 1.0}
             figure.uniforms[first + 4] = .{0.045, 0.05, 0.06, 0.0}
+        } else if TextView(source.name[:]) == "PracticeTrainingSkirt" {
+            // Keep the folds and the inside of the double-sided fabric matte.
+            figure.uniforms[first + 2] = .{0.88, 0.88, 0.88, 1.0}
+            figure.uniforms[first + 4] = .{0.006, 0.010, 0.010, 0.0}
         }
         material.kind = .MaterialUnlit
         material.vertex_colors = false
