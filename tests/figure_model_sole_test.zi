@@ -15,7 +15,29 @@ SoleWorld :: (figure: *FigureModel, matrix: GltfMatrix, point: Vector3, scene: *
     return FigureAdd(root.position, FigureScale(FigureRotate(figure.facing, in_model), root.scale.x))
 }
 
-SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
+// The lowest point of everything drawn, not only the soles. A garment
+// below the soles would lift the visible figure off the floor line.
+LowestVisible :: (figure: *FigureModel, scene: *Scene, lowest_mesh: *s64) -> float64 {
+    low: float64 = 1000.0
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        if !scene.nodes[inst.scene_node].visible { continue }
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        for vertex: 0..mesh.vertex_count - 1 {
+            actual := SoleWorld(figure, figure.instance.node_world[inst.gltf_node],
+                scene.positions[mesh.first_vertex + vertex], scene)
+            if actual.y < low {
+                low = actual.y
+                <<lowest_mesh = cast(s64)inst.mesh_index
+            }
+        }
+    }
+    return low
+}
+
+SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string, outfit: string) -> s32 {
+    worst_lowest: float64
+    lowest_mesh: s64 = -1
     worst_gap: float64
     worst_penetration: float64
     worst_flat: float64
@@ -60,6 +82,12 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             }
             if !FigureModelPose(figure, scene, *pose) {
                 return 1
+            }
+            lowest_index: s64 = -1
+            lowest := LowestVisible(figure, scene, *lowest_index)
+            if lowest_mesh < 0 || FigureAbs(lowest) > worst_lowest {
+                worst_lowest = FigureAbs(lowest)
+                lowest_mesh = lowest_index
             }
             if mode == 2 {
                 for side: cast(s32)0..1 {
@@ -130,8 +158,13 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             }
         }
     }
-    print("sole test: % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m, anatomical span error % m\n",
-        path, measured, worst_gap, worst_penetration, worst_flat, worst_pivot, worst_span)
+    print("sole test: % % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m, anatomical span error % m\n",
+        path, outfit, measured, worst_gap, worst_penetration, worst_flat, worst_pivot, worst_span)
+    if lowest_mesh >= 0 {
+        lowest_source := *figure.model.meshes[lowest_mesh]
+        print("sole test: % % lowest visible point % m from the floor (%)\n",
+            path, outfit, worst_lowest, TextView(lowest_source.name[:]))
+    }
     print("sole test: % maximum procedural toe flex % rad\n", path, toe_flex)
     if (figure.keep_toe_profile && toe_flex > 0.000001) || (!figure.keep_toe_profile && toe_flex < 0.1) {
         return 1
@@ -141,7 +174,8 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             penetration_mode, penetration_point.x, penetration_point.y, penetration_point.z)
     }
     expected_samples := 4 * 33 * (figure.sole_count[0] + figure.sole_count[1])
-    return ifx measured != expected_samples || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 || worst_pivot >= 0.001 || worst_span >= 0.001 then 1 else 0
+    return ifx measured != expected_samples || worst_gap >= 0.001 || worst_penetration >= 0.001 || worst_flat >= 0.001 ||
+        worst_pivot >= 0.001 || worst_span >= 0.001 || worst_lowest >= 0.001 then 1 else 0
 }
 
 main :: () -> s32 {
@@ -163,7 +197,11 @@ main :: () -> s32 {
             print("sole test: stale measurements after loading %\n", path)
             return 1
         }
-        fail += SoleCheck(*model, *scene, path)
+        fail += SoleCheck(*model, *scene, path, "practice outfit")
+        // The Workout outfit, as the Customize card and Workout scene draw it:
+        // both figures stand on the same floor within the same tolerance.
+        FigureModelTraining(*model, *scene, true, false)
+        fail += SoleCheck(*model, *scene, path, "Workout outfit")
     }
     return fail
 }

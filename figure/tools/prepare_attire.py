@@ -494,8 +494,73 @@ def training_clothes(asset, body_node, skin_parts):
     asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
 
 
-def training_tshirt(asset, body_node, skin_parts):
-    """Cut a short-sleeved crew-neck shirt on the skinned torso."""
+TSHIRT_HEM = .994
+TSHIRT_AXIS = np.array([.00051, -.016])
+
+
+def hang_over(positions, vertices, cover, margin=.008, falling=.35, rising=.6):
+    """Let garment VERTICES hang radially over the COVER triangles beneath them.
+
+    Fabric clears the covered surface by MARGIN. Below a bulge it narrows
+    at most FALLING per unit of height and above it RISING, so the hem
+    drapes over the waistband instead of folding back under it.
+    Returns the vertices that moved.
+    """
+    steps = 12
+    a, b = np.meshgrid(np.arange(steps + 1), np.arange(steps + 1))
+    inside = a + b <= steps
+    a, b = a[inside] / steps, b[inside] / steps
+    corners = cover[cover[:, :, 1].max(axis=1) > TSHIRT_HEM - .045]
+    samples = (a[None, :, None] * corners[:, 0, None] + b[None, :, None] * corners[:, 1, None] +
+               (1 - a - b)[None, :, None] * corners[:, 2, None]).reshape(-1, 3)
+    columns, height, bottom = 180, .003, TSHIRT_HEM - .045
+    rows = int(np.ceil((1.35 - bottom) / height))
+
+    def polar(points):
+        dx, dz = points[:, 0] - TSHIRT_AXIS[0], points[:, 2] - TSHIRT_AXIS[1]
+        column = np.floor((np.arctan2(dz, dx) + np.pi) / (2 * np.pi) * columns).astype(int) % columns
+        return column, np.hypot(dx, dz), dx, dz
+
+    column, radius, _, _ = polar(samples)
+    row = np.floor((samples[:, 1] - bottom) / height).astype(int)
+    kept = (row >= 0) & (row < rows)
+    need = np.full((columns, rows), -np.inf)
+    np.maximum.at(need, (column[kept], row[kept]), radius[kept] + margin)
+    # Close the gaps between samples, including around the angle seam.
+    need = np.maximum.reduce([np.roll(need, shift, axis=0) for shift in (-1, 0, 1)])
+    padded = np.pad(need, ((0, 0), (1, 1)), constant_values=-np.inf)
+    need = np.maximum.reduce([padded[:, :-2], padded[:, 1:-1], padded[:, 2:]])
+    heights = bottom + (np.arange(rows) + .5) * height
+
+    points = positions[vertices]
+    column, radius, dx, dz = polar(points)
+    rise = heights[None, :] - points[:, 1, None]
+    slope = np.where(rise > 0, falling, rising)
+    wanted = np.max(need[column] - slope * np.abs(rise), axis=1)
+    scale = np.maximum(radius, wanted) / np.maximum(radius, 1e-8)
+    moved = scale > 1 + 1e-7
+    positions[vertices[moved], 0] = TSHIRT_AXIS[0] + dx[moved] * scale[moved]
+    positions[vertices[moved], 2] = TSHIRT_AXIS[1] + dz[moved] * scale[moved]
+    return vertices[moved]
+
+
+def smooth_normals(attrs, faces, vertices):
+    """Recompute the smooth normals of moved VERTICES, welded across UV seams."""
+    positions = attrs['POSITION']
+    _, welded = np.unique(np.round(positions, 5), axis=0, return_inverse=True)
+    welded = welded.reshape(-1)
+    cross = np.cross(positions[faces[:, 1]] - positions[faces[:, 0]],
+                     positions[faces[:, 2]] - positions[faces[:, 0]])
+    normals = np.zeros((int(welded.max()) + 1, 3), dtype=np.float64)
+    np.add.at(normals, welded[faces].reshape(-1), np.repeat(cross, 3, axis=0))
+    normals = normals[welded[vertices]]
+    lengths = np.linalg.norm(normals, axis=1)
+    regular = lengths > 1e-10
+    attrs['NORMAL'][vertices[regular]] = normals[regular] / lengths[regular, None]
+
+
+def training_tshirt(asset, body_node, skin_parts, skin, trousers, trouser_faces):
+    """Cut a short-sleeved crew-neck shirt on the skinned torso, worn over the trousers."""
     primary, *uncovered = skin_parts
     keys = ('POSITION', 'NORMAL', 'TEXCOORD_0', 'JOINTS_0', 'WEIGHTS_0')
     attrs = {key: asset.read(primary['attributes'][key]) for key in keys}
@@ -503,33 +568,37 @@ def training_tshirt(asset, body_node, skin_parts):
     x, y, z = attrs['POSITION'].T
     across = np.abs(x - .00051)
     neck = 1.505 - (.054 + .021 * np.clip((.015 - z) / .070, 0, 1)) * np.exp(-(across / .061) ** 2)
-    edge = np.column_stack((y - .994, .286 - across, neck - y))
-    fields = np.column_stack((edge, edge - [.018, .014, .011], y - .185, y - .960))
+    edge = np.column_stack((y - TSHIRT_HEM, .286 - across, neck - y))
+    fields = np.column_stack((edge, edge - [.018, .014, .011], y - .185))
     attrs, polygons = cut_surface(attrs, triangles, fields)
     regions = {name: [] for name in ('skin', 'shirt', 'binding')}
     for poly, bits in polygons:
         name = 'skin'
         if (bits & 7) == 7:
             name = 'shirt' if (bits & 63) == 63 else 'binding'
-        elif bits & 64 and not bits & 128:
-            # Keep skin at the cuffs and under the waistband. The opaque
-            # trousers cover the legs between those two edges in Workout.
+        elif bits & 64 and not bits & 1:
+            # Keep skin at the cuffs. The opaque trousers cover the legs up
+            # to the waistband, and the shirt hangs over the waistband.
             continue
         regions[name].extend((poly[0], a, b) for a, b in zip(poly[1:-1], poly[2:]))
 
     garment = np.unique([*regions['shirt'], *regions['binding']])
-    skin = np.unique(regions['skin'])
-    interior = np.setdiff1d(garment, skin)
-    # Give the shirt a little ease. The cut edges share the skin positions,
-    # normals and joint weights, so they stay closed in reaching poses.
+    seams = np.intersect1d(garment, np.unique(regions['skin']))
+    interior = np.setdiff1d(garment, seams)
+    # Give the shirt a little ease. The sleeve and neck edges share the skin
+    # positions, normals and joint weights, so they stay closed in reaching
+    # poses. The hem is a free edge over the trousers.
     attrs['POSITION'][interior] += .005 * attrs['NORMAL'][interior]
-    # Tuck the lower hem under the existing waistband. Move the shared
-    # skin seam with it so the join remains closed underneath the trousers.
-    profile = attrs['POSITION']
-    tuck = np.clip((1.16 - profile[:, 1]) / .095, 0, 1) * np.clip((profile[:, 1] - .96) / .029, 0, 1)
-    tuck = .32 * tuck * tuck * (3 - 2 * tuck)
-    center = np.array([.00051, -.016])
-    profile[:, [0, 2]] -= tuck[:, None] * (profile[:, [0, 2]] - center)
+    moved = hang_over(attrs['POSITION'], interior, trousers['POSITION'][trouser_faces])
+    garment_faces = np.asarray([*regions['shirt'], *regions['binding']])
+    smooth_normals(attrs, garment_faces, moved)
+    # Carry the waistband's skinning into the overlapping shirt so the hem
+    # moves with the trousers under it, blending back to the torso above.
+    lower = interior[attrs['POSITION'][interior, 1] < 1.17]
+    blend = np.clip((1.17 - attrs['POSITION'][lower, 1]) / .08, 0, 1)
+    used = np.unique(trouser_faces)
+    waistband = {key: trousers[key][used] for key in ('POSITION', 'JOINTS_0', 'WEIGHTS_0')}
+    fit_garment_weights(attrs, len(skin['joints']), waistband, lower, blend, waistband['POSITION'][:, 1] > .90)
     materials = {
         'skin': primary['material'],
         'shirt': asset.material('Practice_Training_Tshirt', [.32, .47, .40, 1]),
@@ -574,6 +643,7 @@ def training_trousers(asset, body_node, trousers):
     color = asset.doc['materials'][trousers['material']]['pbrMetallicRoughness']['baseColorFactor']
     material = asset.material('Practice_Workout_Trousers', color)
     asset.mesh(body_node, 'PracticeTrainingTrousers', [asset.primitive(attrs, faces, material)])
+    return attrs, faces
 
 
 def hair_lock(asset, profile, joints, material, uv_start):
@@ -802,9 +872,11 @@ def dress(source, target, person):
         training_clothes(asset, body_node, skin_parts)
         woman_hair(asset)
     else:
-        training_tshirt(asset, body_node, skin_parts)
         trousers = next(part for part in cloth if part['material'] == bottom)
-        training_trousers(asset, body_node, trousers)
+        # Opaque meshes draw in node order with a less-or-equal depth test,
+        # so the shirt that hangs over the waistband comes after the trousers.
+        trouser_attrs, trouser_faces = training_trousers(asset, body_node, trousers)
+        training_tshirt(asset, body_node, skin_parts, skin, trouser_attrs, trouser_faces)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),

@@ -63,10 +63,15 @@ rendered hand direction, wrist alignment and planted ankles as the pelvis
 moves over fixed foot targets. It also checks clavicle motion on a high
 reach, sweeps the palm through a full turn at a fixed wrist and elbow,
 and measures skirt clearance as the forearm sweeps across a low reach.
+For the Man it checks that his Workout T-shirt draws after his trousers
+and covers their waistband through hinges, twists, side bends, a high knee
+and a squat.
 
 `figure_model_sole_test` measures actual skinned underside vertices for both
 models during flat stances and heel/ball pivots, with a 1 mm floor,
-flatness and pivot limit. `attire_test.py` checks the soles against the
+flatness and pivot limit. It repeats them in the Workout outfit and checks
+that the lowest drawn point of each figure is on the floor, so neither
+stands higher than the other. `attire_test.py` checks the soles against the
 original CC0 skin mesh and verifies the reconstructed figures' textures,
 skeleton and clothing. See `shared/figure/MODELS.md` for reproduction.
 
@@ -74,7 +79,9 @@ skeleton and clothing. See `shared/figure/MODELS.md` for reproduction.
 shares displacement across nearby fabric edges. `figure_model` applies
 those constraints to the named skirt after skinning. The attire generator
 grades sleeve weights across the elbow and fits the man's shoulder and
-thigh weights to the underlying body. `figure_cloth_test`
+thigh weights to the underlying body. The Man's Workout T-shirt hangs
+over his trousers: it clears their surface and takes the waistband's
+skinning near the hem. `figure_cloth_test`
 covers the fold through ninety degrees, waist anchoring and capsule
 contacts. The preview's `--clothing-audit` checks actual named garment
 surfaces throughout every timeline. Its private capture commands render

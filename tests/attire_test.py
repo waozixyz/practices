@@ -158,15 +158,40 @@ def verify_training_tshirt(asset):
         attrs = [asset.read(i) for i in part['attributes'].values()]
         edges.append(set(map(tuple, np.column_stack(attrs))))
     joined = np.array(sorted(edges[0] & edges[1]))[:, :3]
-    assert (np.abs(joined[:, 1] - .994) < 2e-7).sum() > 20, 'Open waist seam'
+    # The hem is a free edge that hangs over the waistband, not a seam to
+    # skin tucked under it.
+    assert not np.any(joined[:, 1] < 1.10), 'Hem sewn to the skin under the trousers'
     for side in (-1, 1):
         assert (np.abs(side * (joined[:, 0] - .00051) - .286) < 2e-7).sum() > 10, 'Open sleeve seam'
     neck = joined[(joined[:, 1] > 1.40) & (np.abs(joined[:, 0]) < .10)]
     assert len(neck) > 20 and neck[:, 2].min() < -.04 < neck[:, 2].max(), 'Open crew neck seam'
     exposed = asset.read(skin['attributes']['POSITION'])
     assert not np.any((np.abs(exposed[:, 0]) < .15) & (exposed[:, 1] > 1.00) & (exposed[:, 1] < 1.40))
-    assert not np.any((exposed[:, 1] > .185001) & (exposed[:, 1] < .959999)), 'Skin inside opaque trousers'
+    assert not np.any((exposed[:, 1] > .185001) & (exposed[:, 1] < .993999)), 'Skin inside opaque trousers'
     assert exposed[:, 1].min() < .146, 'Skin no longer meets the original foot mesh under the cuff'
+
+    # The shirt hangs over the Workout trousers: it draws after them and its
+    # hem reaches below their waistband, clear of the trouser surface.
+    nodes = [node.get('name') for node in asset.doc['nodes']]
+    assert nodes.index('PracticeTrainingTrousers') < nodes.index('PracticeTrainingBody'), 'Shirt drawn under trousers'
+    fitted, = next(mesh for mesh in asset.doc['meshes'] if mesh['name'] == 'PracticeTrainingTrousers')['primitives']
+    trouser_points = asset.read(fitted['attributes']['POSITION'])[np.unique(asset.read(fitted['indices']))]
+    garment = np.concatenate([asset.read(part['attributes']['POSITION'])[np.unique(asset.read(part['indices']))]
+                              for part in (shirt, binding)])
+    assert trouser_points[:, 1].max() - garment[:, 1].min() > .10, 'Hem does not reach over the waistband'
+
+    def polar(points):
+        offset = points[:, [0, 2]] - [.00051, -.016]
+        return np.arctan2(offset[:, 1], offset[:, 0]), np.hypot(offset[:, 0], offset[:, 1])
+
+    band = trouser_points[trouser_points[:, 1] > garment[:, 1].min()]
+    lower = garment[garment[:, 1] < band[:, 1].max()]
+    band_angle, band_radius = polar(band)
+    angle, radius = polar(lower)
+    for point, turn, reach in zip(lower, angle, radius):
+        near = (np.abs(band[:, 1] - point[1]) < .006) & (np.abs(np.angle(np.exp(1j * (band_angle - turn)))) < .02)
+        if near.any():
+            assert reach > band_radius[near].max() + .004, ('Shirt inside the waistband', point)
 
 
 def verify_training_trousers(asset):

@@ -362,6 +362,178 @@ TrainingOutfitPose :: (model: *FigureModel, scene: *Scene, man: bool) -> bool {
     return tested == (ifx man then 2 else 1) && TrainingVisibility(model, scene, false)
 }
 
+// How far along DIRECTION a ray from ORIGIN meets triangle A B C, or -1.
+RayTriangle :: (origin: Vector3, direction: Vector3, a: Vector3, b: Vector3, c: Vector3) -> float64 {
+    edge_ab := FigureSub(b, a)
+    edge_ac := FigureSub(c, a)
+    across := FigureCross(direction, edge_ac)
+    determinant := FigureDot(edge_ab, across)
+    if FigureAbs(determinant) < 0.000000000001 {
+        return -1.0
+    }
+    inverse := 1.0 / determinant
+    offset := FigureSub(origin, a)
+    u := FigureDot(offset, across) * inverse
+    if u < 0.0 || u > 1.0 {
+        return -1.0
+    }
+    turned := FigureCross(offset, edge_ab)
+    v := FigureDot(direction, turned) * inverse
+    if v < 0.0 || u + v > 1.0 {
+        return -1.0
+    }
+    return FigureDot(edge_ac, turned) * inverse
+}
+
+ModelSpace :: (matrix: GltfMatrix, point: Vector3, w: float64) -> Vector3 {
+    return FigureV3(matrix.m[0] * point.x + matrix.m[1] * point.y + matrix.m[2] * point.z + matrix.m[3] * w,
+        matrix.m[4] * point.x + matrix.m[5] * point.y + matrix.m[6] * point.z + matrix.m[7] * w,
+        matrix.m[8] * point.x + matrix.m[9] * point.y + matrix.m[10] * point.z + matrix.m[11] * w)
+}
+
+// Workout poses that fold, twist and lift the waist: standing sway, deep
+// hinges, a back bend, twists, side bends, a high knee and a squat.
+ShirtPose :: (sample: s32) -> FigureJoints {
+    pose := ModelPose(cast(float64)(sample % 4) * FIGURE_PI / 2.0)
+    if sample >= 4 && sample < 9 {
+        amount := cast(float64)(sample - 3) / 5.0
+        pose.pelvis_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 1.4 * amount)
+        pose.chest_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 2.0 * amount)
+    } else if sample == 9 {
+        pose.chest_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, -0.45)
+    } else if sample == 10 || sample == 11 {
+        pose.chest_turn = FigureAxisAngle(.{0.0, 1.0, 0.0}, ifx sample == 10 then 0.6 else -0.6)
+    } else if sample == 12 || sample == 13 {
+        pose.chest_turn = FigureAxisAngle(.{0.0, 0.0, 1.0}, ifx sample == 12 then 0.35 else -0.35)
+    } else if sample == 14 || sample == 15 {
+        side := sample - 14
+        pose.knees[side] = FigureAdd(pose.hips[side], .{0.0, -0.03, 0.40})
+        pose.ankles[side] = FigureAdd(pose.knees[side], .{0.0, -0.39, 0.06})
+        pose.toes[side] = FigureAdd(pose.ankles[side], .{0.0, -0.055, 0.14})
+    } else if sample == 16 {
+        drop := FigureV3(0.0, -0.34, -0.10)
+        pose.pelvis = FigureAdd(pose.pelvis, drop)
+        pose.pelvis_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 0.55)
+        pose.chest_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 0.75)
+        for side: cast(s32)0..1 {
+            pose.hips[side] = FigureAdd(pose.hips[side], drop)
+            pose.knees[side] = FigureAdd(pose.ankles[side], .{0.0, 0.36, 0.20})
+        }
+    }
+    return pose
+}
+
+// The man's T-shirt hangs over the Workout trousers. Its hem is below the
+// waistband, it draws after the trousers, and in every pose each covered
+// waistband point finds the shirt just outside it, looking in from the side
+// of the pelvis as the camera does.
+ShirtOverTrousers :: (model: *FigureModel, scene: *Scene) -> bool {
+    FigureModelTraining(model, scene, true, false)
+    trousers: s64 = -1
+    shirts: [2]s64 = .[-1, -1]
+    for index: 0..model.instance.meshes.count - 1 {
+        inst := *model.instance.meshes[index]
+        source := *model.model.meshes[inst.mesh_index]
+        name := TextView(source.name[:])
+        if name == "PracticeTrainingTrousers" {
+            trousers = index
+        }
+        if name != "PracticeTrainingBody" {
+            continue
+        }
+        material := *model.model.materials[source.primitives[inst.primitive_index].material]
+        label := TextView(material.name[:])
+        if label == "Practice_Training_Tshirt" {
+            shirts[0] = index
+        } else if label == "Practice_Training_Tshirt_Binding" {
+            shirts[1] = index
+        }
+    }
+    if trousers < 0 || shirts[0] < 0 || shirts[1] < 0 {
+        print("Shirt over trousers: missing Workout garments\n")
+        return false
+    }
+    pants := *model.instance.meshes[trousers]
+    // Opaque meshes draw in node order with a less-or-equal depth test.
+    hem: float64 = 1000.0
+    for part: shirts {
+        shirt := *model.instance.meshes[part]
+        if shirt.scene_node <= pants.scene_node || !scene.nodes[shirt.scene_node].visible {
+            print("Shirt over trousers: the shirt must draw after the trousers\n")
+            return false
+        }
+        for point: shirt.skin.positions[:] {
+            hem = FigureMin(hem, point.y)
+        }
+    }
+    top: float64 = -1000.0
+    for point: pants.skin.positions[:] {
+        top = FigureMax(top, point.y)
+    }
+    covered: Vec(s32)
+    defer VecFree(covered)
+    for vertex: 0..pants.skin.positions.count - 1 {
+        // The closed cap inside the waist opening is not on the outside.
+        rest := pants.skin.positions[vertex]
+        outside := Sqrt((rest.x - 0.00051) * (rest.x - 0.00051) + (rest.z + 0.016) * (rest.z + 0.016)) > 0.03
+        if rest.y >= hem + 0.015 && outside && !VecPush(covered, cast(s32)vertex) {
+            return false
+        }
+    }
+    if top - hem < 0.08 || covered.count < 100 {
+        print("Shirt over trousers: hem % m is not below the waistband top % m\n", hem, top)
+        return false
+    }
+    pants_mesh := scene.meshes[scene.nodes[pants.scene_node].mesh]
+    pants_matrix := model.instance.node_world[pants.gltf_node]
+    uncovered: s64
+    tests: s64
+    nearest: float64 = 1000.0
+    farthest: float64
+    for sample: cast(s32)0..16 {
+        pose := ShirtPose(sample)
+        if !FigureModelPose(model, scene, *pose) {
+            return false
+        }
+        hips := model.instance.node_world[model.bones[FIGURE_HIPS]]
+        axis := FigureV3(hips.m[3], hips.m[7], hips.m[11])
+        up := FigureRotate(FigureConjugate(model.facing), FigureRotate(FigureQuatNormalize(pose.pelvis_turn), .{0.0, 1.0, 0.0}))
+        for vertex: covered[:] {
+            at := pants_mesh.first_vertex + vertex
+            origin := ModelSpace(pants_matrix, scene.positions[at], 1.0)
+            radial := FigureSub(origin, axis)
+            direction := FigureNormalize(FigureAddScaled(radial, up, -FigureDot(radial, up)))
+            hit: float64 = 1000.0
+            for part: shirts {
+                shirt := *model.instance.meshes[part]
+                mesh := scene.meshes[scene.nodes[shirt.scene_node].mesh]
+                matrix := model.instance.node_world[shirt.gltf_node]
+                for corner: 0..mesh.index_count / 3 - 1 {
+                    first := mesh.first_index + corner * 3
+                    a := ModelSpace(matrix, scene.positions[mesh.first_vertex + scene.indices[first]], 1.0)
+                    b := ModelSpace(matrix, scene.positions[mesh.first_vertex + scene.indices[first + 1]], 1.0)
+                    c := ModelSpace(matrix, scene.positions[mesh.first_vertex + scene.indices[first + 2]], 1.0)
+                    distance := RayTriangle(origin, direction, a, b, c)
+                    if distance > 0.0 && distance < hit {
+                        hit = distance
+                    }
+                }
+            }
+            tests += 1
+            if hit > 0.06 {
+                uncovered += 1
+                continue
+            }
+            nearest = FigureMin(nearest, hit)
+            farthest = FigureMax(farthest, hit)
+        }
+    }
+    print("Shirt over trousers: hem % m under waistband top % m; % of % waistband points covered over 17 poses, clearance % to % m\n",
+        hem, top, tests - uncovered, tests, nearest, farthest)
+    FigureModelTraining(model, scene, false)
+    return uncovered == 0 && nearest > 0.0005
+}
+
 main :: () -> s32 {
     fail: s32
     paths: [2]string = .["shared/figure/woman.vrm", "shared/figure/man.vrm"]
@@ -415,6 +587,9 @@ main :: () -> s32 {
             fail += 1
         }
         if !TrainingOutfitPose(*model, *scene, path == paths[1]) {
+            fail += 1
+        }
+        if path == paths[1] && !ShirtOverTrousers(*model, *scene) {
             fail += 1
         }
     }
