@@ -7,6 +7,7 @@
 #import "kryon/scene"
 #import "kryon/scene_gltf"
 #import "std/math"
+#import "std/vec"
 
 ModelPoint :: (figure: *FigureModel, scene: *Scene, role: s32) -> Vector3 {
     world := figure.instance.node_world[figure.bones[role]]
@@ -137,6 +138,106 @@ SleeveContact :: (model: *FigureModel, scene: *Scene) -> bool {
     return measured >= 17 * 100 && min_gap >= 0.060 * scene.nodes[model.instance.root_node].scale.x
 }
 
+// Intersect the posed skin ray with the actual cloth triangle. The contact
+// solver applies a rest barycentric constraint, so this also catches sliding
+// across its posed triangle and detects penetration between its vertices.
+WrapSurfaceGap :: (scene: *Scene, contact: *FigureClothBinding, gap: *float64) -> bool {
+    a := scene.positions[contact.vertices[0]]
+    b := scene.positions[contact.vertices[1]]
+    c := scene.positions[contact.vertices[2]]
+    skin := scene.positions[contact.vertex]
+    direction := scene.normals[contact.vertex]
+    face := FigureNormalize(FigureCross(FigureSub(b, a), FigureSub(c, a)))
+    alignment := FigureDot(face, direction)
+    if alignment <= 0.35 { return false }
+    distance := FigureDot(FigureSub(a, skin), face) / alignment
+    point := FigureAddScaled(skin, direction, distance)
+    if FigureDot(FigureCross(FigureSub(b, a), FigureSub(point, a)), face) < -0.00000001 ||
+        FigureDot(FigureCross(FigureSub(c, b), FigureSub(point, b)), face) < -0.00000001 ||
+        FigureDot(FigureCross(FigureSub(a, c), FigureSub(point, c)), face) < -0.00000001 {
+        return false
+    }
+    <<gap = distance
+    return true
+}
+
+SkirtFoldContact :: (model: *FigureModel, scene: *Scene) -> bool {
+    if model.skirt_mesh < 0 || model.skirt_tunic < 0 { return false }
+    skirt := *model.instance.meshes[model.skirt_mesh]
+    tunic := *model.instance.meshes[model.skirt_tunic]
+    skirt_first := scene.meshes[scene.nodes[skirt.scene_node].mesh].first_vertex
+    tunic_first := scene.meshes[scene.nodes[tunic.scene_node].mesh].first_vertex
+    rest_hips := model.rest_at[model.bones[FIGURE_HIPS]]
+    hits: s64
+    checked: s64
+    worst_seam: float64
+    worst_inside: float64
+    wrap_hits: s64
+    wrap_crossings: s64
+    worst_crossing: float64
+    sash_hits: s64
+    sash_margin: float64 = 1.0
+    for heading: 0..2 {
+        yaw := FigureAxisAngle(.{0.0, 1.0, 0.0}, cast(float64)heading * 0.65)
+        side := FigureRotate(yaw, .{1.0, 0.0, 0.0})
+        for sample: 0..40 {
+            amount := cast(float64)sample / 40.0
+            pitch := FigureAxisAngle(.{1.0, 0.0, 0.0}, 1.92 * amount)
+            pose := ModelPose(0.0)
+            pose.pelvis.y -= 0.13 * amount
+            pose.pelvis_turn = FigureMultiply(yaw, pitch)
+            pose.chest_turn = pose.pelvis_turn
+            for arm: cast(s32)0..1 {
+                lateral := cast(float64)(1 - arm * 2)
+                pose.elbows[arm] = FigureAdd(pose.pelvis, FigureRotate(pose.chest_turn, .{lateral * 0.26, 0.26, 0.10}))
+                pose.wrists[arm] = FigureAdd(pose.pelvis, FigureRotate(pose.chest_turn, .{lateral * 0.25, 0.42, 0.18}))
+            }
+            if !FigureModelPose(model, scene, *pose) { return false }
+            root := scene.nodes[model.instance.root_node]
+            seat := FigureLerp(ModelPoint(model, scene, FigureSideRole(0, FIGURE_UPPER_LEG)),
+                ModelPoint(model, scene, FigureSideRole(1, FIGURE_UPPER_LEG)), 0.5)
+            chest := ModelPoint(model, scene, FIGURE_CHEST)
+            torso := FigureClothTorsoFrame(seat, chest, side, root.scale.x)
+            for binding: model.wrap_contact[:] {
+                gap: float64
+                if WrapSurfaceGap(scene, *binding, *gap) {
+                    wrap_hits += 1
+                    if gap < -0.002 { wrap_crossings += 1 }
+                    worst_crossing = FigureMax(worst_crossing, -gap)
+                }
+            }
+            for sash: model.wrap_sash[:] {
+                offset := FigureSub(scene.positions[sash.vertex], scene.positions[sash.cloth])
+                sash_margin = FigureMin(sash_margin, FigureDot(offset, scene.normals[sash.cloth]))
+                sash_hits += 1
+            }
+            for vertex: 0..skirt.skin.positions.count - 1 {
+                point := scene.positions[skirt_first + vertex]
+                if !FigureFinite(point) { return false }
+                match := model.skirt_seam[vertex]
+                if match >= 0 {
+                    worst_seam = FigureMax(worst_seam, FigureDistance(point, scene.positions[tunic_first + match]))
+                    hits += 1
+                    continue
+                }
+                if rest_hips.y - skirt.skin.positions[vertex].y >= 0.10 {
+                    world := FigureAdd(root.position, FigureScale(FigureRotate(model.facing, point), root.scale.x))
+                    outside := FigureClothTorsoOutside(world, *torso, side)
+                    worst_inside = FigureMax(worst_inside, FigureDistance(world, outside))
+                    checked += 1
+                }
+            }
+        }
+    }
+    print("skirt fold: % attached skirt vertices, % free vertices, largest waist gap % m, torso penetration % m\n",
+        hits, checked, worst_seam, worst_inside)
+    print("wrap fold: % positioned skin rays, % deeper than 2 mm, largest crossing % m\n",
+        wrap_hits, wrap_crossings, worst_crossing)
+    print("wrap sash: % posed vertices, least clearance % m\n", sash_hits, sash_margin)
+    return hits >= 28 * 82 && checked >= 100 * 82 && worst_seam < 0.000001 && worst_inside < 0.00015 &&
+        wrap_hits >= 120000 && wrap_crossings == 0 && sash_hits >= 60 * 123 && sash_margin > 0.001
+}
+
 TrainingVisibility :: (model: *FigureModel, scene: *Scene, training: bool) -> bool {
     outfits: s64
     feet: s64
@@ -150,41 +251,94 @@ TrainingVisibility :: (model: *FigureModel, scene: *Scene, training: bool) -> bo
             if visible != training || !inst.skin.dual_quaternion { return false }
             outfits += 1
         }
-        if name == "PracticeArticulatedFeet" {
+        if name == "PracticeTrainingTrousers" {
+            if visible != training || inst.skin.dual_quaternion || inst.scene_node != model.training_trousers { return false }
+        }
+        if cast(s32)inst.mesh_index == model.articulated_sole_mesh {
             if !visible || !inst.skin.dual_quaternion { return false }
             feet += 1
         }
         if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" {
-            if visible == training { return false }
+            shared := inst.scene_node == model.training_trousers
+            if visible != (!training || shared) || (shared && inst.skin.dual_quaternion) { return false }
         }
     }
     return outfits > 0 && feet > 0
 }
 
-TrainingOutfitPose :: (model: *FigureModel, scene: *Scene) -> bool {
+// A fitted outfit must stay on the authored skinned surface even during
+// the deep hinges that used to widen the loose tunic and skirt.
+FittedOutfitSkinning :: (model: *FigureModel, scene: *Scene) -> bool {
+    posed: Vec(Vector3)
+    defer VecFree(posed)
+    if !VecResize(posed, scene.positions.count) { return false }
+    comparisons: s64
+    worst: float64
+    for sample: 0..12 {
+        amount := cast(float64)sample / 12.0
+        pose := ModelPose(0.7 * amount)
+        pose.pelvis_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 1.4 * amount)
+        pose.chest_turn = FigureAxisAngle(.{1.0, 0.0, 0.0}, 2.0 * amount)
+        if !FigureModelPose(model, scene, *pose) { return false }
+        for vertex: 0..posed.count - 1 { posed[vertex] = scene.positions[vertex] }
+        if !GltfUpdateScene(*model.model, *model.instance, scene) { return false }
+        for index: 0..model.instance.meshes.count - 1 {
+            inst := *model.instance.meshes[index]
+            source := *model.model.meshes[inst.mesh_index]
+            if TextView(source.name[:]) != "PracticeTrainingBody" { continue }
+            if !scene.nodes[inst.scene_node].visible { return false }
+            mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+            for vertex: mesh.first_vertex..mesh.first_vertex + mesh.vertex_count - 1 {
+                if !FigureFinite(posed[vertex]) { return false }
+                worst = FigureMax(worst, FigureDistance(posed[vertex], scene.positions[vertex]))
+                comparisons += 1
+            }
+        }
+    }
+    print("Fitted outfit: % posed vertices match authored skinning within % m\n", comparisons, worst)
+    return comparisons >= 13 * 5000 && worst < 0.000001
+}
+
+TrainingOutfitPose :: (model: *FigureModel, scene: *Scene, man: bool) -> bool {
+    if man != (model.training_trousers >= 0) { return false }
     if !TrainingVisibility(model, scene, false) { return false }
     FigureModelTraining(model, scene, true, false)
-    if !TrainingVisibility(model, scene, true) { return false }
+    if !TrainingVisibility(model, scene, true) || (!man && !FittedOutfitSkinning(model, scene)) { return false }
     FigureModelTraining(model, scene, true, true)
     if !TrainingVisibility(model, scene, true) { return false }
+    tested: s32
     for index: 0..model.instance.meshes.count - 1 {
         inst := *model.instance.meshes[index]
         source := *model.model.meshes[inst.mesh_index]
-        if TextView(source.name[:]) != "PracticeTrainingBody" { continue }
+        name := TextView(source.name[:])
+        if name != "PracticeTrainingBody" && name != "PracticeTrainingTrousers" { continue }
         primitive := *source.primitives[inst.primitive_index]
         material := *model.model.materials[primitive.material]
-        if TextView(material.name[:]) != "Practice_Training_Leggings" { continue }
+        garment := ifx man then "Practice_Training_Tshirt" else "Practice_Training_Leggings"
+        trousers := man && TextView(material.name[:]) == "Practice_Workout_Trousers"
+        if TextView(material.name[:]) != garment && !trousers { continue }
         mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
-        knee: s64 = -1
+        moving_vertex: s64 = -1
         for vertex: 0..inst.skin.positions.count - 1 {
             rest := inst.skin.positions[vertex]
-            if rest.x > 0.06 && rest.y > 0.48 && rest.y < 0.55 { knee = vertex }
+            if (man && !trousers && rest.x > 0.20 && rest.y > 1.40) ||
+            ((!man || trousers) && rest.x > 0.06 && rest.y > 0.48 && rest.y < 0.55) {
+                moving_vertex = vertex
+                break
+            }
         }
-        if knee < 0 { continue }
+        if moving_vertex < 0 { continue }
         starting: Vector3
         for sample: 0..2 {
             phase := ifx sample == 1 then FIGURE_PI else 0.0
             pose := ModelPose(phase)
+            if man && sample == 1 {
+                for side: cast(s32)0..1 {
+                    sign := ifx side == 0 then 1.0 else -1.0
+                    pose.elbows[side] = FigureAdd(pose.shoulders[side], .{sign * 0.12, 0.20, 0.06})
+                    pose.wrists[side] = FigureAdd(pose.shoulders[side], .{sign * 0.15, 0.42, 0.08})
+                }
+            }
             if !FigureModelPose(model, scene, *pose) { return false }
             root := scene.nodes[model.instance.root_node]
             for vertex: 0..inst.skin.positions.count - 1 {
@@ -196,16 +350,16 @@ TrainingOutfitPose :: (model: *FigureModel, scene: *Scene) -> bool {
                     return false
                 }
             }
-            point := scene.positions[mesh.first_vertex + knee]
+            point := scene.positions[mesh.first_vertex + moving_vertex]
             if sample == 0 { starting = point }
             if sample == 1 && FigureDistance(starting, point) < 0.01 { return false }
             if sample == 2 && FigureDistance(starting, point) > 0.000001 { return false }
         }
-        FigureModelTraining(model, scene, false)
-        print("Training outfit follows the rig and switches practices with the original feet visible\n")
-        return TrainingVisibility(model, scene, false)
+        tested += 1
     }
-    return false
+    FigureModelTraining(model, scene, false)
+    print("Training outfit follows the rig and switches practices with the original feet visible\n")
+    return tested == (ifx man then 2 else 1) && TrainingVisibility(model, scene, false)
 }
 
 main :: () -> s32 {
@@ -254,13 +408,13 @@ main :: () -> s32 {
         if worst_pelvis > 0.0001 || worst_ankle > 0.0001 || worst_drift > 0.0001 || worst_wrist > 0.0001 || worst_hand > 0.001 {
             fail += 1
         }
-        if path == paths[0] && !SleeveContact(*model, *scene) {
+        if path == paths[0] && (!SleeveContact(*model, *scene) || !SkirtFoldContact(*model, *scene)) {
             fail += 1
         }
         if !ArmMotion(*model, *scene, path) {
             fail += 1
         }
-        if path == paths[0] && !TrainingOutfitPose(*model, *scene) {
+        if !TrainingOutfitPose(*model, *scene, path == paths[1]) {
             fail += 1
         }
     }

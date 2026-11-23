@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "9c27e91276490db49a11cf6bc6cfa4807caf143acbb8d68ffb6b0dc2ab102970",
+    "output_sha256": "dd5477d7a617bd2d1176bddea2eaf1839b4aeaa45d696e1e85691de9dd25e2e4",
     "bare_feet": [
       {
         "side": "L",
@@ -25,12 +25,13 @@
       }
     ],
     "skirt_preserved": true,
-    "identity": "Original face, hair, body, skeleton and bare feet retained",
-    "style": "Matte linen cross-collar wrap, plain sash and flared skirt"
+    "identity": "Original face, body, skeleton and bare feet retained",
+    "style": "Matte linen cross-collar wrap, plain sash and flared skirt",
+    "hair": "High layered ponytail on the original hair rig and texture"
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
-    "output_sha256": "45febfdd6382cb34744d8ca7ed217c817de94d4fdd6ee28d5b4bfd948444b0d2",
+    "output_sha256": "724d2bbffe879bac8e5ebdfbd265d0d5d0059a249c18a12311074247e74d6a34",
     "bare_feet": [
       {
         "side": "L",
@@ -59,6 +60,8 @@
     ],
     "skirt_preserved": false,
     "identity": "Original face, hair, body, skeleton and bare feet retained",
-    "style": "Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed"
+    "style": "Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed",
+    "training_top": "Short-sleeved crew-neck T-shirt",
+    "training_bottom": "Tapered, ankle-length athletic trousers"
   }
 }

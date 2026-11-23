@@ -21,6 +21,7 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
     worst_flat: float64
     worst_pivot: float64
     worst_span: float64
+    toe_flex: float64
     penetration_mode: s32
     penetration_point: Vector3
     measured: s64
@@ -60,14 +61,21 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
             if !FigureModelPose(figure, scene, *pose) {
                 return 1
             }
+            if mode == 2 {
+                for side: cast(s32)0..1 {
+                    toe_flex = FigureMax(toe_flex, RotationDistance(
+                        ModelTurn(figure, FigureSideRole(side, FIGURE_FOOT)),
+                        ModelTurn(figure, FigureSideRole(side, FIGURE_TOES))))
+                }
+            }
             for mesh_index: 0..figure.instance.meshes.count - 1 {
                 inst := *figure.instance.meshes[mesh_index]
                 source_mesh := *figure.model.meshes[inst.mesh_index]
                 name := TextView(source_mesh.name[:])
-                if name != "PracticeBareFeet" && name != "PracticeArticulatedFeet" {
+                articulated := cast(s32)inst.mesh_index == figure.articulated_sole_mesh
+                if name != "PracticeBareFeet" && !articulated {
                     continue
                 }
-                articulated := name == "PracticeArticulatedFeet"
                 side := inst.primitive_index
                 heel_down := pose.heels[side].y <= pose.balls[side].y
                 target := ifx heel_down then pose.heels[side] else pose.balls[side]
@@ -124,6 +132,10 @@ SoleCheck :: (figure: *FigureModel, scene: *Scene, path: string) -> s32 {
     }
     print("sole test: % vertices %, floor error % m, skin penetration % m, flatness % m, heel/ball pivot error % m, anatomical span error % m\n",
         path, measured, worst_gap, worst_penetration, worst_flat, worst_pivot, worst_span)
+    print("sole test: % maximum procedural toe flex % rad\n", path, toe_flex)
+    if (figure.keep_toe_profile && toe_flex > 0.000001) || (!figure.keep_toe_profile && toe_flex < 0.1) {
+        return 1
+    }
     if worst_penetration >= 0.001 {
         print("sole test: penetration in pose mode % at bind (%, %, %)\n",
             penetration_mode, penetration_point.x, penetration_point.y, penetration_point.z)
@@ -146,7 +158,8 @@ main :: () -> s32 {
         if !FigureModelLoad(*model, *scene, path) {
             return 1
         }
-        if model.sole_count[0] != expected[index] || model.sole_count[1] != expected[index] {
+        if model.sole_count[0] != expected[index] || model.sole_count[1] != expected[index] ||
+        model.keep_toe_profile != (index == 0) {
             print("sole test: stale measurements after loading %\n", path)
             return 1
         }

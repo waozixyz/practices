@@ -157,3 +157,27 @@ Descansa. Ahora viene: flexión con rotación.
 [workout_say_next_side_plank]
 Descansa. El último: plancha lateral.
 ---
+
+[workout_say_next_step_jacks]
+Ahora, pasos laterales con brazos. Da un paso a cada lado sin saltar.
+---
+
+[workout_say_next_mini_squats]
+Ahora, sentadillas cortas. Lleva la cadera un poco atrás y vuelve a subir.
+---
+
+[workout_say_next_heel_raises]
+Ahora, elevaciones de talones. Sube y baja los dos talones despacio.
+---
+
+[workout_say_next_easy_march]
+Ahora, marcha suave. Levanta un pie cada vez.
+---
+
+[workout_say_next_side_reaches]
+Ahora, alcances laterales. Estira un brazo hacia cada lado por turnos.
+---
+
+[workout_say_next_back_taps]
+Ahora, toques hacia atrás. Toca el suelo detrás de ti con un pie y alterna.
+---

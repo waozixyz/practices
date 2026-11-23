@@ -2,7 +2,7 @@
 """Build calm cross-collar meditation clothes on the owner's CC0 VRoid figures.
 
 Starts with the checksummed CC0 originals. Keeps identity, original
-texture bytes, skeleton, hair and the original skin beneath the shoes. Reuses the fitted garment
+texture bytes, skeleton and the original skin beneath the shoes. Reuses the fitted garment
 surface and bind weights, removes the man's hood/cords, relaxes his trousers,
 and adds real crossed lapel/sash geometry. The woman's flared skirt remains
 separate so the runtime can drape it under gravity during folds.
@@ -378,7 +378,7 @@ def barefoot(asset, body_node, primitive, person):
                              'support_vertices': len(contact), 'heel_to_ball': float(np.ptp(contact[:, 2]))})
     if sum(m['triangles'] for m in measurements) != len(src_triangles):
         raise ValueError('Foot extraction dropped original triangles')
-    asset.mesh(body_node, 'PracticeArticulatedFeet', feet)
+    asset.mesh(body_node, 'PracticeAuthoredFeet' if person == 'woman' else 'PracticeArticulatedFeet', feet)
     return measurements
 
 
@@ -404,6 +404,25 @@ def training_surface(attrs, triangles):
     fields = np.column_stack((y - .173, y - .188, 1.024 - y, 1.000 - y,
                               y - 1.125, y - 1.142, armhole - np.abs(x),
                               neck_base + (1.453 - neck_base) * scoop - y))
+    attrs, polygons = cut_surface(attrs, triangles, fields)
+
+    regions = {name: [] for name in ('skin', 'leggings', 'waist', 'cuffs', 'top', 'hem')}
+    for poly, bits in polygons:
+        above_ankle, above_cuff, below_waist, below_band, above_hem, above_trim, in_armhole, below_neck = (
+            bool(bits & (1 << field)) for field in range(fields.shape[1]))
+        name = 'skin'
+        if above_ankle and below_waist:
+            if not above_cuff:
+                name = 'cuffs'
+            else:
+                name = 'leggings' if below_band else 'waist'
+        elif above_hem and in_armhole and below_neck:
+            name = 'top' if above_trim else 'hem'
+        regions[name].extend((poly[0], a, b) for a, b in zip(poly[1:-1], poly[2:]))
+    return attrs, regions
+
+
+def cut_surface(attrs, triangles, fields):
     values = list(fields)
     vertices = {key: list(data) for key, data in attrs.items()}
     polygons = [(list(map(int, tri)), 0) for tri in triangles]
@@ -453,20 +472,7 @@ def training_surface(attrs, triangles):
                     clipped.append((side, mark))
         polygons = clipped
 
-    regions = {name: [] for name in ('skin', 'leggings', 'waist', 'cuffs', 'top', 'hem')}
-    for poly, bits in polygons:
-        above_ankle, above_cuff, below_waist, below_band, above_hem, above_trim, in_armhole, below_neck = (
-            bool(bits & (1 << field)) for field in range(fields.shape[1]))
-        name = 'skin'
-        if above_ankle and below_waist:
-            if not above_cuff:
-                name = 'cuffs'
-            else:
-                name = 'leggings' if below_band else 'waist'
-        elif above_hem and in_armhole and below_neck:
-            name = 'top' if above_trim else 'hem'
-        regions[name].extend((poly[0], a, b) for a, b in zip(poly[1:-1], poly[2:]))
-    return {key: np.asarray(data) for key, data in vertices.items()}, regions
+    return {key: np.asarray(data) for key, data in vertices.items()}, polygons
 
 
 def training_clothes(asset, body_node, skin_parts):
@@ -486,6 +492,198 @@ def training_clothes(asset, body_node, skin_parts):
     }
     parts = [asset.primitive(attrs, faces, materials[region]) for region, faces in regions.items()]
     asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
+
+
+def training_tshirt(asset, body_node, skin_parts):
+    """Cut a short-sleeved crew-neck shirt on the skinned torso."""
+    primary, *uncovered = skin_parts
+    keys = ('POSITION', 'NORMAL', 'TEXCOORD_0', 'JOINTS_0', 'WEIGHTS_0')
+    attrs = {key: asset.read(primary['attributes'][key]) for key in keys}
+    triangles = asset.read(primary['indices']).reshape(-1, 3)
+    x, y, z = attrs['POSITION'].T
+    across = np.abs(x - .00051)
+    neck = 1.505 - (.054 + .021 * np.clip((.015 - z) / .070, 0, 1)) * np.exp(-(across / .061) ** 2)
+    edge = np.column_stack((y - .994, .286 - across, neck - y))
+    fields = np.column_stack((edge, edge - [.018, .014, .011], y - .185, y - .960))
+    attrs, polygons = cut_surface(attrs, triangles, fields)
+    regions = {name: [] for name in ('skin', 'shirt', 'binding')}
+    for poly, bits in polygons:
+        name = 'skin'
+        if (bits & 7) == 7:
+            name = 'shirt' if (bits & 63) == 63 else 'binding'
+        elif bits & 64 and not bits & 128:
+            # Keep skin at the cuffs and under the waistband. The opaque
+            # trousers cover the legs between those two edges in Workout.
+            continue
+        regions[name].extend((poly[0], a, b) for a, b in zip(poly[1:-1], poly[2:]))
+
+    garment = np.unique([*regions['shirt'], *regions['binding']])
+    skin = np.unique(regions['skin'])
+    interior = np.setdiff1d(garment, skin)
+    # Give the shirt a little ease. The cut edges share the skin positions,
+    # normals and joint weights, so they stay closed in reaching poses.
+    attrs['POSITION'][interior] += .005 * attrs['NORMAL'][interior]
+    # Tuck the lower hem under the existing waistband. Move the shared
+    # skin seam with it so the join remains closed underneath the trousers.
+    profile = attrs['POSITION']
+    tuck = np.clip((1.16 - profile[:, 1]) / .095, 0, 1) * np.clip((profile[:, 1] - .96) / .029, 0, 1)
+    tuck = .32 * tuck * tuck * (3 - 2 * tuck)
+    center = np.array([.00051, -.016])
+    profile[:, [0, 2]] -= tuck[:, None] * (profile[:, [0, 2]] - center)
+    materials = {
+        'skin': primary['material'],
+        'shirt': asset.material('Practice_Training_Tshirt', [.32, .47, .40, 1]),
+        'binding': asset.material('Practice_Training_Tshirt_Binding', [.28, .415, .36, 1]),
+    }
+    parts = [asset.primitive(attrs, faces, materials[region]) for region, faces in regions.items()]
+    asset.mesh(body_node, 'PracticeTrainingBody', [*parts, *uncovered])
+
+
+def training_trousers(asset, body_node, trousers):
+    """Tailor the relaxed pattern for Workout, retaining its cuffs and skinning."""
+    attrs = {key: asset.read(index) for key, index in trousers['attributes'].items()}
+    faces = asset.read(trousers['indices']).reshape(-1, 3)
+    positions = attrs['POSITION']
+    x, y, z = positions.T.copy()
+
+    def grade(start, end):
+        t = np.clip((y - start) / (end - start), 0, 1)
+        return t * t * (3 - 2 * t)
+
+    above_cuff = grade(.15, .29)
+    seat = grade(.75, .91)
+    waist = grade(.96, 1.10)
+    # Work around each leg's center below the crotch and around the whole
+    # pelvis above it. Keep the vertical pattern and ankle opening intact.
+    center_x = .00051 + np.sign(x - .00051) * (1 - seat) * (.058 + .027 * grade(.20, .79))
+    center_z = .018 - .038 * grade(.22, .93)
+    positions[:, 0] = x - (x - center_x) * above_cuff * (.27 - .18 * seat + .035 * waist)
+    positions[:, 2] = z - (z - center_z) * above_cuff * (.25 - .12 * seat + .035 * waist)
+
+    # The UV seam has separate indices. Accumulate the same smooth normal
+    # for both sides so the narrower pattern does not expose a lighting seam.
+    _, welded = np.unique(np.round(positions, 5), axis=0, return_inverse=True)
+    cross = np.cross(positions[faces[:, 1]] - positions[faces[:, 0]],
+                     positions[faces[:, 2]] - positions[faces[:, 0]])
+    normals = np.zeros((int(welded.max()) + 1, 3), dtype=positions.dtype)
+    np.add.at(normals, welded[faces].reshape(-1), np.repeat(cross, 3, axis=0))
+    normals = normals[welded]
+    lengths = np.linalg.norm(normals, axis=1)
+    regular = (lengths > 1e-8) & (above_cuff > 0)
+    attrs['NORMAL'][regular] = normals[regular] / lengths[regular, None]
+    color = asset.doc['materials'][trousers['material']]['pbrMetallicRoughness']['baseColorFactor']
+    material = asset.material('Practice_Workout_Trousers', color)
+    asset.mesh(body_node, 'PracticeTrainingTrousers', [asset.primitive(attrs, faces, material)])
+
+
+def hair_lock(asset, profile, joints, material, uv_start):
+    """Sweep a tapered lock along its centerline on the original hair rig."""
+    profile = np.array(profile)
+    padded = np.concatenate((profile[:1], profile, profile[-1:]))
+    samples = []
+    for previous, start, end, following in zip(padded, padded[1:], padded[2:], padded[3:]):
+        for t in np.linspace(0, 1, 5, endpoint=False):
+            samples.append(start + .5 * t * ((end - previous) + t * (
+                2 * previous - 5 * start + 4 * end - following + t * (
+                    -previous + 3 * start - 3 * end + following))))
+    samples = np.array([*samples, profile[-1]])
+    centers, radii = samples[:, :3], np.maximum(samples[:, 3:], .001)
+    t = np.linspace(0, 1, len(samples))
+    tangent = np.gradient(centers, axis=0)
+    tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
+    across = np.array([1., 0., 0.]) - tangent[:, :1] * tangent
+    across /= np.linalg.norm(across, axis=1, keepdims=True)
+    depth = np.cross(tangent, across)
+    sides = 20
+    angles = np.arange(sides + 1) * 2 * np.pi / sides
+    ridges = 1 + .055 * np.cos(5 * angles - .8 * t[:, None])
+    points = centers[:, None, :] + ridges[..., None] * (
+        across[:, None, :] * radii[:, None, :1] * np.cos(angles)[None, :, None]
+        + depth[:, None, :] * radii[:, None, 1:] * np.sin(angles)[None, :, None])
+    rings = points[:, :-1]
+    around = np.roll(rings, -1, axis=1) - np.roll(rings, 1, axis=1)
+    along = np.gradient(rings, axis=0)
+    normal = np.cross(around, along)
+    normal /= np.linalg.norm(normal, axis=2, keepdims=True)
+    normal = np.concatenate((normal, normal[:, :1]), axis=1)
+    points[:, -1] = points[:, 0]
+    u, v = np.meshgrid(np.linspace(uv_start, uv_start + .21, sides + 1), .035 + .92 * t)
+    # The tie rides with the head. A small blend from the two existing rear
+    # spring chains moves the hanging length without pulling either side off it.
+    swing = np.clip((1.565 - centers[:, 1]) / .23, 0, 1)
+    swing = .32 * swing * swing * (3 - 2 * swing)
+    weights = np.repeat(np.column_stack((1 - swing, swing / 2, swing / 2, 0 * swing)), sides + 1, axis=0)
+    attrs = {
+        'POSITION': np.vstack((points.reshape(-1, 3), centers[-1])),
+        'NORMAL': np.vstack((normal.reshape(-1, 3), tangent[-1])),
+        'TEXCOORD_0': np.vstack((np.stack((u, v), axis=2).reshape(-1, 2), [uv_start + .105, .955])),
+        'JOINTS_0': np.tile([*joints, 0], (points.shape[0] * points.shape[1] + 1, 1)),
+        'WEIGHTS_0': np.vstack((weights, weights[-1])),
+    }
+    row = sides + 1
+    triangles = []
+    for level in range(len(centers) - 1):
+        for side in range(sides):
+            a = level * row + side
+            triangles.extend(((a, a + 1, a + row), (a + 1, a + row + 1, a + row)))
+    last = (len(centers) - 1) * row
+    triangles.extend((last + side, last + side + 1, len(weights)) for side in range(sides))
+    return asset.primitive(attrs, triangles, material)
+
+
+def woman_hair(asset):
+    """Keep the original crown and bangs, replacing the two tails with one."""
+    d = asset.doc
+    hair_node = next(n for n in d['nodes'] if n.get('name') == 'Hair001')
+    mesh = d['meshes'][hair_node['mesh']]
+    source = mesh['primitives']
+    skin = d['skins'][hair_node['skin']]
+    joint_by_name = {d['nodes'][node]['name']: i for i, node in enumerate(skin['joints'])}
+    joints = [joint_by_name['J_Bip_C_Head'], joint_by_name['HairJoint-e7d28e69-662e-4477-aab0-b5306c3d289e'],
+              joint_by_name['HairJoint-bdda9c05-5e10-4c8a-abe5-be7e2c14be93']]
+    # The checksummed VRoid mesh orders the ear tufts first and the two
+    # tails after the crown. Leave the crown UVs and short forehead layers.
+    kept = []
+    for index, primitive in enumerate(source):
+        if index < 6 or 50 <= index < 66:
+            continue
+        cheek = 14 <= index < 22
+        nape = 77 <= index < 86 or 98 <= index < 107
+        if not (cheek or nape):
+            kept.append(primitive)
+            continue
+        attrs = {key: asset.read(accessor) for key, accessor in primitive['attributes'].items()}
+        points, normals = attrs['POSITION'], attrs['NORMAL']
+        depth = np.maximum((1.482 if cheek else 1.481) - points[:, 1], 0)
+        # Compress just the hanging ends. Coordinate and inverse normal
+        # scales approach identity as the edit meets the original crown.
+        amount = np.minimum(depth, .090)
+        points[:, 1] += 5.5 * amount ** 2
+        normals[:, 1] /= 1 - 11 * amount
+        normals /= np.maximum(np.linalg.norm(normals, axis=1, keepdims=True), 1e-8)
+        triangles = asset.read(primitive['indices']).reshape(-1, 3)
+        kept.append(asset.primitive(attrs, triangles, primitive['material']))
+
+    dark = source[6]['material']
+    pony = [
+        # x, y, z, width radius, depth radius. The root enters the crown.
+        [(0, 1.604, .087, .019, .016), (0, 1.636, .109, .023, .020),
+         (-.003, 1.650, .143, .038, .024), (-.008, 1.619, .173, .052, .032),
+         (-.010, 1.551, .192, .049, .035), (-.014, 1.478, .196, .034, .028),
+         (-.008, 1.409, .202, .026, .021), (.004, 1.347, .219, .014, .013),
+         (-.010, 1.286, .224, .001, .001)],
+        [(-.013, 1.625, .112, .012, .011), (-.023, 1.645, .146, .020, .017),
+         (-.042, 1.601, .181, .026, .022), (-.046, 1.516, .194, .022, .023),
+         (-.043, 1.442, .201, .016, .018), (-.028, 1.372, .227, .010, .012),
+         (-.035, 1.307, .240, .001, .001)],
+        [(.013, 1.625, .113, .012, .011), (.023, 1.646, .145, .019, .017),
+         (.038, 1.606, .180, .025, .020), (.031, 1.529, .213, .023, .021),
+         (.020, 1.455, .220, .016, .015), (.028, 1.386, .235, .011, .011),
+         (.017, 1.321, .245, .001, .001)],
+    ]
+    for profile, u in zip(pony, (.60, .51, .72)):
+        kept.append(hair_lock(asset, profile, joints, dark, u))
+    mesh['primitives'] = kept
 
 
 def dress(source, target, person):
@@ -602,14 +800,23 @@ def dress(source, target, person):
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
     if person == 'woman':
         training_clothes(asset, body_node, skin_parts)
+        woman_hair(asset)
+    else:
+        training_tshirt(asset, body_node, skin_parts)
+        trousers = next(part for part in cloth if part['material'] == bottom)
+        training_trousers(asset, body_node, trousers)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
                        'bare_feet': measurements,
                        'changed_body_primitives': changed, 'skirt_preserved': person == 'woman',
-                       'identity': 'Original face, hair, body, skeleton and bare feet retained',
+                       'identity': 'Original face, body, skeleton and bare feet retained' if person == 'woman'
+                       else 'Original face, hair, body, skeleton and bare feet retained',
                        'style': 'Matte linen cross-collar wrap, plain sash and flared skirt' if person == 'woman'
-                       else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed'}
+                       else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed',
+                       **({'training_top': 'Short-sleeved crew-neck T-shirt',
+                           'training_bottom': 'Tapered, ankle-length athletic trousers'} if person == 'man'
+                          else {'hair': 'High layered ponytail on the original hair rig and texture'})}
 
 
 def main():

@@ -16,7 +16,8 @@ def verify_feet(old, new, receipts, person):
     original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
     source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
     triangles = old.read(original['indices']).reshape(-1, 3)
-    feet = next(mesh for mesh in new.doc['meshes'] if mesh['name'] == 'PracticeArticulatedFeet')
+    foot_name = 'PracticeAuthoredFeet' if person == 'woman' else 'PracticeArticulatedFeet'
+    feet = next(mesh for mesh in new.doc['meshes'] if mesh['name'] == foot_name)
     assert len(feet['primitives']) == len(receipts) == 2
     for sign, primitive, receipt in zip((-1, 1), feet['primitives'], receipts):
         assert primitive['material'] == original['material']
@@ -138,6 +139,110 @@ def verify_training_outfit(old, asset, primary, training):
         assert len(edges) > 20 and edges == seam(second, height), (first, second)
 
 
+def verify_training_tshirt(asset):
+    training = next(mesh for mesh in asset.doc['meshes'] if mesh['name'] == 'PracticeTrainingBody')
+    skin, shirt, binding, *other = training['primitives']
+    clothing = next(mesh for mesh in asset.doc['meshes'] if mesh['name'] == 'PracticeClothing')
+    trousers = next(p for p in clothing['primitives']
+                    if asset.doc['materials'][p['material']]['name'] == 'Practice_Relaxed_Trousers')
+    assert trousers not in other
+    for name, part in (('Tshirt', shirt), ('Tshirt_Binding', binding)):
+        material = asset.doc['materials'][part['material']]
+        assert material['name'] == 'Practice_Training_' + name
+        assert material.get('alphaMode', 'OPAQUE') == 'OPAQUE'
+        assert material['pbrMetallicRoughness']['baseColorFactor'][3] == 1
+        assert np.all(triangle_area(asset, part) > 0)
+
+    edges = []
+    for part in (skin, binding):
+        attrs = [asset.read(i) for i in part['attributes'].values()]
+        edges.append(set(map(tuple, np.column_stack(attrs))))
+    joined = np.array(sorted(edges[0] & edges[1]))[:, :3]
+    assert (np.abs(joined[:, 1] - .994) < 2e-7).sum() > 20, 'Open waist seam'
+    for side in (-1, 1):
+        assert (np.abs(side * (joined[:, 0] - .00051) - .286) < 2e-7).sum() > 10, 'Open sleeve seam'
+    neck = joined[(joined[:, 1] > 1.40) & (np.abs(joined[:, 0]) < .10)]
+    assert len(neck) > 20 and neck[:, 2].min() < -.04 < neck[:, 2].max(), 'Open crew neck seam'
+    exposed = asset.read(skin['attributes']['POSITION'])
+    assert not np.any((np.abs(exposed[:, 0]) < .15) & (exposed[:, 1] > 1.00) & (exposed[:, 1] < 1.40))
+    assert not np.any((exposed[:, 1] > .185001) & (exposed[:, 1] < .959999)), 'Skin inside opaque trousers'
+    assert exposed[:, 1].min() < .146, 'Skin no longer meets the original foot mesh under the cuff'
+
+
+def verify_training_trousers(asset):
+    meshes = {mesh['name']: mesh for mesh in asset.doc['meshes']}
+    materials = asset.doc['materials']
+    relaxed = next(p for p in meshes['PracticeClothing']['primitives']
+                   if materials[p['material']]['name'] == 'Practice_Relaxed_Trousers')
+    fitted, = meshes['PracticeTrainingTrousers']['primitives']
+    assert materials[fitted['material']]['name'] == 'Practice_Workout_Trousers'
+    assert materials[fitted['material']]['pbrMetallicRoughness'] == materials[relaxed['material']]['pbrMetallicRoughness']
+
+    def read(part, key):
+        return asset.read(part['attributes'][key])
+
+    assert np.array_equal(asset.read(relaxed['indices']), asset.read(fitted['indices']))
+    for key in ('JOINTS_0', 'WEIGHTS_0', 'TEXCOORD_0'):
+        assert np.array_equal(read(relaxed, key), read(fitted, key)), key
+    original, tailored = read(relaxed, 'POSITION'), read(fitted, 'POSITION')
+    y = original[:, 1]
+    assert np.array_equal(y, tailored[:, 1]), 'Trouser length changed'
+    cuff = y <= .15
+    assert np.array_equal(original[cuff], tailored[cuff]), 'Ankle opening changed'
+    assert np.array_equal(read(relaxed, 'NORMAL')[cuff], read(fitted, 'NORMAL')[cuff])
+    # Halve at the existing center seam to measure each leg independently.
+    # The depth stays substantial enough for a real trouser, with clearer taper.
+    for low, high, depth_ratio in ((.25, .43, .82), (.53, .74, .82), (.83, .94, .88), (1.06, 1.12, .87)):
+        for side in (-1, 1):
+            band = (y >= low) & (y <= high) & (side * (original[:, 0] - .00051) >= 0)
+            before, after = original[band], tailored[band]
+            assert len(before) > 12
+            assert .65 < np.ptp(after[:, 2]) / np.ptp(before[:, 2]) < depth_ratio, (low, side)
+            assert np.ptp(after[:, 0]) < .97 * np.ptp(before[:, 0]), (low, side)
+    assert np.all(triangle_area(asset, fitted) > 0)
+    assert np.allclose(np.linalg.norm(read(fitted, 'NORMAL'), axis=1), 1, atol=1e-5)
+
+
+def verify_woman_hair(old, new, authored, styled):
+    original, updated = authored['primitives'], styled['primitives']
+    assert len(updated) == len(original) - 22 + 3
+    assert new.doc['extensions']['VRM']['secondaryAnimation'] == old.doc['extensions']['VRM']['secondaryAnimation']
+    assert updated[:8] == original[6:14]
+    assert updated[16:44] == original[22:50]
+    assert updated[44:55] == original[66:77]
+    assert updated[64:76] == original[86:98]
+    assert updated[-4] == original[-1]
+    for old_part, new_part in [*zip(original[14:22], updated[8:16]),
+                              *zip(original[77:86], updated[55:64]),
+                              *zip(original[98:107], updated[76:85])]:
+        before = old.read(old_part['indices']).ravel()
+        after = new.read(new_part['indices']).ravel()
+        for key in ('TEXCOORD_0', 'JOINTS_0', 'WEIGHTS_0'):
+            assert np.array_equal(old.read(old_part['attributes'][key])[before],
+                                  new.read(new_part['attributes'][key])[after])
+        old_points = old.read(old_part['attributes']['POSITION'])[before]
+        points = new.read(new_part['attributes']['POSITION'])[after]
+        assert np.array_equal(points[:, [0, 2]], old_points[:, [0, 2]])
+        assert np.all(points[:, 1] >= old_points[:, 1])
+        assert points[:, 1].min() > old_points[:, 1].min() + .01
+
+    for lock in updated[-3:]:
+        attrs = {name: new.read(index) for name, index in lock['attributes'].items()}
+        points = attrs['POSITION']
+        normals, weights = attrs['NORMAL'], attrs['WEIGHTS_0']
+        triangles = new.read(lock['indices']).reshape(-1, 3)
+        a, b, c = points[triangles].transpose(1, 0, 2)
+        assert np.linalg.norm(np.cross(b - a, c - a), axis=1).min() > 1e-8
+        assert np.isfinite(points).all() and np.allclose(np.linalg.norm(normals, axis=1), 1, atol=1e-6)
+        assert np.allclose(weights.sum(1), 1, atol=1e-6) and weights.min() >= 0
+        base = points[:, 2] < .123
+        assert np.count_nonzero(base) > 15 and np.all(weights[base, 0] == 1)
+        assert weights[points[:, 1].argmin(), 0] < .75
+        assert np.abs(points[:, 0]).max() < .08 and 1.27 < points[:, 1].min() < 1.34
+        assert 1.64 < points[:, 1].max() < 1.69 and .21 < points[:, 2].max() < .26
+        assert lock['material'] == original[6]['material']
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source-dir', required=True, type=Path)
@@ -164,6 +269,9 @@ def main():
             assert {k: v for k, v in node.items() if k != 'children'} == {k: v for k, v in d['nodes'][i].items() if k != 'children'}
             assert d['nodes'][i].get('children', [])[:len(node.get('children', []))] == node.get('children', [])
         for i, mesh in enumerate(o['meshes']):
+            if person == 'woman' and mesh['name'] == 'Hair001.baked':
+                verify_woman_hair(old, new, mesh, d['meshes'][i])
+                continue
             expected = [p for p in mesh['primitives']
                         if 'CLOTH' not in o['materials'][p['material']]['name'] and not is_foot_skin(old, p)]
             actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
@@ -199,6 +307,10 @@ def main():
         else:
             body_node = next(n for n in d['nodes'] if n.get('name') == 'Body')
             skin = d['skins'][body_node['skin']]
+            assert receipts[person]['training_top'] == 'Short-sleeved crew-neck T-shirt'
+            assert receipts[person]['training_bottom'] == 'Tapered, ankle-length athletic trousers'
+            verify_training_tshirt(new)
+            verify_training_trousers(new)
             hood = [j for j, node in enumerate(skin['joints']) if 'Hood' in d['nodes'][node].get('name', '')]
             for _, primitive in garments:
                 a = primitive['attributes']

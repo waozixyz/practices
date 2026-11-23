@@ -42,6 +42,23 @@ FIGURE_BONES :: 52
 
 FIGURE_TOON_UNIFORMS :: 5
 
+FigureWrapVertex :: struct {
+    vertex: s32
+    welded: s32
+    rest: Vector3
+}
+
+FigureWrapSash :: struct {
+    vertex: s32
+    cloth: s32
+}
+
+FigureWrapEdge :: struct {
+    a: s32
+    b: s32
+    limit: float64
+}
+
 FigureModel :: struct {
     model: GltfModel
     instance: GltfSceneInstance
@@ -67,6 +84,7 @@ FigureModel :: struct {
     sole_ball: [2]Vector3
     articulated_sole_mesh: s32
     sole_toe_joint: [2]s32
+    keep_toe_profile: bool
     // The toon look: a shader, and per scene mesh its uniforms. Each mesh
     // keeps the importer's own base colour texture, which the renderer
     // uploads once and samples into the shader's vertex data.
@@ -78,8 +96,18 @@ FigureModel :: struct {
     avatar: VrmAvatar
     clock: float64
     has_training: bool
+    training_trousers: s64
     training: bool
     training_skirt: bool
+    skirt_mesh: s64
+    skirt_tunic: s64
+    skirt_seam: Vec(s32)
+    wrap_body: s64
+    wrap_vertices: Vec(FigureWrapVertex)
+    wrap_contact: Vec(FigureClothBinding)
+    wrap_facing: Vec(FigureClothBinding)
+    wrap_sash: Vec(FigureWrapSash)
+    wrap_edges: Vec(FigureWrapEdge)
     ready: bool
 }
 
@@ -93,6 +121,12 @@ FigureModelRelease :: (figure: *FigureModel) {
     VecFree(figure.role_of)
     VecFree(figure.uniforms)
     VecFree(figure.toon_nodes)
+    VecFree(figure.skirt_seam)
+    VecFree(figure.wrap_vertices)
+    VecFree(figure.wrap_contact)
+    VecFree(figure.wrap_facing)
+    VecFree(figure.wrap_sash)
+    VecFree(figure.wrap_edges)
     ShaderFree(*figure.toon)
     VrmAvatarRelease(*figure.avatar)
     figure.clock = -1.0
@@ -142,6 +176,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         return false
     }
     GltfSetDualQuaternion(*figure.instance, true)
+    if !FigureModelReadSkirtSeam(figure) || !FigureModelBindWrap(figure, scene) { return false }
     // Keep volume across the articulated toe joint. All of the adjacent
     // Workout skin and fabric uses the same blend across its cut seams.
     // Legacy flat soles and tailored meditation overlays keep affine skinning.
@@ -154,8 +189,9 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         for vertex: primitive.indices[:] {
             high = FigureMax(high, primitive.positions[vertex].y)
         }
-        if (high < 0.30 && name != "PracticeArticulatedFeet" && name != "PracticeTrainingBody") ||
-        name == "PracticeClothing" || name == "PracticeWrapFacings" {
+        if (high < 0.30 && !FigureSoleUsesRig(name) && name != "PracticeTrainingBody") ||
+        (figure.skirt_mesh < 0 && (name == "PracticeClothing" || name == "PracticeWrapFacings")) ||
+        name == "PracticeTrainingTrousers" {
             inst.skin.dual_quaternion = false
         }
     }
@@ -224,6 +260,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     }
     FigureModelReadSoles(figure)
     figure.has_training = false
+    figure.training_trousers = -1
     figure.training = false
     figure.training_skirt = false
     for index: 0..figure.instance.meshes.count - 1 {
@@ -233,7 +270,18 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         if name == "PracticeTrainingBody" {
             figure.has_training = true
         }
-        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" {
+        if name == "PracticeTrainingTrousers" {
+            figure.training_trousers = inst.scene_node
+        } else if name == "PracticeClothing" && figure.training_trousers < 0 {
+            material := mesh.primitives[inst.primitive_index].material
+            if material >= 0 && material < figure.model.materials.count {
+                cloth := *figure.model.materials[material]
+                if TextView(cloth.name[:]) == "Practice_Relaxed_Trousers" {
+                    figure.training_trousers = inst.scene_node
+                }
+            }
+        }
+        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" || name == "PracticeTrainingTrousers" {
             unused SetVisible(scene, inst.scene_node, false)
         }
     }
@@ -242,8 +290,199 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     return true
 }
 
-// Switch the woman's wardrobe on the retained scene. Her skin, springs and
-// bare feet are shared by every practice.
+// The wrap and skirt were cut from one authored mesh. Remember the matching
+// waist vertices so both material parts use the same posed seam.
+FigureModelReadSkirtSeam :: (figure: *FigureModel) -> bool {
+    figure.skirt_mesh = -1
+    figure.skirt_tunic = -1
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        mesh := *figure.model.meshes[inst.mesh_index]
+        name := TextView(mesh.name[:])
+        if name == "PracticeSkirt" { figure.skirt_mesh = index }
+        if name == "PracticeClothing" && figure.skirt_tunic < 0 { figure.skirt_tunic = index }
+    }
+    if figure.skirt_mesh < 0 || figure.skirt_tunic < 0 { return true }
+    skirt := *figure.instance.meshes[figure.skirt_mesh]
+    tunic := *figure.instance.meshes[figure.skirt_tunic]
+    if !VecResize(figure.skirt_seam, skirt.skin.positions.count) { return false }
+    for vertex: 0..skirt.skin.positions.count - 1 {
+        figure.skirt_seam[vertex] = -1
+        for candidate: 0..tunic.skin.positions.count - 1 {
+            if FigureDistance(skirt.skin.positions[vertex], tunic.skin.positions[candidate]) < 0.000001 {
+                figure.skirt_seam[vertex] = cast(s32)candidate
+                break
+            }
+        }
+    }
+    return true
+}
+
+// Cache which part of the wrap covers each point of the true skin mesh.
+// Both materials share welded waist vertices. Facings follow displacements
+// of their underlying garment so correction also preserves the sash.
+FigureModelBindWrap :: (figure: *FigureModel, scene: *Scene) -> bool {
+    figure.wrap_body = -1
+    if figure.skirt_tunic < 0 || figure.skirt_mesh < 0 { return true }
+    triangles: Vec(FigureClothTriangle)
+    defer VecFree(triangles)
+    for panel: 0..1 {
+        inst := *figure.instance.meshes[ifx panel == 0 then figure.skirt_tunic else figure.skirt_mesh]
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        first := figure.wrap_vertices.count
+        for vertex: 0..mesh.vertex_count - 1 {
+            rest := inst.skin.positions[vertex]
+            global_vertex := mesh.first_vertex + vertex
+            weld := global_vertex
+            for other: 0..figure.wrap_vertices.count - 1 {
+                if FigureDistance(figure.wrap_vertices[other].rest, rest) < 0.000001 {
+                    weld = figure.wrap_vertices[other].welded
+                    break
+                }
+            }
+            if !VecPush(figure.wrap_vertices, .{global_vertex, weld, rest}) { return false }
+        }
+        for face: 0..mesh.index_count / 3 - 1 {
+            offset := mesh.first_index + face * 3
+            a := *figure.wrap_vertices[first + scene.indices[offset]]
+            b := *figure.wrap_vertices[first + scene.indices[offset + 1]]
+            c := *figure.wrap_vertices[first + scene.indices[offset + 2]]
+            edge_a := FigureSub(b.rest, a.rest)
+            edge_b := FigureSub(c.rest, a.rest)
+            normal := FigureNormalize(FigureCross(edge_a, edge_b))
+            triangle: FigureClothTriangle = .{.{a.welded, b.welded, c.welded}, a.rest, edge_a, edge_b, normal}
+            if panel == 0 {
+                for edge: 0..2 {
+                    start := *figure.wrap_vertices[first + scene.indices[offset + edge]]
+                    end := *figure.wrap_vertices[first + scene.indices[offset + (edge + 1) % 3]]
+                    length := FigureDistance(start.rest, end.rest)
+                    if length >= 0.001 && !VecPush(figure.wrap_edges, .{start.welded, end.welded, 2.65 * length}) { return false }
+                }
+            }
+            if panel == 1 {
+                // The hanging panels change correspondence as they swing.
+                // Only the waist receives the persistent rest-space contacts.
+                if FigureMin(a.rest.y, FigureMin(b.rest.y, c.rest.y)) < 0.93 { continue }
+            }
+            if !VecPush(triangles, triangle) { return false }
+        }
+    }
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        source := *figure.model.meshes[inst.mesh_index]
+        name := TextView(source.name[:])
+        body := name == "Body.baked" && inst.primitive_index == 0
+        facing := name == "PracticeWrapFacings"
+        if !inst.has_skin || (!body && !facing) { continue }
+        if body { figure.wrap_body = index }
+        mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        for vertex: 0..mesh.vertex_count - 1 {
+            point := inst.skin.positions[vertex]
+            direction := inst.skin.normals[vertex]
+            if body {
+                if point.y < 0.80 || point.y > 1.40 { continue }
+                bound := FigureClothBind(point, direction, mesh.first_vertex + vertex, triangles[:], -0.003, 0.075)
+                if bound.vertex < 0 { continue }
+                bound.clearance = FigureClamp(bound.clearance * 0.6, 0.0003, 0.004)
+                if !VecPush(figure.wrap_contact, bound) { return false }
+            } else {
+                if inst.primitive_index == 2 {
+                    // The sash duplicates the exact tunic triangles with a
+                    // small horizontal expansion in the asset generator.
+                    rest := FigureV3(point.x / 1.008, point.y, point.z / 1.012)
+                    match: s32 = -1
+                    for cloth: figure.wrap_vertices[:] {
+                        if FigureDistance(cloth.rest, rest) >= 0.000001 { continue }
+                        match = cloth.welded
+                        break
+                    }
+                    if match >= 0 {
+                        if !VecPush(figure.wrap_sash, .{mesh.first_vertex + vertex, match}) { return false }
+                        continue
+                    }
+                }
+                bound := FigureClothBind(point, direction, mesh.first_vertex + vertex, triangles[:], -0.055, 0.010)
+                if bound.vertex < 0 { continue }
+                if !VecPush(figure.wrap_facing, bound) { return false }
+            }
+        }
+    }
+    return true
+}
+
+// Retain local fabric continuity after clearing the body. Relax the shared
+// welded vertices together so a seam can't open during correction.
+FigureModelRelaxWrap :: (figure: *FigureModel, positions: []Vector3) -> bool {
+    changed := false
+    for edge: figure.wrap_edges[:] {
+        delta := FigureSub(positions[edge.b], positions[edge.a])
+        distance := FigureLength(delta)
+        if distance <= edge.limit { continue }
+        step := 0.5 * (1.0 - edge.limit / distance)
+        positions[edge.a] = FigureAddScaled(positions[edge.a], delta, step)
+        positions[edge.b] = FigureAddScaled(positions[edge.b], delta, -step)
+        changed = true
+    }
+    return changed
+}
+
+FigureModelWrapContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
+    if figure.training || figure.wrap_contact.count == 0 || figure.wrap_body < 0 ||
+        !figure.instance.meshes[figure.wrap_body].has_skin { return }
+    pelvis := FigureQuatNormalize(joints.pelvis_turn)
+    chest := FigureQuatNormalize(joints.chest_turn)
+    tilt := FigureRotate(chest, .{0.0, 1.0, 0.0})
+    lateral := FigureRotate(pelvis, .{1.0, 0.0, 0.0})
+    forward := FigureNormalize(FigureCross(lateral, .{0.0, 1.0, 0.0}))
+    forward_tilt := FigureDot(tilt, forward)
+    contact := FigureSmooth(forward_tilt, 0.32, 0.70) + FigureSmooth(-tilt.y, 0.06, 0.45)
+    contact = FigureMin(1.0, contact)
+    // Record the posed base under each facing before solving the contacts.
+    positions := scene.positions[:]
+    normals := scene.normals[:]
+    for index: 0..figure.wrap_facing.count - 1 {
+        facing := *figure.wrap_facing[index]
+        positions[facing.vertex] = FigureSub(positions[facing.vertex], FigureClothBoundPoint(positions, facing))
+    }
+    tunic := *figure.instance.meshes[figure.skirt_tunic]
+    for pass: 0..7 {
+        moved := false
+        if pass > 0 { moved = FigureModelRelaxWrap(figure, positions) }
+        for index: 0..figure.wrap_contact.count - 1 {
+            if FigureClothClearBody(positions, normals, *figure.wrap_contact[index], contact) { moved = true }
+        }
+        if !moved { break }
+    }
+    // The waist shares vertices with the skirt. Keep the welded points above
+    // the floor before transferring motion to the facings and seam aliases.
+    root := scene.nodes[figure.instance.root_node]
+    skirt := *figure.instance.meshes[figure.skirt_mesh]
+    skirt_first := scene.meshes[scene.nodes[skirt.scene_node].mesh].first_vertex
+    floor := (0.006 - root.position.y) / root.scale.x
+    for vertex: figure.wrap_vertices[:] {
+        if vertex.vertex >= skirt_first {
+            point := *positions[vertex.welded]
+            point.y = FigureMax(point.y, floor)
+        }
+    }
+    for facing: figure.wrap_facing[:] {
+        positions[facing.vertex] = FigureAdd(positions[facing.vertex], FigureClothBoundPoint(positions, *facing))
+    }
+    for vertex: figure.wrap_vertices[:] {
+        positions[vertex.vertex] = positions[vertex.welded]
+    }
+    ComputeNormals(scene, tunic.scene_node)
+    ComputeNormals(scene, skirt.scene_node)
+    // Rebuild the clearance in the posed cloth frame. The skinned sash's
+    // rest offset can point back into the tunic once the waist drapes.
+    for sash: figure.wrap_sash[:] {
+        positions[sash.vertex] = FigureAddScaled(positions[sash.cloth], normals[sash.cloth], 0.0025)
+        normals[sash.vertex] = normals[sash.cloth]
+    }
+}
+
+// Switch the workout wardrobe on the retained scene. Bare feet and springs
+// are shared by every practice. The Man has a separate Workout trouser fit.
 FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool, skirt: bool = true) {
     show_skirt := training && skirt
     if !figure.has_training || (figure.training == training && figure.training_skirt == show_skirt) {
@@ -256,11 +495,11 @@ FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool, ski
         name := TextView(mesh.name[:])
         if name == "PracticeTrainingSkirt" {
             unused SetVisible(scene, inst.scene_node, show_skirt)
-        } else if name == "PracticeTrainingBody" {
+        } else if name == "PracticeTrainingBody" || name == "PracticeTrainingTrousers" {
             unused SetVisible(scene, inst.scene_node, training)
         } else if name == "PracticeClothing" || name == "PracticeSkirt" || name == "PracticeWrapFacings" ||
         TextView(node.name[:]) == "Body" {
-            unused SetVisible(scene, inst.scene_node, !training)
+            unused SetVisible(scene, inst.scene_node, !training || inst.scene_node == figure.training_trousers)
         }
     }
     figure.training = training
@@ -411,6 +650,7 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
         FigureModelTrainingDrape(figure, scene)
     }
     FigureModelCloth(figure, scene, joints)
+    FigureModelWrapContact(figure, scene, joints)
     return true
 }
 
@@ -423,7 +663,7 @@ FigureModelFlexToes :: (figure: *FigureModel, joints: *FigureJoints, turns: []Fi
     if node < 0 { return }
     figure.instance.translations[node] = figure.model.nodes[node].translation
     foot := turns[FigureSideRole(side, FIGURE_FOOT)]
-    flex := FigureModelToeBend(joints, side, foot)
+    flex := FigureModelToeBend(figure, joints, side, foot)
     if flex.x == 0.0 { return }
     turns[toes] = FigureMultiply(foot, flex)
     parent := figure.model.nodes[node].parent
@@ -434,7 +674,10 @@ FigureModelFlexToes :: (figure: *FigureModel, joints: *FigureJoints, turns: []Fi
     figure.instance.translations[node] = FigureAdd(figure.instance.translations[node], FigureRotate(to_parent, shift))
 }
 
-FigureModelToeBend :: (joints: *FigureJoints, side: s32, foot: FigureQuat) -> FigureQuat {
+FigureModelToeBend :: (figure: *FigureModel, joints: *FigureJoints, side: s32, foot: FigureQuat) -> FigureQuat {
+    // The authored foot keeps its original taper when it rolls onto the
+    // toes. Contact placement uses the lowest point of the whole foot.
+    if figure.keep_toe_profile { return FigureIdentity() }
     up := FigureAxis(foot, 0.0, 1.0, 0.0)
     forward := FigureAxis(foot, 0.0, 0.0, 1.0)
     if up.y < 0.1 || forward.y >= 0.0 || joints.heels[side].y <= joints.balls[side].y ||
@@ -495,22 +738,28 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
 // The meditation layers drape around the body. The short training skirt
 // already follows the hips and thighs using its own skin weights.
 FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
-    if figure.training { return }
+    if figure.training && figure.training_trousers < 0 { return }
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
     rest_hips := figure.rest_at[figure.bones[FIGURE_HIPS]]
     hip_world := FigureModelWorld(figure, scene, FIGURE_HIPS)
-    forward := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{0.0, 0.0, 1.0})
-    lateral := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{1.0, 0.0, 0.0})
+    pelvis := FigureQuatNormalize(joints.pelvis_turn)
+    forward := FigureRotate(pelvis, .{0.0, 0.0, 1.0})
+    lateral := FigureRotate(pelvis, .{1.0, 0.0, 0.0})
     yaw := ifx lateral.x * lateral.x + lateral.z * lateral.z > 0.000001 then Atan2(-lateral.z, lateral.x) else Atan2(forward.x, forward.z)
-    cloth_turn := FigureMultiply(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), figure.facing)
-    down := FigureRotate(FigureQuatNormalize(joints.pelvis_turn), .{0.0, -1.0, 0.0})
+    cloth_turn := FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw)
+    down := FigureRotate(pelvis, .{0.0, -1.0, 0.0})
     // Only near-horizontal floor poses let the hem trail along the legs.
     // Deep standing and kneeling forms still drape around raised thighs.
     prone := (1.0 - FigureSmooth(hip_world.y, 0.16, 0.33)) *
         (1.0 - FigureSmooth(FigureAbs(down.y), 0.28, 0.55))
     legward := FigureV3(down.x * prone, 0.0, down.z * prone)
     thigh_lift := 1.0 - prone
+    // In a deep hinge the chest occupies the space above the front skirt.
+    // Keep the flare below it and let the thigh and torso contacts resolve
+    // the smaller folds beside the waist.
+    folded := FigureSmooth(down.y, -0.48, 0.03) * (1.0 - prone)
+    seat_lift := 1.0 - folded
     skirt_forward := FigureV3(Sin(yaw), 0.0, Cos(yaw))
     airborne := FigureMin(FigureMin(joints.heels[0].y, joints.balls[0].y),
         FigureMin(joints.heels[1].y, joints.balls[1].y))
@@ -538,30 +787,54 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
             arms[side * 3 + 2] = FigureModelWorld(figure, scene, hand)
         }
     }
+    torso: FigureClothTorso
+    if figure.skirt_mesh >= 0 && figure.bones[FIGURE_CHEST] >= 0 {
+        seat := FigureLerp(legs[0], legs[3], 0.5)
+        chest := FigureModelWorld(figure, scene, FIGURE_CHEST)
+        torso = FigureClothTorsoFrame(seat, chest, lateral, scale)
+    }
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
+        if figure.training && inst.scene_node != figure.training_trousers { continue }
         source := *figure.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
         skirt := name == "PracticeSkirt"
-        tailored := !inst.skin.dual_quaternion && (name == "PracticeClothing" || name == "PracticeWrapFacings")
+        tailored := name == "PracticeClothing" || name == "PracticeWrapFacings" ||
+            (figure.training && name == "PracticeTrainingTrousers")
         if !skirt && !tailored {
             continue
         }
         mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
+        seam: []s32
         if skirt {
+            tunic_first: s64
+            if index == figure.skirt_mesh && figure.skirt_tunic >= 0 && figure.skirt_seam.count == inst.skin.positions.count {
+                seam = figure.skirt_seam[:]
+                tunic := *figure.instance.meshes[figure.skirt_tunic]
+                tunic_first = scene.meshes[scene.nodes[tunic.scene_node].mesh].first_vertex
+            }
             for vertex: 0..inst.skin.positions.count - 1 {
+                if seam.count != 0 && seam[vertex] >= 0 {
+                    scene.positions[mesh.first_vertex + vertex] = scene.positions[tunic_first + seam[vertex]]
+                    continue
+                }
                 rest := inst.skin.positions[vertex]
-                skinned := FigureAdd(root.position, FigureScale(FigureRotate(figure.facing,
-                    scene.positions[mesh.first_vertex + vertex]), scale))
-                point := FigureClothHang(skinned, rest, rest_hips, hip_world, figure.facing, yaw, scale, legward, flutter)
-                outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                // Start the free panels at the animated pelvis. Their authored
+                // skirt springs already apply gravity, which would compete
+                // with contact and make this drape depend on playback history.
+                bind := FigureRotate(figure.facing, FigureSub(rest, rest_hips))
+                attached := FigureAddScaled(hip_world, FigureRotate(pelvis, bind), scale)
+                point := FigureClothHang(attached, rest, rest_hips, hip_world, figure.facing, yaw, scale, legward, flutter, folded)
+                bind_outward := FigureNormalize(FigureRotate(figure.facing, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                outward := FigureRotate(cloth_turn, bind_outward)
                 depth := rest_hips.y - rest.y
                 if thigh_lift > 0.0 {
                     lifted := FigureClothLift(point, outward, depth, scale, thighs[:])
                     point = FigureLerp(point, lifted, thigh_lift)
                 }
-                point = FigureClothSeat(point, outward, depth, scale, thighs[:], skirt_forward, down.y, thigh_lift)
-                point = FigureModelSkirtContact(point, outward, depth, scale, legs[:], arms[:], sleeves[:])
+                seat := FigureClothSeat(point, outward, depth, scale, thighs[:], skirt_forward, down.y, thigh_lift)
+                point = FigureLerp(point, seat, seat_lift)
+                point = FigureModelSkirtContact(point, outward, bind_outward, depth, scale, legs[:], arms[:], sleeves[:], *torso)
                 scene.positions[mesh.first_vertex + vertex] = FigureScale(FigureRotate(FigureConjugate(figure.facing),
                     FigureSub(point, root.position)), 1.0 / scale)
             }
@@ -592,6 +865,8 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
                 }
                 weight_a := ifx skirt then FigureSmooth(rest_hips.y - rest_a.y, 0.015, 0.10) else 1.0
                 weight_b := ifx skirt then FigureSmooth(rest_hips.y - rest_b.y, 0.015, 0.10) else 1.0
+                if seam.count != 0 && seam[a] >= 0 { weight_a = 0.0 }
+                if seam.count != 0 && seam[b] >= 0 { weight_b = 0.0 }
                 if weight_a + weight_b <= 0.0 {
                     continue
                 }
@@ -608,13 +883,15 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
             // sleeves. Project those points before the next edge pass.
             if skirt {
                 for vertex: 0..inst.skin.positions.count - 1 {
+                    if seam.count != 0 && seam[vertex] >= 0 { continue }
                     rest := inst.skin.positions[vertex]
                     depth := rest_hips.y - rest.y
-                    if depth <= 0.015 { continue }
-                    outward := FigureNormalize(FigureRotate(cloth_turn, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                    if depth <= 0.0 { continue }
+                    bind_outward := FigureNormalize(FigureRotate(figure.facing, .{rest.x - rest_hips.x, 0.0, rest.z - rest_hips.z}))
+                    outward := FigureRotate(cloth_turn, bind_outward)
                     point := *scene.positions[mesh.first_vertex + vertex]
                     world := FigureAdd(root.position, FigureScale(FigureRotate(figure.facing, <<point), scale))
-                    cleared := FigureModelSkirtContact(world, outward, depth, scale, legs[:], arms[:], sleeves[:])
+                    cleared := FigureModelSkirtContact(world, outward, bind_outward, depth, scale, legs[:], arms[:], sleeves[:], *torso)
                     <<point = FigureScale(FigureRotate(FigureConjugate(figure.facing),
                         FigureSub(cleared, root.position)), 1.0 / scale)
                 }
@@ -626,13 +903,14 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
     }
 }
 
-FigureModelSkirtContact :: (point: Vector3, outward: Vector3, depth: float64, scale: float64,
-    legs: []Vector3, arms: []Vector3, sleeves: []bool) -> Vector3 {
+FigureModelSkirtContact :: (point: Vector3, outward: Vector3, bind_outward: Vector3, depth: float64, scale: float64,
+    legs: []Vector3, arms: []Vector3, sleeves: []bool, torso: *FigureClothTorso) -> Vector3 {
     loose := FigureSmooth(depth, 0.015, 0.10)
-    if loose <= 0.0 {
+    if depth <= 0.0 {
         point.y = FigureMax(point.y, 0.006)
         return point
     }
+    torso_outward := FigureAddScaled(FigureScale(torso.side, bind_outward.x), torso.front, bind_outward.z)
     for pass: 0..3 {
         previous := point
         for side: 0..1 {
@@ -648,6 +926,7 @@ FigureModelSkirtContact :: (point: Vector3, outward: Vector3, depth: float64, sc
                 point = FigureLerp(point, outside, loose)
             }
         }
+        point = FigureLerp(point, FigureClothTorsoOutside(point, torso, torso_outward), FigureSmooth(depth, 0.0, 0.046))
         if FigureDistance(point, previous) < 0.000001 { break }
     }
     point.y = FigureMax(point.y, 0.006)
@@ -812,7 +1091,7 @@ FigureModelSoleTarget :: (figure: *FigureModel, joints: *FigureJoints, side: s32
     if figure.articulated_sole_mesh >= 0 && FigureAxis(turn, 0.0, 1.0, 0.0).y > 0.1 {
         load := ifx heel then 1.0 else 1.0 - FigureSmooth(contact.y, 0.001, 0.045)
         if load > 0.0 {
-            flex := FigureModelToeBend(joints, side, turn)
+            flex := FigureModelToeBend(figure, joints, side, turn)
             support := FigureModelFootSupport(figure, side, turn, flex, relative)
             relative = FigureLerp(relative, support, load)
         }
@@ -890,7 +1169,7 @@ FigureModelContacts :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoin
         }
         mesh := scene.meshes[scene.nodes[inst.scene_node].mesh]
         matrix := figure.instance.node_world[inst.gltf_node]
-        articulated := TextView(source.name[:]) == "PracticeArticulatedFeet"
+        articulated := FigureSoleUsesRig(TextView(source.name[:]))
         low: float64 = 1000.0
         high: float64 = -1000.0
         surface: float64 = 1000.0
@@ -993,7 +1272,7 @@ FigureModelToon :: (figure: *FigureModel, scene: *Scene) -> bool {
             prefix := "Practice_Training_"
             fabric = label.count >= prefix.count && label[:prefix.count] == prefix
         }
-        if name == "PracticeArticulatedFeet" || name == "PracticeBareFeet" {
+        if FigureSoleUsesRig(name) || name == "PracticeBareFeet" {
             // Keep the original skin atlas visible through a soft shadow
             // and a restrained rim, particularly along the small toes.
             figure.uniforms[first + 2] = .{0.91, 0.87, 0.88, 1.0}
@@ -1140,7 +1419,11 @@ FigureModelRest :: (figure: *FigureModel, role: s32, fallback: s32) -> Vector3 {
 // The plantars use a rigid foot weight. Measure the actual underside
 // vertices to establish the heel and forefoot pivots.
 FigureSoleMesh :: (name: string) -> bool {
-    return name == "PracticeArticulatedFeet" || name == "PracticeBareFeet" || name == "PracticeClothSlippers"
+    return FigureSoleUsesRig(name) || name == "PracticeBareFeet" || name == "PracticeClothSlippers"
+}
+
+FigureSoleUsesRig :: (name: string) -> bool {
+    return name == "PracticeArticulatedFeet" || name == "PracticeAuthoredFeet"
 }
 
 FigureSoleBand :: (articulated: bool) -> float64 {
@@ -1154,15 +1437,17 @@ FigureModelReadSoles :: (figure: *FigureModel) {
     figure.sole_rest_height = float64.[0.0, 0.0]
     figure.articulated_sole_mesh = -1
     figure.sole_toe_joint = s32.[-1, -1]
+    figure.keep_toe_profile = false
     for mesh_index: 0..figure.model.meshes.count - 1 {
         mesh := *figure.model.meshes[mesh_index]
         name := TextView(mesh.name[:])
         if !FigureSoleMesh(name) || mesh.primitives.count != 2 {
             continue
         }
-        articulated := name == "PracticeArticulatedFeet"
+        articulated := FigureSoleUsesRig(name)
         if articulated {
             figure.articulated_sole_mesh = cast(s32)mesh_index
+            figure.keep_toe_profile = name == "PracticeAuthoredFeet"
             for instance_index: 0..figure.instance.meshes.count - 1 {
                 instance := *figure.instance.meshes[instance_index]
                 if instance.mesh_index != mesh_index { continue }

@@ -157,3 +157,27 @@ Rest. Next up: push-up and rotation.
 [workout_say_next_side_plank]
 Rest. Last one: side plank.
 ---
+
+[workout_say_next_step_jacks]
+Next, step jacks. Step side to side without jumping.
+---
+
+[workout_say_next_mini_squats]
+Next, mini squats. Sit back a little, then stand tall.
+---
+
+[workout_say_next_heel_raises]
+Next, heel raises. Lift both heels slowly, then lower them.
+---
+
+[workout_say_next_easy_march]
+Next, an easy march. Lift one foot at a time.
+---
+
+[workout_say_next_side_reaches]
+Next, side reaches. Reach out and alternate sides.
+---
+
+[workout_say_next_back_taps]
+Next, back taps. Tap one foot behind you, then switch.
+---

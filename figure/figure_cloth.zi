@@ -1,11 +1,98 @@
 // Small deterministic cloth constraints for the meditation skirt. The upper
 // edge follows the fitted garment skin; the hem hangs under gravity instead
-// of rotating over the head with a forward-folded pelvis. Leg capsules and
+// of rotating over the head with a forward-folded pelvis. Body contact and
 // the real floor keep the cloth outside the body. There is no free-running
 // simulation or seek-dependent state.
 #import "figure_math"
 #import "std/math"
 #import "kryon/scene"
+
+// A triangle in the fitted wrap, indexed by its welded scene vertices.
+FigureClothTriangle :: struct {
+    vertices: [3]s32
+    point: Vector3
+    edge_a: Vector3
+    edge_b: Vector3
+    normal: Vector3
+}
+
+FigureClothBinding :: struct {
+    vertices: [3]s32
+    weights: Vector3
+    vertex: s32
+    clearance: float64
+}
+
+// Follow a rest surface normal to the nearest outward-facing garment piece.
+// A small negative lower bound admits a facing that already overlaps cloth.
+FigureClothBind :: (point: Vector3, normal: Vector3, vertex: s32, triangles: []FigureClothTriangle,
+    low: float64, high: float64) -> FigureClothBinding {
+    bound: FigureClothBinding = .{vertex = -1}
+    closest := FigureMax(FigureAbs(low), high)
+    for face: triangles {
+        alignment := FigureDot(face.normal, normal)
+        if alignment < 0.15 { continue }
+        offset := FigureSub(point, face.point)
+        distance := -FigureDot(offset, face.normal) / alignment
+        if distance < low || distance > high || FigureAbs(distance) >= closest { continue }
+        perpendicular := FigureCross(normal, face.edge_b)
+        divisor := FigureDot(face.edge_a, perpendicular)
+        across := FigureCross(offset, face.edge_a)
+        u := FigureDot(offset, perpendicular) / divisor
+        v := FigureDot(normal, across) / divisor
+        if u < -0.000001 || v < -0.000001 || u + v > 1.000001 { continue }
+        closest = FigureAbs(distance)
+        bound = .{face.vertices, .{1.0 - u - v, u, v}, vertex, distance}
+    }
+    return bound
+}
+
+FigureClothPosedTriangle :: (positions: []Vector3, vertices: [3]s32) -> FigureClothTriangle {
+    point := positions[vertices[0]]
+    edge_a := FigureSub(positions[vertices[1]], point)
+    edge_b := FigureSub(positions[vertices[2]], point)
+    return .{vertices, point, edge_a, edge_b, FigureNormalize(FigureCross(edge_a, edge_b))}
+}
+
+FigureClothBoundPoint :: (positions: []Vector3, bound: *FigureClothBinding) -> Vector3 {
+    a := FigureScale(positions[bound.vertices[0]], bound.weights.x)
+    b := FigureAddScaled(a, positions[bound.vertices[1]], bound.weights.y)
+    return FigureAddScaled(b, positions[bound.vertices[2]], bound.weights.z)
+}
+
+FigureClothMoveTriangle :: (positions: []Vector3, bound: *FigureClothBinding, normal: Vector3, depth: float64) {
+    correction := FigureScale(normal, depth / FigureDot(bound.weights, bound.weights))
+    for corner: 0..2 {
+        vertex := bound.vertices[corner]
+        weight := ifx corner == 0 then bound.weights.x else ifx corner == 1 then bound.weights.y else bound.weights.z
+        positions[vertex] = FigureAddScaled(positions[vertex], correction, weight)
+    }
+}
+
+FigureClothClearBody :: (positions: []Vector3, normals: []Vector3, bound: *FigureClothBinding, amount: float64) -> bool {
+    point := FigureClothBoundPoint(positions, bound)
+    normal := normals[bound.vertex]
+    offset := FigureSub(point, positions[bound.vertex])
+    separation := FigureDot(offset, normal)
+    depth := bound.clearance - separation
+    // Long tangential travel is a different patch of cloth sliding past this
+    // point, especially at a deep fold or an elbow. Keep the local correction.
+    if depth <= 0.0001 || FigureDot(offset, offset) - separation * separation > 0.0016 { return false }
+    correction := FigureMin(0.018, depth) * amount
+    if amount < 1.0 {
+        // When upright, correct actual intersections while leaving the
+        // fitted volume and ease in the original loose sleeves intact.
+        face: [1]FigureClothTriangle = .[FigureClothPosedTriangle(positions, bound.vertices)]
+        collision := FigureClothBind(positions[bound.vertex], normal, bound.vertex, face[:], -0.024, 0.001)
+        if collision.vertex >= 0 {
+            FigureClothMoveTriangle(positions, *collision, normal, 0.001 - collision.clearance)
+            return true
+        }
+    }
+    if correction <= 0.0001 { return false }
+    FigureClothMoveTriangle(positions, bound, normal, correction)
+    return true
+}
 
 FigureClothOutside :: (point: Vector3, from: Vector3, to: Vector3, radius: float64, fallback: Vector3) -> Vector3 {
     segment := FigureSub(to, from)
@@ -25,13 +112,62 @@ FigureClothOutside :: (point: Vector3, from: Vector3, to: Vector3, radius: float
     return FigureAddScaled(center, delta, radius)
 }
 
+// Elliptical cross section aligned with the animated lower trunk. The
+// rounded ends clear the seat and abdomen as the pelvis and chest fold.
+FigureClothTorso :: struct {
+    seat: Vector3
+    up: Vector3
+    side: Vector3
+    front: Vector3
+    length: float64
+    scale: float64
+}
+
+FigureClothTorsoFrame :: (seat: Vector3, chest: Vector3, lateral: Vector3, scale: float64) -> FigureClothTorso {
+    axis := FigureSub(chest, seat)
+    up := FigureNormalize(axis)
+    front := FigureNormalize(FigureCross(lateral, up))
+    side := FigureCross(up, front)
+    return .{seat, up, side, front, FigureLength(axis), scale}
+}
+
+FigureClothTorsoOutside :: (point: Vector3, torso: *FigureClothTorso, outward: Vector3) -> Vector3 {
+    if torso.length < 0.001 || FigureLength(torso.side) < 0.5 { return point }
+    delta := FigureSub(point, torso.seat)
+    width := 0.150 * torso.scale
+    length := 0.073 * torso.scale
+    front := FigureDot(delta, torso.front)
+    // Use the fuller rear profile around the seat without widening the abdomen.
+    depth := (ifx front < 0.0 then 0.148 else 0.113) * torso.scale
+    local := FigureV3(FigureDot(delta, torso.side) / width,
+        FigureDot(delta, torso.up) / length, front / depth)
+    cap := local.y - FigureClamp(local.y, 0.0, torso.length / length)
+    // Below the waist the rounded seat extends beyond the hip joints.
+    if cap < 0.0 { cap *= 0.60 }
+    radius := 1.0 - cap * cap
+    radial := FigureV3(local.x, 0.0, local.z)
+    inside := radius - FigureDot(radial, radial)
+    if inside <= 0.0000001 { return point }
+
+    // Exit on the panel's authored side. Picking the nearest side allows
+    // neighbouring points to snap apart as the folded torso passes between them.
+    direction := FigureNormalize(.{FigureDot(outward, torso.side) / width, 0.0,
+        FigureDot(outward, torso.front) / depth})
+    if FigureLength(direction) < 0.5 { direction = .{0.0, 0.0, 1.0} }
+    along := FigureDot(radial, direction)
+    travel := Sqrt(inside + along * along) - along
+    return FigureAddScaled(FigureAddScaled(point, torso.side, direction.x * travel * width),
+        torso.front, direction.z * travel * depth)
+}
+
 FigureClothHang :: (skinned: Vector3, rest: Vector3, rest_hips: Vector3, hips: Vector3,
     facing: FigureQuat, yaw: float64, scale: float64,
-    legward: Vector3 = .{}, flutter: float64 = 0.0) -> Vector3 {
+    legward: Vector3 = .{}, flutter: float64 = 0.0, folded: float64 = 0.0) -> Vector3 {
     local := FigureSub(rest, rest_hips)
     depth := FigureMax(0.0, -local.y)
-    // Preserve the waist seam and let the lower skirt settle continuously.
-    loose := FigureSmooth(depth, 0.015, 0.19)
+    // In a deep hinge gravity takes over closer to the waist so the upper
+    // panels fall around the legs while the torso folds above them.
+    loose := FigureSmooth(depth, 0.015, 0.19 - 0.10 * folded)
     lateral := FigureRotate(facing, .{local.x, 0.0, local.z})
     lateral = FigureRotate(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), lateral)
     // Spread the loose panels as the legs open and the body leaves the floor.
