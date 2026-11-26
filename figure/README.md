@@ -37,7 +37,10 @@ The modules:
   cel-shaded look on its own textures.
 - `figure_stage` retains the model and renders it to a transparent pixel
   buffer with a fixed orthographic camera. It accepts the bundled VRM
-  bytes and shares the same camera geometry with the preview.
+  bytes and shares the same camera geometry with the preview. It skips
+  hidden outfits and poses eligible surfaces on the GPU, retaining CPU
+  vertices for foot contacts, wrap clearances and cloth corrections. A failed
+  GPU frame reposes those skins on the CPU before the CPU renderer draws.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.

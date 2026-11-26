@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "dd5477d7a617bd2d1176bddea2eaf1839b4aeaa45d696e1e85691de9dd25e2e4",
+    "output_sha256": "3dce1259ef53e03404745f64b7a0c49e77983f9efde494adc58820f9cf6038aa",
     "bare_feet": [
       {
         "side": "L",
@@ -27,7 +27,8 @@
     "skirt_preserved": true,
     "identity": "Original face, body, skeleton and bare feet retained",
     "style": "Matte linen cross-collar wrap, plain sash and flared skirt",
-    "hair": "High layered ponytail on the original hair rig and texture"
+    "hair": "High layered ponytail on the original hair rig and texture",
+    "tai_chi_bottom": "Relaxed ankle-length linen trousers under the wrap top"
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",

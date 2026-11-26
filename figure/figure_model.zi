@@ -99,6 +99,7 @@ FigureModel :: struct {
     training_trousers: s64
     training: bool
     training_skirt: bool
+    tai_chi: bool
     skirt_mesh: s64
     skirt_tunic: s64
     skirt_seam: Vec(s32)
@@ -108,6 +109,7 @@ FigureModel :: struct {
     wrap_facing: Vec(FigureClothBinding)
     wrap_sash: Vec(FigureWrapSash)
     wrap_edges: Vec(FigureWrapEdge)
+    gpu_skinning: bool
     ready: bool
 }
 
@@ -130,7 +132,38 @@ FigureModelRelease :: (figure: *FigureModel) {
     ShaderFree(*figure.toon)
     VrmAvatarRelease(*figure.avatar)
     figure.clock = -1.0
+    figure.gpu_skinning = false
     figure.ready = false
+}
+
+// Keep surfaces edited by contact and cloth solvers on the CPU. The other
+// skins publish joint palettes instead of deforming every vertex each frame.
+FigureModelGpuSkinning :: (figure: *FigureModel, scene: *Scene, enabled: bool) -> bool {
+    if figure.gpu_skinning == enabled {
+        return true
+    }
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        if !inst.has_skin {
+            continue
+        }
+        source := *figure.model.meshes[inst.mesh_index]
+        name := TextView(source.name[:])
+        contact := index == figure.wrap_body || name == "PracticeBareFeet" || FigureSoleUsesRig(name) ||
+            name == "PracticeSkirt" || name == "PracticeClothing" ||
+            name == "PracticeWrapFacings" || name == "PracticeTrainingSkirt" ||
+            name == "PracticeTrainingTrousers"
+        if contact {
+            continue
+        }
+        if !SceneSkinUseGpu(scene, *inst.skin, enabled, inst.skin_index) {
+            unused GltfSetGpuSkinning(scene, *figure.instance, false)
+            figure.gpu_skinning = false
+            return false
+        }
+    }
+    figure.gpu_skinning = enabled
+    return true
 }
 
 FigureSideRole :: (side: s32, bone: s32) -> s32 {
@@ -263,6 +296,7 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
     figure.training_trousers = -1
     figure.training = false
     figure.training_skirt = false
+    figure.tai_chi = false
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         mesh := *figure.model.meshes[inst.mesh_index]
@@ -281,7 +315,8 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
                 }
             }
         }
-        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" || name == "PracticeTrainingTrousers" {
+        if name == "PracticeTrainingBody" || name == "PracticeTrainingSkirt" || name == "PracticeTrainingTrousers" ||
+        name == "PracticeTaiChiTrousers" {
             unused SetVisible(scene, inst.scene_node, false)
         }
     }
@@ -506,10 +541,30 @@ FigureModelTraining :: (figure: *FigureModel, scene: *Scene, training: bool, ski
     figure.training_skirt = show_skirt
 }
 
+// Tai Chi keeps the wrap top and replaces the woman's skirt with loose
+// trousers. Other practices retain their own wardrobe in the same scene.
+FigureModelTaiChi :: (figure: *FigureModel, scene: *Scene, enabled: bool) {
+    if figure.tai_chi == enabled {
+        return
+    }
+    for index: 0..figure.instance.meshes.count - 1 {
+        inst := *figure.instance.meshes[index]
+        source := *figure.model.meshes[inst.mesh_index]
+        name := TextView(source.name[:])
+        if name == "PracticeTaiChiTrousers" {
+            unused SetVisible(scene, inst.scene_node, enabled && !figure.training)
+        } else if name == "PracticeSkirt" {
+            unused SetVisible(scene, inst.scene_node, !enabled && !figure.training)
+        }
+    }
+    figure.tai_chi = enabled
+}
+
 // Poses the loaded model in SCENE at JOINTS. Played at SECONDS of the
 // practice, a VRM model's hair swings from the last pose and its eyes
 // blink; a still pose (no SECONDS) has the hair hanging at rest.
-FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, seconds: float64 = -1.0) -> bool {
+FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints,
+    seconds: float64 = -1.0, skip_hidden: bool = false) -> bool {
     if !figure.ready {
         return false
     }
@@ -642,14 +697,14 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, 
     gaze := FigureGaze(joints)
     VrmLookAtSet(*figure.avatar, *figure.model, *figure.instance, gaze.x, gaze.y)
     FigureModelLive(figure, offset, scale, seconds)
-    if !GltfUpdateScene(*figure.model, *figure.instance, scene) {
+    if !GltfUpdateScene(*figure.model, *figure.instance, scene, skip_hidden) {
         return false
     }
     FigureModelToeContact(figure, scene, joints)
     if figure.training_skirt {
         FigureModelTrainingDrape(figure, scene)
     }
-    FigureModelCloth(figure, scene, joints)
+    FigureModelCloth(figure, scene, joints, skip_hidden)
     FigureModelWrapContact(figure, scene, joints)
     return true
 }
@@ -737,7 +792,7 @@ FigureModelToeContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJo
 
 // The meditation layers drape around the body. The short training skirt
 // already follows the hips and thighs using its own skin weights.
-FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
+FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints, skip_hidden: bool = false) {
     if figure.training && figure.training_trousers < 0 { return }
     root := scene.nodes[figure.instance.root_node]
     scale := root.scale.x
@@ -796,6 +851,9 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints)
     for index: 0..figure.instance.meshes.count - 1 {
         inst := *figure.instance.meshes[index]
         if figure.training && inst.scene_node != figure.training_trousers { continue }
+        if skip_hidden && !scene.nodes[inst.scene_node].visible && !scene.nodes[inst.scene_node].cast_shadow {
+            continue
+        }
         source := *figure.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
         skirt := name == "PracticeSkirt"

@@ -49,6 +49,10 @@ sets these constraints so seeking and playback produce the same drape.
 Airborne drape opens with the legs. In a low prone pose, spare length follows
 the legs along the floor.
 
+Tai Chi pairs the woman’s long-sleeve wrap top with relaxed, ankle-length
+linen trousers (`PracticeTaiChiTrousers`), cut on her own skeleton. The
+wardrobe switch keeps the skirt for the other practices.
+
 Workout uses a crop top and lined sports skirt on the same woman.
 `PracticeTrainingBody` assigns body faces to the crop top and undershorts.
 `PracticeTrainingSkirt` has a fitted waist, shallow pleats and a contrasting hem.

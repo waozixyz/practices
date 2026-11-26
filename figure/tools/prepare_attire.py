@@ -475,6 +475,39 @@ def cut_surface(attrs, triangles, fields):
     return {key: np.asarray(data) for key, data in vertices.items()}, polygons
 
 
+def tai_chi_trousers(asset, body_node, skin_parts):
+    """Cut relaxed ankle-length trousers on the woman's own rig."""
+    primary = max(skin_parts, key=lambda part: len(asset.read(part['indices'])))
+    attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
+    faces = asset.read(primary['indices']).reshape(-1, 3)
+    y = attrs['POSITION'][:, 1]
+    attrs, polygons = cut_surface(attrs, faces, np.column_stack((y - .170, 1.015 - y)))
+    faces = np.array([(poly[0], a, b) for poly, bits in polygons if bits == 3
+                      for a, b in zip(poly[1:-1], poly[2:])])
+    positions = attrs['POSITION']
+    used = np.unique(faces)
+    x, y, z = positions[used].T.copy()
+    seat = np.clip((y - .76) / .15, 0, 1)
+    seat *= seat * (3 - 2 * seat)
+    center_x = np.sign(x) * .078 * (1 - seat)
+    dx, dz = x - center_x, z - .006
+    radius = np.maximum(np.hypot(dx, dz), 1e-6)
+    # A narrow cuff opens into full legs, then tucks below the wrap's sash.
+    fullness = .010 + .026 * np.sin(np.pi * np.clip((y - .17) / .845, 0, 1))
+    positions[used, 0] += dx / radius * fullness
+    positions[used, 2] += dz / radius * fullness
+    _, welded = np.unique(np.round(positions, 5), axis=0, return_inverse=True)
+    cross = np.cross(positions[faces[:, 1]] - positions[faces[:, 0]],
+                     positions[faces[:, 2]] - positions[faces[:, 0]])
+    normals = np.zeros((int(welded.max()) + 1, 3), dtype=positions.dtype)
+    np.add.at(normals, welded[faces].reshape(-1), np.repeat(cross, 3, axis=0))
+    normals = normals[welded]
+    lengths = np.maximum(np.linalg.norm(normals, axis=1), 1e-8)
+    attrs['NORMAL'][used] = normals[used] / lengths[used, None]
+    material = asset.material('Practice_TaiChi_Linen_Trousers', [.22, .36, .33, 1])
+    asset.mesh(body_node, 'PracticeTaiChiTrousers', [asset.primitive(attrs, faces, material)])
+
+
 def training_clothes(asset, body_node, skin_parts):
     """Fit an opaque crop tank and ankle-length leggings to the original rig."""
     primary, *uncovered = skin_parts
@@ -869,6 +902,7 @@ def dress(source, target, person):
         asset.mesh(body_node, 'PracticeSkirt', skirt)
     asset.mesh(body_node, 'PracticeWrapFacings', trims)
     if person == 'woman':
+        tai_chi_trousers(asset, body_node, skin_parts)
         training_clothes(asset, body_node, skin_parts)
         woman_hair(asset)
     else:
@@ -888,7 +922,8 @@ def dress(source, target, person):
                        else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed',
                        **({'training_top': 'Short-sleeved crew-neck T-shirt',
                            'training_bottom': 'Tapered, ankle-length athletic trousers'} if person == 'man'
-                          else {'hair': 'High layered ponytail on the original hair rig and texture'})}
+                          else {'hair': 'High layered ponytail on the original hair rig and texture',
+                                'tai_chi_bottom': 'Relaxed ankle-length linen trousers under the wrap top'})}
 
 
 def main():

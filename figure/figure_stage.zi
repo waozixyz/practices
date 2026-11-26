@@ -3,6 +3,7 @@
 #import "figure_joints"
 #import "figure_model"
 #import "kryon/scene"
+#import "kryon/scene_gltf"
 #import "kryon/scene_render"
 #import "kryon/drawing_props"
 #import "std/math"
@@ -63,7 +64,10 @@ FigureStageFree :: (stage: *FigureStage) {
 
 FigureStageRender :: (stage: *FigureStage, joints: *FigureJoints,
     camera: SceneCamera, width: s32, height: s32, seconds: float64) -> bool {
-    if !FigureModelPose(*stage.model, *stage.scene, joints, seconds) {
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        unused FigureModelGpuSkinning(*stage.model, *stage.scene, GPU.SceneGpuProbe(*stage.gpu).available)
+    }
+    if !FigureModelPose(*stage.model, *stage.scene, joints, seconds, true) {
         return false
     }
     toward := FigureNormalize(FigureSub(camera.position, camera.target))
@@ -78,15 +82,33 @@ FigureStageRender :: (stage: *FigureStage, joints: *FigureJoints,
         stage.pixels.height = height
     }
     #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
-        return GPU.SceneGpuRenderOrCPU(*stage.gpu, *stage.scene, camera, *stage.pixels).ok
-    } else {
-        return RenderScene(*stage.scene, camera, *stage.pixels)
+        result := GPU.SceneGpuRender(*stage.gpu, *stage.scene, camera, *stage.pixels)
+        if result.ok {
+            return true
+        }
+        // The CPU renderer needs posed vertices, never a GPU skin's bind pose.
+        if stage.model.gpu_skinning {
+            unused FigureModelGpuSkinning(*stage.model, *stage.scene, false)
+            if !FigureModelPose(*stage.model, *stage.scene, joints, seconds, true) {
+                return false
+            }
+        }
     }
+    return RenderScene(*stage.scene, camera, *stage.pixels)
 }
 
 FigureStageLoadBytes :: (stage: *FigureStage, bytes: []u8) -> bool {
     FigureStageInit(stage)
-    return FigureModelLoadBytes(*stage.model, *stage.scene, bytes) && FigureModelToon(*stage.model, *stage.scene)
+    if !FigureModelLoadBytes(*stage.model, *stage.scene, bytes) || !FigureModelToon(*stage.model, *stage.scene) {
+        return false
+    }
+    // This stage uses the host's contact shadow, without a scene shadow map.
+    // Hidden wardrobe meshes therefore need neither posing nor shadow skins.
+    for index: 0..stage.model.instance.meshes.count - 1 {
+        inst := *stage.model.instance.meshes[index]
+        unused SetShadows(*stage.scene, inst.scene_node, false, false)
+    }
+    return true
 }
 
 FigureStagePaint :: (stage: *FigureStage, joints: *FigureJoints, center: Vector3,
