@@ -65,7 +65,7 @@ FigureStageFree :: (stage: *FigureStage) {
 FigureStageRender :: (stage: *FigureStage, joints: *FigureJoints,
     camera: SceneCamera, width: s32, height: s32, seconds: float64) -> bool {
     #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
-        unused FigureModelGpuSkinning(*stage.model, *stage.scene, GPU.SceneGpuProbe(*stage.gpu).available)
+        unused FigureModelGpuSkinning(*stage.model, *stage.scene, GPU.SceneGpuSkinningAvailable(*stage.gpu))
     }
     if !FigureModelPose(*stage.model, *stage.scene, joints, seconds, true) {
         return false
