@@ -507,7 +507,7 @@ def cut_surface(attrs, triangles, fields):
 
 
 def tai_chi_trousers(asset, body_node, skin_parts):
-    """Cut relaxed ankle-length trousers on the woman's own rig."""
+    """Cut slim, tapered ankle-length trousers on the woman's own rig."""
     primary = max(skin_parts, key=lambda part: len(asset.read(part['indices'])))
     attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
     faces = asset.read(primary['indices']).reshape(-1, 3)
@@ -540,8 +540,9 @@ def tai_chi_trousers(asset, body_node, skin_parts):
     center_z = centers[:, 1] * (1 - seat) + .006 * seat
     dx, dz = x - center_x, z - center_z
     radius = np.maximum(np.hypot(dx, dz), 1e-6)
-    # A narrow cuff opens into full legs, then tucks below the wrap's sash.
-    fullness = .022 + .045 * np.sin(np.pi * np.clip((y - .157) / .858, 0, 1))
+    # Follow the leg with a little wearing ease, tapering into the ankle and
+    # sash instead of swelling into a baggy seat and calves.
+    fullness = .006 + .009 * np.sin(np.pi * np.clip((y - .157) / .858, 0, 1))
     positions[used, 0] += dx / radius * fullness
     positions[used, 2] += dz / radius * fullness
     _, welded = np.unique(np.round(positions, 5), axis=0, return_inverse=True)
@@ -973,7 +974,7 @@ def dress(source, target, person):
                        **({'training_top': 'Short-sleeved crew-neck T-shirt',
                            'training_bottom': 'Tapered, ankle-length athletic trousers'} if person == 'man'
                           else {'hair': 'High layered ponytail on the original hair rig and texture',
-                                'tai_chi_bottom': 'Relaxed ankle-length linen trousers under the wrap top'})}
+                                'tai_chi_bottom': 'Slim, tapered ankle-length trousers under the wrap top'})}
 
 
 def main():

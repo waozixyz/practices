@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "96ce75836a5361f0cea6a7a00b003f73087e8025e353afb46d2fc02cd498721b",
+    "output_sha256": "32c0722aec016788aa8a3c79bc870da75a6dad0a927d5896ca032044a8a4ef6e",
     "bare_feet": [
       {
         "side": "L",
@@ -30,7 +30,7 @@
     "geometry_vertices_before": 660085,
     "geometry_vertices": 24802,
     "hair": "High layered ponytail on the original hair rig and texture",
-    "tai_chi_bottom": "Relaxed ankle-length linen trousers under the wrap top"
+    "tai_chi_bottom": "Slim, tapered ankle-length trousers under the wrap top"
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
