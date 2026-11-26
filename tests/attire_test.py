@@ -28,6 +28,26 @@ def same_primitive(old, new, before, after):
             assert np.array_equal(old.read(source[name])[a], new.read(output[name])[b]), name
 
 
+def split_batch(asset, primitive, counts):
+    """Recover source strand boundaries without changing any drawn corner."""
+    indices = asset.read(primitive['indices']).ravel()
+    assert sum(counts) == len(indices)
+    result, offset = [], 0
+    for count in counts:
+        used, remapped = np.unique(indices[offset:offset + count], return_inverse=True)
+        attributes = {}
+        for name, index in primitive['attributes'].items():
+            source = asset.doc['accessors'][index]
+            output = asset.append(asset.read(index)[used], source['componentType'], source['type'])
+            if 'normalized' in source:
+                asset.doc['accessors'][output]['normalized'] = source['normalized']
+            attributes[name] = output
+        result.append({**primitive, 'attributes': attributes,
+                       'indices': asset.append(remapped.reshape(-1, 1), 5125, 'SCALAR')})
+        offset += count
+    return result
+
+
 def verify_feet(old, new, receipts, person):
     original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
     source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
@@ -245,7 +265,13 @@ def verify_training_trousers(asset):
 
 
 def verify_woman_hair(old, new, authored, styled):
-    original, updated = authored['primitives'], styled['primitives']
+    original = authored['primitives']
+    assert len(styled['primitives']) == 4
+    kept = [primitive for index, primitive in enumerate(original)
+            if index >= 6 and not 50 <= index < 66]
+    updated = [*split_batch(new, styled['primitives'][0],
+                           [len(old.read(primitive['indices'])) for primitive in kept]),
+               *styled['primitives'][1:]]
     assert len(updated) == len(original) - 22 + 3
     assert new.doc['extensions']['VRM']['secondaryAnimation'] == old.doc['extensions']['VRM']['secondaryAnimation']
     for before, after in [*zip(original[6:14], updated[:8]),
@@ -317,6 +343,9 @@ def main():
             expected = [p for p in mesh['primitives']
                         if 'CLOTH' not in o['materials'][p['material']]['name'] and not is_foot_skin(old, p)]
             actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
+            if mesh['name'] == 'Hair001.baked':
+                assert len(actual) == 1
+                actual = split_batch(new, actual[0], [len(old.read(p['indices'])) for p in expected])
             assert len(actual) == len(expected), (person, mesh.get('name'))
             for before, after in zip(expected, actual):
                 same_primitive(old, new, before, after)

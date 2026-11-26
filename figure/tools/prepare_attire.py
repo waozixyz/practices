@@ -130,6 +130,44 @@ class Asset:
                 primitive['indices'] = self.append(remapped.reshape(-1, 1), component, 'SCALAR')
         return {'geometry_vertices_before': before, 'geometry_vertices': after}
 
+    def batch_hair(self, person):
+        """Draw consecutive cutout strands with one shared material and skin."""
+        mesh = next(mesh for mesh in self.doc['meshes'] if mesh['name'] == 'Hair001.baked')
+        # Keep the three authored ponytail locks separate for further styling.
+        source = mesh['primitives'][:-3] if person == 'woman' else mesh['primitives']
+        tail = mesh['primitives'][-3:] if person == 'woman' else []
+        first = source[0]
+        metadata = {key: value for key, value in first.items() if key not in ('attributes', 'indices')}
+        assert not first.get('targets') and first.get('mode', 4) == 4
+        attributes = first['attributes']
+        values = {name: [] for name in attributes}
+        indices, offset = [], 0
+        for primitive in source:
+            assert {key: value for key, value in primitive.items()
+                    if key not in ('attributes', 'indices')} == metadata
+            assert primitive['attributes'].keys() == attributes.keys()
+            count = self.doc['accessors'][primitive['attributes']['POSITION']]['count']
+            for name, accessor in primitive['attributes'].items():
+                original = self.doc['accessors'][attributes[name]]
+                current = self.doc['accessors'][accessor]
+                for key in ('componentType', 'type'):
+                    assert current.get(key) == original.get(key)
+                assert current.get('normalized', False) == original.get('normalized', False)
+                assert current['count'] == count
+                values[name].append(self.read(accessor))
+            indices.append(self.read(primitive['indices']).astype(np.uint32) + offset)
+            offset += count
+        merged = copy.deepcopy(first)
+        for name, arrays in values.items():
+            original = self.doc['accessors'][attributes[name]]
+            accessor = self.append(np.concatenate(arrays), original['componentType'], original['type'])
+            if 'normalized' in original:
+                self.doc['accessors'][accessor]['normalized'] = original['normalized']
+            merged['attributes'][name] = accessor
+        merged['indices'] = self.append(np.concatenate(indices), 5123 if offset <= 65536 else 5125, 'SCALAR')
+        mesh['primitives'] = [merged, *tail]
+        return {'hair_draws_before': len(source) + len(tail), 'hair_draws': 1 + len(tail)}
+
     def save(self, path):
         self.binary.extend(b'\0' * (-len(self.binary) % 4))
         self.doc['buffers'][0]['byteLength'] = len(self.binary)
@@ -962,6 +1000,7 @@ def dress(source, target, person):
         training_tshirt(asset, body_node, skin_parts, skin, trouser_attrs, trouser_faces)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
     compacted = asset.compact()
+    batched = asset.batch_hair(person)
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
                        'bare_feet': measurements,
@@ -971,6 +1010,7 @@ def dress(source, target, person):
                        'style': 'Matte linen cross-collar wrap, plain sash and flared skirt' if person == 'woman'
                        else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed',
                        **compacted,
+                       **batched,
                        **({'training_top': 'Short-sleeved crew-neck T-shirt',
                            'training_bottom': 'Tapered, ankle-length athletic trousers'} if person == 'man'
                           else {'hair': 'High layered ponytail on the original hair rig and texture',

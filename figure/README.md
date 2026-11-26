@@ -50,6 +50,9 @@ The modules:
 The prepared models compact each primitive to the vertices its indices use,
 including matching facial-expression deltas. Triangle order, skin weights,
 normals and UVs stay the same; unreferenced vertices are never posed or uploaded.
+Consecutive cutout hair strands share one draw when their material, skin and
+attribute formats match. Triangle order and every drawn corner stay unchanged;
+the woman's three authored ponytail locks remain separate for styling.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.

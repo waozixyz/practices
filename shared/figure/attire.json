@@ -1,7 +1,7 @@
 {
   "woman": {
     "source_sha256": "adfd242317aaabc773f31f7fff7b013979fbb5baa47e97427a78913d9cb4e979",
-    "output_sha256": "32c0722aec016788aa8a3c79bc870da75a6dad0a927d5896ca032044a8a4ef6e",
+    "output_sha256": "769a7d17869008830278c4b9339d94e00a7cde847eb12a76933e98ae4fe28496",
     "bare_feet": [
       {
         "side": "L",
@@ -29,12 +29,14 @@
     "style": "Matte linen cross-collar wrap, plain sash and flared skirt",
     "geometry_vertices_before": 660085,
     "geometry_vertices": 24802,
+    "hair_draws_before": 89,
+    "hair_draws": 4,
     "hair": "High layered ponytail on the original hair rig and texture",
     "tai_chi_bottom": "Slim, tapered ankle-length trousers under the wrap top"
   },
   "man": {
     "source_sha256": "7aeca142dabbc26ba0f5b9c998c8f3cb6df341287d67788427ac837223785a3f",
-    "output_sha256": "b685750550e537cb39c4d4f586a13131f93cfff6fff5153a3dc8145d9311444e",
+    "output_sha256": "bca20c02c97132fac67afe6e94015e12b85602576ac77a05bf59d746745c3086",
     "bare_feet": [
       {
         "side": "L",
@@ -66,6 +68,8 @@
     "style": "Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed",
     "geometry_vertices_before": 942114,
     "geometry_vertices": 22377,
+    "hair_draws_before": 114,
+    "hair_draws": 1,
     "training_top": "Short-sleeved crew-neck T-shirt",
     "training_bottom": "Tapered, ankle-length athletic trousers"
   }
