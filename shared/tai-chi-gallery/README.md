@@ -13,3 +13,7 @@ ffmpeg -i lesson-1.png -vf scale=512:384:flags=lanczos -frames:v 1 \
 
 Package the thumbnail copies for the gallery; retain the originals here for
 future uses that need their full resolution.
+
+The six `foundation-*.png` covers illustrate the expandable Foundations groups.
+Their original prompts, generation IDs and checksums are in `foundation-prompts.json`.
+The matching `thumbnails/foundation-*.webp` use the same 512 × 384 conversion above.

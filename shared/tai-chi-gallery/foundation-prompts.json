@@ -1,0 +1,84 @@
+{
+  "generator": "Managed generate_image tool",
+  "mode": "Generated original PNG bytes preserved; FFmpeg runtime WebP copies",
+  "foundations": [
+    {
+      "id": "posture",
+      "title": "Posture and breathing",
+      "file": "foundation-posture.png",
+      "prompt": "Use case: stylized-concept. Generate a landscape 4:3 illustrated cover for Inner Breeze Tai Chi Foundations: Posture and breathing. Match the existing lesson gallery style: premium soft painterly 3D illustration of one adult woman, brown ponytail, muted rose plain short-sleeve training shirt, slim naturally tapered rose training trousers and simple off-white training shoes; quiet mountain garden with bamboo and soft warm daylight, muted sage and blue palette. Full body comfortably inside frame, standing upright with relaxed knees and feet shoulder-width, hands softly open near lower abdomen to suggest calm breathing. No text, numbers, labels, logos, watermark or UI. Save as an original image for the project; do not change any existing files.",
+      "request_id": "882764cf64299b83315822520d78934d5a0e",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "5535c61d0fbc2c5ec0c1c2b4a45b644b537a9734e8c58417e0bc1404979fdee7",
+      "runtime_file": "thumbnails/foundation-posture.webp",
+      "runtime_sha256": "5e5d4d1486e65802fb8b24d91f6a17a36a7d3e245c89297c7abf1228cd3ca25d",
+      "runtime_bytes": 59206
+    },
+    {
+      "id": "warm-up",
+      "title": "Warm-up",
+      "file": "foundation-warm-up.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app cover for Inner Breeze Tai Chi Foundations: Warm-up. One full-body adult woman with brown ponytail, muted rose plain short-sleeve training shirt, slim naturally tapered rose training trousers, off-white simple training shoes. Gentle shoulder and arm warm-up: relaxed upright posture, feet shoulder-width, arms gently extended to the sides below shoulder height, soft elbows, palms relaxed. Premium painterly 3D illustration matching a cohesive Tai Chi gallery, quiet mountain garden with bamboo, soft warm daylight, muted sage-blue palette. Keep hands and feet comfortably inside the frame. Clear at small thumbnail scale. No text, numbers, logos, watermarks or UI. New project asset, preserve existing files.",
+      "request_id": "ca5fad8fe64b0933027a5112aaa4e8c926c1",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "6ba6f20e09f30be9274718c02993bf76e8c1da4284bae77810d0cd097c4dbefb",
+      "runtime_file": "thumbnails/foundation-warm-up.webp",
+      "runtime_sha256": "c58394d68afc93ea7715a94f11c771406331ff097579d626b28cfdbc7e206511",
+      "runtime_bytes": 59340
+    },
+    {
+      "id": "standing-meditation",
+      "title": "Standing meditation",
+      "file": "foundation-standing-meditation.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app cover for Inner Breeze Tai Chi Foundations: Standing meditation. One full-body adult woman with brown ponytail, muted rose plain short-sleeve training shirt, slim naturally tapered rose training trousers and off-white simple training shoes. Show zhan zhuang, hug-the-tree posture: feet shoulder-width, knees softly bent, spine upright, arms rounded in front of chest with palms facing inward as if embracing a large ball, shoulders down, peaceful expression. Premium painterly 3D illustration matching a cohesive Tai Chi gallery, quiet bamboo mountain garden, soft warm daylight, muted sage-blue palette. Entire body and fingers comfortably in frame. No text, numbers, logos, watermarks or UI. New project asset, preserve existing files.",
+      "request_id": "6bddec83c65c9aed70a9269cdc494445a8f1",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "ed7e39005605adf0fb4aff75e8f6aeb01c8ca92c4b7ff6efb2325c06dd9c6aab",
+      "runtime_file": "thumbnails/foundation-standing-meditation.webp",
+      "runtime_sha256": "65fce05d55d9cab6536a0fd932209a83b0d315c07e180e9279ef4cfa9cd448a6",
+      "runtime_bytes": 69294
+    },
+    {
+      "id": "stances",
+      "title": "Stances",
+      "file": "foundation-stances.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app cover for Inner Breeze Tai Chi Foundations: Stances. One full-body adult woman with brown ponytail, muted rose plain short-sleeve training shirt, slim naturally tapered rose training trousers, off-white training shoes. Show a gentle beginner horse stance, feet wider than shoulders, knees slightly bent and aligned over toes, torso upright, hands loosely resting above thighs, comfortable moderate depth. Premium painterly 3D illustration matching a cohesive Tai Chi gallery, quiet bamboo mountain garden, soft warm daylight, muted sage-blue palette. Entire body comfortably inside frame, clear silhouette at small size. No text, numbers, logos, watermarks or UI. New project asset, preserve existing files.",
+      "request_id": "6df207e686b0dc337382acd53a3ff6d96676",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "7ea4a8c5fd627dafba0a9026b9f31e2fc36624e229f3da5b0e1f45af89a02741",
+      "runtime_file": "thumbnails/foundation-stances.webp",
+      "runtime_sha256": "bd1946c67ac31e4670227be180fe255a515ec2a8f2761cd30e1ea87d8603b919",
+      "runtime_bytes": 62770
+    },
+    {
+      "id": "stepping",
+      "title": "Stepping",
+      "file": "foundation-stepping.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app cover for Inner Breeze Tai Chi Foundations: Stepping. One full-body adult woman with brown ponytail, muted rose plain short-sleeve training shirt, slim naturally tapered rose training trousers, off-white training shoes. Three-quarter view showing one deliberate gentle forward step, weight supported on rear softly bent leg while front heel touches ground lightly, torso upright, hands relaxed in front for balance. Premium painterly 3D illustration matching a cohesive Tai Chi gallery, quiet bamboo mountain garden, soft warm daylight, muted sage-blue palette. Both hands and feet fully inside frame; clear pose at thumbnail scale. No text, numbers, logos, watermarks or UI. New project asset, preserve existing files.",
+      "request_id": "b0f395b0e3088e192da11de4008b78380f6b",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "6bb7eb21689b39185a4f2d50d2a87346fb27acbbb24a1dd18acea6eb10d906ae",
+      "runtime_file": "thumbnails/foundation-stepping.webp",
+      "runtime_sha256": "7edb9e78683c2dde0eb721c8abec70a356548a7b7a7e3830006e8bd43d833e3f",
+      "runtime_bytes": 56776
+    },
+    {
+      "id": "hand-shapes",
+      "title": "Hand shapes",
+      "file": "foundation-hand-shapes.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app cover for Inner Breeze Tai Chi Foundations: Hand shapes. One adult woman with brown ponytail, muted rose plain short-sleeve training shirt and slim naturally tapered rose training trousers. Medium framing from upper thighs to head; calmly demonstrate a Tai Chi open palm at chest height with fingers naturally extended together and wrist relaxed, other hand softly held near abdomen. Anatomically clear natural hands with five fingers, no extra limbs. Premium painterly 3D illustration matching a cohesive Tai Chi gallery, quiet bamboo mountain garden, soft warm daylight, muted sage-blue palette. Keep both hands and head comfortably inside frame, readable at small size. No text, numbers, logos, watermarks or UI. New project asset, preserve existing files.",
+      "request_id": "16b516b7b8f2e9b9c57b5cddb37d3d432132",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "ba9b347493c4fc4b8efc5c39b376a145cf3ec251d6f7d5f04918d47dbb3ed49e",
+      "runtime_file": "thumbnails/foundation-hand-shapes.webp",
+      "runtime_sha256": "788f027db1377caac4cb247698875990559f0b06abd88b47f12546d89d738b48",
+      "runtime_bytes": 48784
+    }
+  ]
+}
