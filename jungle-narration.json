@@ -26383,6 +26383,776 @@
         }
       }
     },
+    "workout/voice-jungle/de/workout_say_count_1.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Eins.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261109,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.float32-1",
+        "retake_of": "5aeb936aae95aacc671dc7e81de2c407e4e3c7cb75a54b2a6c0303d95d33fcd3",
+        "retake_reason": "Rejected count said und der instead of Eins"
+      },
+      "request_sha256": "cd59ff6db6021670a6bf26fabf8b625c05ae941ef22c3a846aca02131a0c43bc",
+      "pcm": {
+        "frame_count": 24255,
+        "sha256": "c01918a96dc541b7f2fb94136814b7dd291384745a301368d2957e5a394808eb",
+        "duration": 1.1,
+        "trim_start": 0,
+        "trim_end": 16377
+      },
+      "text_sha256": "f0a07b89af659a0e528c5e11e3596423dd5393d7a26b6d4cf1ebcdcac1aad4fc",
+      "raw_sha256": "fd2f75694fddf4462c32f788fc173083f1377d4e48acdc0db15cebd929ef67a6",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "f88adbb95d7cc2286373840aa92aa5d37763150c9cf933719647228d5078bf59",
+      "frames_48000": 45599,
+      "seconds": 0.9499791666666667,
+      "encoder": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "decoded_peak": 0.408062,
+      "waveform_processing": {
+        "raw_peak": 0.4032997488975525,
+        "overshoot_samples": 0,
+        "raw_samples": 48510,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.float32-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 14
+      },
+      "transcript": {
+        "text": "Eins!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "f88adbb95d7cc2286373840aa92aa5d37763150c9cf933719647228d5078bf59",
+        "seconds": 0.95,
+        "input_samples": 15200,
+        "truncation": false,
+        "long_form": true
+      },
+      "count_trim": {
+        "end_sample_22050": 20947,
+        "source_ogg_sha256": "14b7bd4779c139676e5cdb28f4f6507c61cab7b7ec4cca482aa924e62f8c0cc0",
+        "trimmed_pcm_sha256": "a277cae1b8a1f7f112405712eeffc20ee029d599d794b0de151efae645cee0c7"
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_count_1",
+          "alignment": 1.0,
+          "maximum_seconds": 0.95
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_count_2.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Zwei.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "3aa6d0cb696a9c3a1fc3865c7ebd01320f9f70c7a3d65339e3817334d45f8ee4",
+      "pcm": {
+        "frame_count": 22050,
+        "sha256": "89d02191c5e9c6a917c0dbfaa23a5a15e2302ccef8c988bc11dc442c78b902a7",
+        "duration": 1.0,
+        "trim_start": 0,
+        "trim_end": 12056
+      },
+      "text_sha256": "dc58b910de5ac23c48c8fcb0d934fcaee356c04b6c3555aeeba9f62fdbd5900f",
+      "raw_sha256": "69099cf16131be369993570c18b7c25754fe32053b8c7fbf63539a84b5dd5db0",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "f85fefe5ce632fd9621fadba4b3df0a208d078ce79f87241f64395da3dff93da",
+      "frames_48000": 45599,
+      "seconds": 0.9499791666666667,
+      "encoder": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "decoded_peak": 0.501649,
+      "waveform_processing": {
+        "raw_peak": 0.5014482736587524,
+        "overshoot_samples": 0,
+        "raw_samples": 44100,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 13
+      },
+      "transcript": {
+        "text": "zwei.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "f85fefe5ce632fd9621fadba4b3df0a208d078ce79f87241f64395da3dff93da",
+        "seconds": 0.95,
+        "input_samples": 15200,
+        "truncation": false,
+        "long_form": true
+      },
+      "count_trim": {
+        "end_sample_22050": 20947,
+        "source_ogg_sha256": "cb4d1a4f21aeff50372a2ab0e3e16f5bcf600c79ebabcf3d446e34cd4d674a9d",
+        "trimmed_pcm_sha256": "ac9b21bad7e169bc13717eb218483066608726a5cb0aef1c204d719479a25c8f"
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_count_2",
+          "alignment": 1.0,
+          "maximum_seconds": 0.95
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_count_3.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Drei.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "5d2ed6073995f4a20ca8857a741512379f6de9263d026b424ba2e0391e7ed8dd",
+      "pcm": {
+        "frame_count": 22050,
+        "sha256": "3ddbb41719ba3a28bcf5b1062e9c33dfe35dbc2686f1ebbdc086a7572b215d4c",
+        "duration": 1.0,
+        "trim_start": 252,
+        "trim_end": 22050
+      },
+      "text_sha256": "7604a77a23043b4ce5d765842067f9a24c67e790930f0b7ba4f2762c50b253a5",
+      "raw_sha256": "bf073a2dd3181805b9ba3597cf5994d19291cb4bc83ddbe5457f7173d2e2da6f",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "4eaa78278eb10d1c229001e3a67f9f553bb981371e7236c221571224f1be85e9",
+      "frames_48000": 34998,
+      "seconds": 0.729125,
+      "encoder": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "decoded_peak": 0.547266,
+      "waveform_processing": {
+        "raw_peak": 0.5788637399673462,
+        "overshoot_samples": 0,
+        "raw_samples": 44100,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 13
+      },
+      "transcript": {
+        "text": "3",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "4eaa78278eb10d1c229001e3a67f9f553bb981371e7236c221571224f1be85e9",
+        "seconds": 0.729125,
+        "input_samples": 11666,
+        "truncation": false,
+        "long_form": true
+      },
+      "count_trim": {
+        "end_sample_22050": 16077,
+        "source_ogg_sha256": "60444985a546096cd1bdefce426093f41cc57d02e5818e43199192a8ba9845fc",
+        "trimmed_pcm_sha256": "24bca78c1d37a2739944097247170612f9f6c9064d99ab6fccb1d8a415ac1354"
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_count_3",
+          "alignment": 1.0,
+          "maximum_seconds": 0.95
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_crunches.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Crunches. Los geht's.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "6c88efee5f211cae1831eb78e075e752a4631d4d1dc460dc8adfefba8ef25617",
+      "pcm": {
+        "frame_count": 35280,
+        "sha256": "43e7ca7696afbcba8f1b5c0acf8a343274cd9fc08f87dee7a454170d7cdb7040",
+        "duration": 1.6,
+        "trim_start": 0,
+        "trim_end": 35113
+      },
+      "text_sha256": "3d07edad64cdf9ca717318323ab11d37cf697e1b6494579f82bb3107f3762cce",
+      "raw_sha256": "bb53adf90183f3a74ee2711d204c047ce3ec3015daad6e5f0d9192b6dd32aaf8",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "af559dda8a7561e6e223723d9f03b0b2904099db1888c6fd15fb40d29562d068",
+      "frames_48000": 76800,
+      "seconds": 1.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.665723,
+      "waveform_processing": {
+        "raw_peak": 0.651858389377594,
+        "overshoot_samples": 0,
+        "raw_samples": 70560,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 21
+      },
+      "transcript": {
+        "text": "Crunches, Los geht's!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "af559dda8a7561e6e223723d9f03b0b2904099db1888c6fd15fb40d29562d068",
+        "seconds": 1.6,
+        "input_samples": 25600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_crunches",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_go.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Los!",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.float32-phased-1"
+      },
+      "request_sha256": "7db8d7795e618d5c2643ac8a20a3bcc399b3b3bef4dcc1d6240800e3e8252276",
+      "pcm": {
+        "frame_count": 22050,
+        "sha256": "9d63540b1ab778e8e0504e76a13502e0b48f45db8aa7a3829901d5b4a2fa4c05",
+        "duration": 1.0,
+        "trim_start": 1814,
+        "trim_end": 16939
+      },
+      "text_sha256": "67f9f215abecd620fc2e6d043a05432662a98ab773bbdbf727cb7d356490d4b1",
+      "raw_sha256": "76719693bff377c22e4b01b3457d79bf044c1405c5e315c0be5fc76db000ec3e",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "e6a4be16cc4b5ec9468b33e89aaf0b8a11386165cfb2c6705ade9726851b7c4b",
+      "frames_48000": 45599,
+      "seconds": 0.9499791666666667,
+      "encoder": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "decoded_peak": 0.459336,
+      "waveform_processing": {
+        "raw_peak": 0.4588092565536499,
+        "overshoot_samples": 0,
+        "raw_samples": 44100,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.float32-phased-1",
+        "original_constructor_sha256": "df6610743baa9075982e8017c50f34a1312d743856405346f56403acc803be19",
+        "derived_constructor_sha256": "0f6db62fe9baaaf2a4b135d60c81bdbbd5a9ec7082d4844f10dfe35b9253ffca",
+        "original_runtime_sha256": "0e543f51238c2e1dd457ad48589f9538781e65282d9db91d37bd5a49a4e3f73d",
+        "residency_source_sha256": "5ea9928f3225b62af65801f02dbb4ce95e1c507ea9d8e6105ecd868e4466aaac",
+        "selected_weights_sha256": {
+          "core": "faaf939b79211e2d3f16a084c8b26bb7dd7606a50deb2b0f355acb888539fbcb",
+          "decoder": "bbdb3e69dd04f99b46cedda3bbee6f4e1a4ac73717d857aa4520837557204d67"
+        },
+        "checkpoint_sha256": "45c4d78d8ad6b1d942e3da86ba035fece02de569f7b2ca7e9d121dfaf18d674c",
+        "topology_sha256": "13b0607ad2a58adc0bd1d7bf848398ce2e4c21b517a26467cee911ecd1258cd7"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 13
+      },
+      "transcript": {
+        "text": "Los!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "e6a4be16cc4b5ec9468b33e89aaf0b8a11386165cfb2c6705ade9726851b7c4b",
+        "seconds": 0.95,
+        "input_samples": 15200,
+        "truncation": false,
+        "long_form": true
+      },
+      "count_trim": {
+        "end_sample_22050": 20947,
+        "source_ogg_sha256": "b8d3d3dae91b8480b99644c65a0e57c421664a2d46ef7208054248f6ccd7256b",
+        "trimmed_pcm_sha256": "eb52a1dc8dc47a42f8e793da69b02582e85ee5a8ef378ee6e4bc5c758f578384"
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_go",
+          "alignment": 1.0,
+          "maximum_seconds": 0.95
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_high_knees.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Kniehebelauf. Los!",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.float32-phased-1"
+      },
+      "request_sha256": "959950693845aa90e410b0cf4497d0cea35f8c8c5dd25dd0bb425ece63c93772",
+      "pcm": {
+        "frame_count": 37485,
+        "sha256": "aad9ca20fc2efcc0604887f5787393cc499f64d1cd62653309410eb034820c22",
+        "duration": 1.7,
+        "trim_start": 0,
+        "trim_end": 36906
+      },
+      "text_sha256": "0df1892ea568d0c152e55f1ef67ac33bc77f6ecc497390071a6ec931dfc2ef75",
+      "raw_sha256": "b9f3bd6d1ddcba6370a309ef99aea1505b433b6c75be94c538716fb1097b7334",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "2413419f6ca4510e27aa3ab95914cdee4962a0ef939e3f81321137075f736ac7",
+      "frames_48000": 81600,
+      "seconds": 1.7,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.6884,
+      "waveform_processing": {
+        "raw_peak": 0.6747995018959045,
+        "overshoot_samples": 0,
+        "raw_samples": 74970,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.float32-phased-1",
+        "original_constructor_sha256": "df6610743baa9075982e8017c50f34a1312d743856405346f56403acc803be19",
+        "derived_constructor_sha256": "0f6db62fe9baaaf2a4b135d60c81bdbbd5a9ec7082d4844f10dfe35b9253ffca",
+        "original_runtime_sha256": "0e543f51238c2e1dd457ad48589f9538781e65282d9db91d37bd5a49a4e3f73d",
+        "residency_source_sha256": "5ea9928f3225b62af65801f02dbb4ce95e1c507ea9d8e6105ecd868e4466aaac",
+        "selected_weights_sha256": {
+          "core": "faaf939b79211e2d3f16a084c8b26bb7dd7606a50deb2b0f355acb888539fbcb",
+          "decoder": "bbdb3e69dd04f99b46cedda3bbee6f4e1a4ac73717d857aa4520837557204d67"
+        },
+        "checkpoint_sha256": "45c4d78d8ad6b1d942e3da86ba035fece02de569f7b2ca7e9d121dfaf18d674c",
+        "topology_sha256": "13b0607ad2a58adc0bd1d7bf848398ce2e4c21b517a26467cee911ecd1258cd7"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 22
+      },
+      "transcript": {
+        "text": "Kniebel auf. Los!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "2413419f6ca4510e27aa3ab95914cdee4962a0ef939e3f81321137075f736ac7",
+        "seconds": 1.7,
+        "input_samples": 27200,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_high_knees",
+          "alignment": 0.928571,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_jumping_jacks.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Hampelmann. Los!",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "113254aa731bbe8bda5fa726f56b61fd7141eec374ee0515a140a86f42fce7d1",
+      "pcm": {
+        "frame_count": 35280,
+        "sha256": "9ed6290944174d2c417273237553e5d2bfcd2ee38fb245909843a27c4d4bbf5b",
+        "duration": 1.6,
+        "trim_start": 0,
+        "trim_end": 35280
+      },
+      "text_sha256": "f5aa3f9d181d8c59c3eb746a6a13b8bf0927d108e941311ee96b12bdd8391aba",
+      "raw_sha256": "8c318b2a314355b9ccbc5d3ac3c46328729901bda23b79e847cb982c616d7d45",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "44dbf35d703e981a93f2ccfbe33efb29a0f4ee8b2101cdc9f2ae7be1cbd37518",
+      "frames_48000": 76800,
+      "seconds": 1.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.550084,
+      "waveform_processing": {
+        "raw_peak": 0.5536490678787231,
+        "overshoot_samples": 0,
+        "raw_samples": 70560,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 21
+      },
+      "transcript": {
+        "text": "Hampelmann. Los!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "44dbf35d703e981a93f2ccfbe33efb29a0f4ee8b2101cdc9f2ae7be1cbd37518",
+        "seconds": 1.6,
+        "input_samples": 25600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_jumping_jacks",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_lunges.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Ausfallschritte. Wechsle die Beine ab.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "6de5eaaf8321e8a23ca57ae2beaa7d72be954480cda26769513c116c4930e64b",
+      "pcm": {
+        "frame_count": 63945,
+        "sha256": "71677e49fbe0f4d5491a1b8f25653ba901af61a78640c93a5cfb06f946741492",
+        "duration": 2.9,
+        "trim_start": 487,
+        "trim_end": 58020
+      },
+      "text_sha256": "462ee278ff410401f47e7c774715bbd3b98356996a788a976b744ecf6ff22b02",
+      "raw_sha256": "355234ac1e8f2e9d3c149de5a6021ce518499ed0f0d3bf9328913e2011b41e9e",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "a28a9b642a43e5519d7a183611a3dac667d772166c5d5eee165bcfaa959a3815",
+      "frames_48000": 139200,
+      "seconds": 2.9,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.637446,
+      "waveform_processing": {
+        "raw_peak": 0.6557045578956604,
+        "overshoot_samples": 0,
+        "raw_samples": 127890,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 37
+      },
+      "transcript": {
+        "text": "Ausfallschritte. Wechsle die Beine ab.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "a28a9b642a43e5519d7a183611a3dac667d772166c5d5eee165bcfaa959a3815",
+        "seconds": 2.9,
+        "input_samples": 46400,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_lunges",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
     "workout/voice-jungle/de/workout_say_next_back_taps.ogg": {
       "request": {
         "model": "inclusionAI/Ming-3.0-tts-0.5B",
@@ -26481,6 +27251,97 @@
           "cue": "workout_say_next_back_taps",
           "alignment": 0.944882,
           "maximum_seconds": 8
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_crunches.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Crunches.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "cd95f4a91bfa114e34371e1b3145350f1028cc9f142d5b84558f78b6f89f95f9",
+      "pcm": {
+        "frame_count": 70560,
+        "sha256": "3bba8480d5a1fe3d6b057d853f48472743fcc427256487b5b093c4fb04e85764",
+        "duration": 3.2,
+        "trim_start": 3302,
+        "trim_end": 65414
+      },
+      "text_sha256": "1d3fe8b2e69e13339290d140e4ebc472eac6490fe03bf548d112832519a404bf",
+      "raw_sha256": "6e6aa6a0d620363852a541033e5ab1fc18ecf0945545f4c3bc569c87240dad46",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "3373b2d07daf015cd0bfe7b1954d688e3deda41b673da8fcf7a4ec6806a87a9a",
+      "frames_48000": 153600,
+      "seconds": 3.2,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.601816,
+      "waveform_processing": {
+        "raw_peak": 0.6685225367546082,
+        "overshoot_samples": 0,
+        "raw_samples": 141120,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 41
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Crunches.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "3373b2d07daf015cd0bfe7b1954d688e3deda41b673da8fcf7a4ec6806a87a9a",
+        "seconds": 3.2,
+        "input_samples": 51200,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_crunches",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
         }
       }
     },
@@ -26686,6 +27547,188 @@
         }
       }
     },
+    "workout/voice-jungle/de/workout_say_next_high_knees.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Kniehebelauf.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "ba4f163bba8c888b3ce260fa57c7601d6b9f0496f90ca49d050c7ca4182c6d5e",
+      "pcm": {
+        "frame_count": 72765,
+        "sha256": "b7ffdc93d45946eabfc129b146a772b287780df0607fd2b2740fe0267ab081f7",
+        "duration": 3.3,
+        "trim_start": 3309,
+        "trim_end": 68284
+      },
+      "text_sha256": "48df8fff114f5fd731cf4e924b790beccd19bde2d8bc51396a1da2f0ce487256",
+      "raw_sha256": "268c33eb37407c85cec49f58fb885cd62c61109b530c3b2c65ecb10c013262df",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "8b871e4bd98e67fef6f93ee6fd635a646a7f25d004d8265fd3b926cf289ee198",
+      "frames_48000": 158400,
+      "seconds": 3.3,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.651392,
+      "waveform_processing": {
+        "raw_peak": 0.6933807730674744,
+        "overshoot_samples": 0,
+        "raw_samples": 145530,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 42
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Kniebelauf.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "8b871e4bd98e67fef6f93ee6fd635a646a7f25d004d8265fd3b926cf289ee198",
+        "seconds": 3.3,
+        "input_samples": 52800,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_high_knees",
+          "alignment": 0.962963,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_lunges.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Ausfallschritte.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "c86f09f336cc97e746fe3a851630a00ff3ed33d0179ed18db718e58ea9090966",
+      "pcm": {
+        "frame_count": 74970,
+        "sha256": "86e94ae458c8e931b9c8afa816a3aac70eb867a9d4d7baceeaa1384308fc3eef",
+        "duration": 3.4,
+        "trim_start": 3309,
+        "trim_end": 69267
+      },
+      "text_sha256": "d7aff8d1ef9b0eb7119cda3074881ffc7ec03a77919b0d293702e012f285e5ba",
+      "raw_sha256": "5c666b355d6db14e53773c8343f18e0f56c42f3cb85213a655df4d9486aee608",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "10aeeb9c379a75dbf30c194670b9771e9dacdc583a07ecf12416a4fcc9c7e6fb",
+      "frames_48000": 163200,
+      "seconds": 3.4,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.579926,
+      "waveform_processing": {
+        "raw_peak": 0.679502546787262,
+        "overshoot_samples": 0,
+        "raw_samples": 149940,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 44
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Ausfallschritte.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "10aeeb9c379a75dbf30c194670b9771e9dacdc583a07ecf12416a4fcc9c7e6fb",
+        "seconds": 3.4,
+        "input_samples": 54400,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_lunges",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
     "workout/voice-jungle/de/workout_say_next_mini_squats.ogg": {
       "request": {
         "model": "inclusionAI/Ming-3.0-tts-0.5B",
@@ -26784,6 +27827,370 @@
           "cue": "workout_say_next_mini_squats",
           "alignment": 1.0,
           "maximum_seconds": 8
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_plank.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Unterarmstütz.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "5e33744a73d8e09f5e2bf17bc761f17ed97c4fada694c48c87cfc30eba97edaa",
+      "pcm": {
+        "frame_count": 77175,
+        "sha256": "db45f2148f46e1a2e108d2dba8192239268c4d11ead3528e99ae5d09ca7ecd4a",
+        "duration": 3.5,
+        "trim_start": 3262,
+        "trim_end": 71248
+      },
+      "text_sha256": "dbeaf79595a7c908acc5945acf4810ea9bdb73a082946ec51987246d35b41cc0",
+      "raw_sha256": "89e76ac7df52dbf2fcc835be943e3c7d7ce85e66a8eb9743285a6cd35ece31bd",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "ea55c76bede47f9a1d3eca6e15abce2266ce359cba097449322e69c6f564b4e8",
+      "frames_48000": 168000,
+      "seconds": 3.5,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.642018,
+      "waveform_processing": {
+        "raw_peak": 0.7472744584083557,
+        "overshoot_samples": 0,
+        "raw_samples": 154350,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 45
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Unterarmstitz.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "ea55c76bede47f9a1d3eca6e15abce2266ce359cba097449322e69c6f564b4e8",
+        "seconds": 3.5,
+        "input_samples": 56000,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_plank",
+          "alignment": 0.965517,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_push_up_rotation.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Liegestütz mit Drehung.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "6d202affe19683fbedc045e43fe4ed9287315c768541b577d4a4ceb13a8042b1",
+      "pcm": {
+        "frame_count": 83790,
+        "sha256": "87237faaae3703133d1648c97e638dca8a41ea6a2f6a11869f7d5364ccf5e867",
+        "duration": 3.8,
+        "trim_start": 3330,
+        "trim_end": 78500
+      },
+      "text_sha256": "fc88e1a3b49d1e062eb94f3dc71c39cd6732f008fd47a138d759ef9e602239f0",
+      "raw_sha256": "d6d9f4fa003c89df7069552dabb6b91caf8126d816ba1702a3b2dc61305a4ab9",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "f524bd511f6671ded9691c3f80e9fdb45d99f71563961a01e037c4e3c3b3af81",
+      "frames_48000": 182400,
+      "seconds": 3.8,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.663834,
+      "waveform_processing": {
+        "raw_peak": 0.7710662484169006,
+        "overshoot_samples": 0,
+        "raw_samples": 167580,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 49
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Liegestützmitdrehung.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "f524bd511f6671ded9691c3f80e9fdb45d99f71563961a01e037c4e3c3b3af81",
+        "seconds": 3.8,
+        "input_samples": 60800,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_push_up_rotation",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_push_ups.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Liegestütze.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "1e96664640f8ed80ee92a9223710fc6f83487f5993c3d989511fa0a50e9dfb44",
+      "pcm": {
+        "frame_count": 72765,
+        "sha256": "0dfd6a613ceb72cfce3e240d6841e08d97edd1fef6e4d2003400ca915e04c767",
+        "duration": 3.3,
+        "trim_start": 3303,
+        "trim_end": 67375
+      },
+      "text_sha256": "7bad93ea7b0c6ce96097d8855fba2614ab5824cfbe27fd748c3aa029516537f3",
+      "raw_sha256": "2ece2cd24b3108b76988e2b89d68dd6fee71ad9b4c79d2b422ca3ff3cbfceb19",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "e4953c263012772ad4e865cd7f7c39dda6d5ee87e1b4d082a175c4fd5c40fc67",
+      "frames_48000": 158400,
+      "seconds": 3.3,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.622937,
+      "waveform_processing": {
+        "raw_peak": 0.6874420642852783,
+        "overshoot_samples": 0,
+        "raw_samples": 145530,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 42
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Liegestütze.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "e4953c263012772ad4e865cd7f7c39dda6d5ee87e1b4d082a175c4fd5c40fc67",
+        "seconds": 3.3,
+        "input_samples": 52800,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_push_ups",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_side_plank.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Zum Schluss: Seitstütz.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "224a80cbbd185507b5ea37b3a2e71aeddc563940d1765909f44ece9fc36678a8",
+      "pcm": {
+        "frame_count": 63945,
+        "sha256": "04679fc7ef6538bb8027ca83d81910a97c865b4ab50afc46eda4b8c955a699db",
+        "duration": 2.9,
+        "trim_start": 3078,
+        "trim_end": 60828
+      },
+      "text_sha256": "753c93a58e4ef046f7d049b6f8c1bd2bb0b5fcdff978062d2ba0c3bbe8fb95c4",
+      "raw_sha256": "c94d893c94ad3afa8f8dc7879bcb480b5c7ef3f28761f392d764df21baac3b90",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "a3a2a3afa3e3db534223e740ff2f326adde861495923dd630e24bbdf15aa0b65",
+      "frames_48000": 139200,
+      "seconds": 2.9,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.496518,
+      "waveform_processing": {
+        "raw_peak": 0.4961828887462616,
+        "overshoot_samples": 0,
+        "raw_samples": 127890,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 37
+      },
+      "transcript": {
+        "text": "Pause. Zum Schluss Seidstütz.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "a3a2a3afa3e3db534223e740ff2f326adde861495923dd630e24bbdf15aa0b65",
+        "seconds": 2.9,
+        "input_samples": 46400,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_side_plank",
+          "alignment": 0.958333,
+          "maximum_seconds": 40.0
         }
       }
     },
@@ -26888,6 +28295,97 @@
         }
       }
     },
+    "workout/voice-jungle/de/workout_say_next_squats.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Kniebeugen.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "35a9b8df49d34011a43b6cefa6c5ee45612fdeff89d8a8d84e78d20c46f59914",
+      "pcm": {
+        "frame_count": 70560,
+        "sha256": "63c0592292ce8e5cbe09243b06cef73010820092f1bd9d0a41a0b43fc8b5e0a3",
+        "duration": 3.2,
+        "trim_start": 3303,
+        "trim_end": 65198
+      },
+      "text_sha256": "1140c73d9403aa21d4fd1a8734b2d02bbbea9a4606c9bd80cc5935e121ad529d",
+      "raw_sha256": "a8e6bf7b2a35da175a6f61bb206cff039002d84b1bf303ece8b59fd12b57c28e",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "85e3872487bfcfb58173a55801c7152d9440cbac69440ffbd2f401ba2f175e31",
+      "frames_48000": 153600,
+      "seconds": 3.2,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.554957,
+      "waveform_processing": {
+        "raw_peak": 0.6551137566566467,
+        "overshoot_samples": 0,
+        "raw_samples": 141120,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 41
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Kniebeugen.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "85e3872487bfcfb58173a55801c7152d9440cbac69440ffbd2f401ba2f175e31",
+        "seconds": 3.2,
+        "input_samples": 51200,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_squats",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
     "workout/voice-jungle/de/workout_say_next_step_jacks.ogg": {
       "request": {
         "model": "inclusionAI/Ming-3.0-tts-0.5B",
@@ -26986,6 +28484,1201 @@
           "cue": "workout_say_next_step_jacks",
           "alignment": 1.0,
           "maximum_seconds": 8
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_step_ups.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Step-ups.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "89f841a6fc784f40ec5e7721a75f73f31c251ec5444f849994ade81129fc31be",
+      "pcm": {
+        "frame_count": 70560,
+        "sha256": "9887ed446bedd31655fc2c3b6fd9d5a8183c6d438409121b144eaa21a4b26b78",
+        "duration": 3.2,
+        "trim_start": 3306,
+        "trim_end": 65091
+      },
+      "text_sha256": "a968e3bcdae7f21c3f42dc6d801baf07a70770d82be165cd41851895df959cfa",
+      "raw_sha256": "dbdf6659993238db675711a0a56e4d8929434bdbc149df87d092e1bfd576ab5f",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "bdffc8bf6516c360b5f5d575d6badb3c483488cfb7b05ab1fb077ffec7cf54a5",
+      "frames_48000": 153600,
+      "seconds": 3.2,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.536658,
+      "waveform_processing": {
+        "raw_peak": 0.6922956705093384,
+        "overshoot_samples": 0,
+        "raw_samples": 141120,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 41
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Step-Ups.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "bdffc8bf6516c360b5f5d575d6badb3c483488cfb7b05ab1fb077ffec7cf54a5",
+        "seconds": 3.2,
+        "input_samples": 51200,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_step_ups",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_triceps_dips.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Trizeps-Dips.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "4c20c29eb9cf18df9baf98756308f6ed03332618f30c9a48db49d35d1856f855",
+      "pcm": {
+        "frame_count": 77175,
+        "sha256": "06976b20783ef2576abae81a6dfc45bea37394b6ea78ffab321b0e378872e44f",
+        "duration": 3.5,
+        "trim_start": 3308,
+        "trim_end": 71967
+      },
+      "text_sha256": "89bd63a48be3abc3c954781d03a8b32daf221d4e8ad47ecce72ff72547729760",
+      "raw_sha256": "d1ae06759921c990563483dfd14a8fa05e2c4b22526ef65ee4f56ee7f6b0e446",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "2729965f09a067f3f1c2712dcebfbfe3e9d3fd208463e4a0354253a7e529b8f1",
+      "frames_48000": 168000,
+      "seconds": 3.5,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.61228,
+      "waveform_processing": {
+        "raw_peak": 0.6435295343399048,
+        "overshoot_samples": 0,
+        "raw_samples": 154350,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 45
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Trizeptips.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "2729965f09a067f3f1c2712dcebfbfe3e9d3fd208463e4a0354253a7e529b8f1",
+        "seconds": 3.5,
+        "input_samples": 56000,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_triceps_dips",
+          "alignment": 0.943396,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_next_wall_sit.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Pause. Als Nächstes: Wandsitzen.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "b04549ab45b628bde6f64a454d1bcc7534c58242d2d71bf1f7c66209e00bd0b8",
+      "pcm": {
+        "frame_count": 70560,
+        "sha256": "d0c63c7189ab5cb44e875e94f62d243e33f879c862af3c2cb3e5a396fb9bb031",
+        "duration": 3.2,
+        "trim_start": 3296,
+        "trim_end": 64983
+      },
+      "text_sha256": "3e583f5355e2e0af1753d54cc8fc922ad5da81d38625bab9a110faae6999b926",
+      "raw_sha256": "21aa8c245e5fc138d0107ba6c4272678672ff4b84927013d93e6aca03da62528",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "0a36b08c2598c740527168935a4d8ec33e81b61536c0e2d319f4221328fc998f",
+      "frames_48000": 153600,
+      "seconds": 3.2,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.731313,
+      "waveform_processing": {
+        "raw_peak": 0.7109344005584717,
+        "overshoot_samples": 0,
+        "raw_samples": 141120,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 41
+      },
+      "transcript": {
+        "text": "Pause. Als nächstes Wann sitzen.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "0a36b08c2598c740527168935a4d8ec33e81b61536c0e2d319f4221328fc998f",
+        "seconds": 3.2,
+        "input_samples": 51200,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_next_wall_sit",
+          "alignment": 0.961538,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_plank.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Unterarmstütz. Halte ihn ruhig.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "b9aa620bc056254a9a2ea599964c35c14cada75ce9bbb7ab564052147c38f0bc",
+      "pcm": {
+        "frame_count": 57330,
+        "sha256": "b82d9b40928735d902f4c129770a32183b58393a548196df03ba6278de8fb1cf",
+        "duration": 2.6,
+        "trim_start": 1329,
+        "trim_end": 52010
+      },
+      "text_sha256": "51b75abcbaf805b65c304e644eedb6baa622f36146ca7deb0f4a6eb1dd9abc49",
+      "raw_sha256": "ea5b8fe0c6a6fa0bfe0247aae09a43bcac23b7561e4214086467c0ce46a3714d",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "5fbfcc42faa99a1c7faa693b581cf112b7684dbbf30c885362e97bf85363fc02",
+      "frames_48000": 124800,
+      "seconds": 2.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.531509,
+      "waveform_processing": {
+        "raw_peak": 0.5508126020431519,
+        "overshoot_samples": 0,
+        "raw_samples": 114660,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 33
+      },
+      "transcript": {
+        "text": "Unterarmstütz. Halte ihn ruhig.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "5fbfcc42faa99a1c7faa693b581cf112b7684dbbf30c885362e97bf85363fc02",
+        "seconds": 2.6,
+        "input_samples": 41600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_plank",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_push_up_rotation.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Liegestütz mit Drehung. Los geht's.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "63cd7b986ec845b1ef16125a14740fb0cd6b336abace1cdbff007b61cfbbeb31",
+      "pcm": {
+        "frame_count": 57330,
+        "sha256": "5c68b286324923a47d82384cc42ea5cd9c46db21357bb220545397d36709b476",
+        "duration": 2.6,
+        "trim_start": 1863,
+        "trim_end": 54499
+      },
+      "text_sha256": "91edadb2d91a458b8ade59a753f523fd2585390d3fc115c52c8c25b6ebe05d7e",
+      "raw_sha256": "327e20d436224620c2306de2c5e8004774a4a5d3c0864dbd40c9dfa652392f9d",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "f208746ebbd9020b266f8dd054932ac889e0c829da4c93aecd276cddcaad799f",
+      "frames_48000": 124800,
+      "seconds": 2.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.503863,
+      "waveform_processing": {
+        "raw_peak": 0.5079867243766785,
+        "overshoot_samples": 0,
+        "raw_samples": 114660,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 33
+      },
+      "transcript": {
+        "text": "Liegestütz mit Drehung. Los geht's!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "f208746ebbd9020b266f8dd054932ac889e0c829da4c93aecd276cddcaad799f",
+        "seconds": 2.6,
+        "input_samples": 41600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_push_up_rotation",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_push_ups.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Liegestütze. Los geht's.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261109,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.float32-1",
+        "retake_of": "87042847d2480f0528cbb1172e367bd606e0310e13b696b5cd30e9d5ab72cde2",
+        "retake_reason": "Rejected split take added an article before the exercise name"
+      },
+      "request_sha256": "8bf4950a4c630c40a4428e57df322ac2178638cf44a01258782bd78d42254952",
+      "pcm": {
+        "frame_count": 44100,
+        "sha256": "113b73995dc8f5c65be5b660f78807bde27ce4f16dcb8015f919b1d95a5a9cd3",
+        "duration": 2.0,
+        "trim_start": 0,
+        "trim_end": 41598
+      },
+      "text_sha256": "ea3fcbaa7525a1fafaa350fcf33cf5018ca67293b6ed5bc5b91180c39f905317",
+      "raw_sha256": "f46f23c9bde4b9945e8625c5e7a2208436249e284b9b3c18efdd87f14e83f88e",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "4efd97c3be7bcf3831acbe23dc2819d84e70de2eee78ef52a4204619b3d352cd",
+      "frames_48000": 96000,
+      "seconds": 2.0,
+      "encoder": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+      "decoded_peak": 0.620599,
+      "waveform_processing": {
+        "raw_peak": 0.6204661130905151,
+        "overshoot_samples": 0,
+        "raw_samples": 88200,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.float32-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 25
+      },
+      "transcript": {
+        "text": "Liegestütze. Los geht's!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "4efd97c3be7bcf3831acbe23dc2819d84e70de2eee78ef52a4204619b3d352cd",
+        "seconds": 2.0,
+        "input_samples": 32000,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_push_ups",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_side_plank.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Seitstütz. Halten.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "e36b3f2a355627a5c09cb9b703452e54be0f10d7f5cfd0f7c1b7fdc95d751d0e",
+      "pcm": {
+        "frame_count": 35280,
+        "sha256": "5863653df50214f9de21063899b28e06df049191e5cf4be68eef89b6da52b46a",
+        "duration": 1.6,
+        "trim_start": 0,
+        "trim_end": 34760
+      },
+      "text_sha256": "311bb9adf3bd941250eb2d146c88779335c7d3a17deee1ac7c809d9aec48db67",
+      "raw_sha256": "4d17d467d1073cae98c9f789e6e01a0e25dd26be049981465fe7239986b08b4f",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "37995181f8b405a566e7734a78e90db284e5ef498f892b2ab08e2fc1f6e5e11f",
+      "frames_48000": 76800,
+      "seconds": 1.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.656582,
+      "waveform_processing": {
+        "raw_peak": 0.6580365300178528,
+        "overshoot_samples": 0,
+        "raw_samples": 70560,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 21
+      },
+      "transcript": {
+        "text": "Seit Stütz halten.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "37995181f8b405a566e7734a78e90db284e5ef498f892b2ab08e2fc1f6e5e11f",
+        "seconds": 1.6,
+        "input_samples": 25600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_side_plank",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_squats.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Kniebeugen. Los geht's.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.float32-phased-1"
+      },
+      "request_sha256": "f5246232e0023366cea1866f5042f265480015c9656e8fc22fa52e4a94a13bb5",
+      "pcm": {
+        "frame_count": 41895,
+        "sha256": "132aa52b9e129bcf2090bc78fb87688035448039b4fb25f59ed206661cc1fb83",
+        "duration": 1.9,
+        "trim_start": 0,
+        "trim_end": 37758
+      },
+      "text_sha256": "803756722caa432d649f4fdee4b04810aa438ccd9e3911e049dec7cd22464717",
+      "raw_sha256": "55b0238be36262cfce6d4328a1d547526c39a39555468f04ffeab2c44ab86751",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "7b1c1dc9a46f7386d240d3fc9a685bacce12eaeb4f1ac0174433154add5f7ec1",
+      "frames_48000": 91200,
+      "seconds": 1.9,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.557446,
+      "waveform_processing": {
+        "raw_peak": 0.5698913335800171,
+        "overshoot_samples": 0,
+        "raw_samples": 83790,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.float32-phased-1",
+        "original_constructor_sha256": "df6610743baa9075982e8017c50f34a1312d743856405346f56403acc803be19",
+        "derived_constructor_sha256": "0f6db62fe9baaaf2a4b135d60c81bdbbd5a9ec7082d4844f10dfe35b9253ffca",
+        "original_runtime_sha256": "0e543f51238c2e1dd457ad48589f9538781e65282d9db91d37bd5a49a4e3f73d",
+        "residency_source_sha256": "5ea9928f3225b62af65801f02dbb4ce95e1c507ea9d8e6105ecd868e4466aaac",
+        "selected_weights_sha256": {
+          "core": "faaf939b79211e2d3f16a084c8b26bb7dd7606a50deb2b0f355acb888539fbcb",
+          "decoder": "bbdb3e69dd04f99b46cedda3bbee6f4e1a4ac73717d857aa4520837557204d67"
+        },
+        "checkpoint_sha256": "45c4d78d8ad6b1d942e3da86ba035fece02de569f7b2ca7e9d121dfaf18d674c",
+        "topology_sha256": "13b0607ad2a58adc0bd1d7bf848398ce2e4c21b517a26467cee911ecd1258cd7"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 24
+      },
+      "transcript": {
+        "text": "Kini beugen. Los geht's!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "7b1c1dc9a46f7386d240d3fc9a685bacce12eaeb4f1ac0174433154add5f7ec1",
+        "seconds": 1.9,
+        "input_samples": 30400,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_squats",
+          "alignment": 0.944444,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_start.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Willkommen zum Sieben-Minuten-Workout. Mach dich bereit. Als Erstes: Hampelmann.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "2dbf4c60bc41c33d3ffcf2959ec431e41a860ec8a1f16deac7535bda3eeb9713",
+      "pcm": {
+        "frame_count": 138915,
+        "sha256": "4cd08b516b1b4c0d15702848d43493c7813a771e947819f73b598f8d9df9d389",
+        "duration": 6.3,
+        "trim_start": 5159,
+        "trim_end": 133305
+      },
+      "text_sha256": "a08d6a6826293d01458c11e08b0c28dcb2a22cc860a982ec63ce2615fb6c748c",
+      "raw_sha256": "d6e5b1a95f0d5d0a097379cb8e5ab548b401c2f6c30360577e136a6b532cf543",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "645b805a0bd143900ff2e27bc38a6d22c69ea43686aec6ed88bffcde31de3c39",
+      "frames_48000": 302400,
+      "seconds": 6.3,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.536618,
+      "waveform_processing": {
+        "raw_peak": 0.5487635731697083,
+        "overshoot_samples": 0,
+        "raw_samples": 277830,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 80
+      },
+      "transcript": {
+        "text": "Willkommen zum 7 Minuten Workout. Macht dich bereit. Als erstes, Hampelmann.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "645b805a0bd143900ff2e27bc38a6d22c69ea43686aec6ed88bffcde31de3c39",
+        "seconds": 6.3,
+        "input_samples": 100800,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_start",
+          "alignment": 0.9375,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_step_ups.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Step-ups. Los!",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "63eaed86cb9e20b1d0ab1353a0e1c681a0616074ebd90a6edefb0d7194a3c00f",
+      "pcm": {
+        "frame_count": 35280,
+        "sha256": "678450dee1e140341465c4645eae50601cbc64789f8f33555426b84e3c954da8",
+        "duration": 1.6,
+        "trim_start": 0,
+        "trim_end": 35058
+      },
+      "text_sha256": "db200327a7d64ddb65c5683ca150e94899a479ec0b0526c94901c8917b6d3089",
+      "raw_sha256": "633cec6eac133aba4ceb2c1a82d0885958e3a0537c6a788887dbfc24bb8dc4eb",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "6db273fb4a8a1aed6be535fd553f9091d95cf6f0c7439cc9b37d2ac1c58bc1bf",
+      "frames_48000": 76800,
+      "seconds": 1.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.447953,
+      "waveform_processing": {
+        "raw_peak": 0.4478796720504761,
+        "overshoot_samples": 0,
+        "raw_samples": 70560,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 21
+      },
+      "transcript": {
+        "text": "Step Ups. Los!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "6db273fb4a8a1aed6be535fd553f9091d95cf6f0c7439cc9b37d2ac1c58bc1bf",
+        "seconds": 1.6,
+        "input_samples": 25600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_step_ups",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_switch.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Seite wechseln.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "8024b3a2718bb548ceaa47a33245dac4e8c2b25cd7c7bcb6456e1804a98b99e3",
+      "pcm": {
+        "frame_count": 28665,
+        "sha256": "b5cbfd949955ed59f1e3d551800507dc9ae59cff5d2c3ab520d84ea54036c391",
+        "duration": 1.3,
+        "trim_start": 0,
+        "trim_end": 24068
+      },
+      "text_sha256": "c13288922b395c3ee439f6a6c45e4c37d654c194c57b65baeb615bfcd1b16ca5",
+      "raw_sha256": "99e35fc074bce762e5cadb2e5e1bf22d2353139c759fed3a6eeab866d0767ec2",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "813693dd8a8f8698e390732bb284621432bfd5656364ec41f9893025b9074ec1",
+      "frames_48000": 62400,
+      "seconds": 1.3,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.679936,
+      "waveform_processing": {
+        "raw_peak": 0.6746483445167542,
+        "overshoot_samples": 0,
+        "raw_samples": 57330,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 17
+      },
+      "transcript": {
+        "text": "Seite wechseln.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "813693dd8a8f8698e390732bb284621432bfd5656364ec41f9893025b9074ec1",
+        "seconds": 1.3,
+        "input_samples": 20800,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_switch",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_triceps_dips.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Trizeps-Dips. Los geht's.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "8f0a61eec6bf6860c889e05bd39cc3c41e2cdcb45ba02699066461055dab037c",
+      "pcm": {
+        "frame_count": 44100,
+        "sha256": "06b132aecd8e25854efb6ea265877c36cfa1e099aaced371b54c28e7b0f3938c",
+        "duration": 2.0,
+        "trim_start": 0,
+        "trim_end": 42051
+      },
+      "text_sha256": "e03273b51484b61fcf7b28a4953f57984b3db27cd8d3ae5910a3b8cd3b1f4cde",
+      "raw_sha256": "897eb058017275c8ce240403d06c699df131784bc0394f183e8fb07328eb6eb7",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "3148338b4c44090c2709e6048e25756fb710887522d4b4a6b9c846256934769a",
+      "frames_48000": 96000,
+      "seconds": 2.0,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.478008,
+      "waveform_processing": {
+        "raw_peak": 0.48548492789268494,
+        "overshoot_samples": 0,
+        "raw_samples": 88200,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 25
+      },
+      "transcript": {
+        "text": "Trizeps-Dips. Los geht's!",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "3148338b4c44090c2709e6048e25756fb710887522d4b4a6b9c846256934769a",
+        "seconds": 2.0,
+        "input_samples": 32000,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_triceps_dips",
+          "alignment": 1.0,
+          "maximum_seconds": 40.0
+        }
+      }
+    },
+    "workout/voice-jungle/de/workout_say_wall_sit.ogg": {
+      "request": {
+        "model": "inclusionAI/Ming-3.0-tts-0.5B",
+        "model_revision": "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61",
+        "runtime_revision": "a39b80660bdc5a4394d5e1d41af6dbfd9c443a54",
+        "reference_sha256": "ab306a969ba91d4f314a0f54b67abfdedcc22047006e0ebb0f3462929d0604c7",
+        "voice": "jungle-calm-female",
+        "speaker_conditioning": "official CAMPPlus embedding from owner-approved synthetic Ming reference",
+        "language": "de",
+        "text": "Wandsitzen. Rutsch an der Wand hinunter und halte.",
+        "profile": "normal",
+        "task": "BASIC",
+        "controls": {
+          "speed": "中速",
+          "pitch": "中",
+          "volume": "中"
+        },
+        "seed": 20261108,
+        "raw_text": true,
+        "text_normalization": false,
+        "cfg": 2.0,
+        "sigma": 0.25,
+        "temperature": 0.0,
+        "output_rate": 22050,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "request_sha256": "8eceaaa176c71124ad02b0a28fc9e95e3a992818fe4a8ff3d5aceb2cc3d3aa91",
+      "pcm": {
+        "frame_count": 79380,
+        "sha256": "11a8bbf3de827e472079d8f46789b72ac37b8641db40190dd21873fb3408af96",
+        "duration": 3.6,
+        "trim_start": 2080,
+        "trim_end": 73295
+      },
+      "text_sha256": "017fd4a9c27b49d533348f09aa5ef58955032c222d4403d9f5be7b37b340e4c6",
+      "raw_sha256": "164c74916bb23813117f0806b2de3b63e6a894026398fe40479d5ce66cc6ebf7",
+      "model_sample_rate": 44100,
+      "codec": {
+        "codec": "opus",
+        "container": "ogg",
+        "bitrate": 32000,
+        "channels": 1,
+        "sample_rate": 48000,
+        "pcm_sample_rate": 22050,
+        "application": "audio",
+        "vbr": "on",
+        "frame_duration_ms": 20
+      },
+      "sha256": "ab41f3405fc8a8db6a7ba6e32fce4ba49ae59c2efcffa1860c7ac62e3d5cef1a",
+      "frames_48000": 172800,
+      "seconds": 3.6,
+      "encoder": "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "decoded_peak": 0.68549,
+      "waveform_processing": {
+        "raw_peak": 0.7079614996910095,
+        "overshoot_samples": 0,
+        "raw_samples": 158760,
+        "gain": 1.0,
+        "method": "static attenuation for isolated float decoder overshoot; sample times unchanged"
+      },
+      "runtime_environment": {
+        "python": "3.11.16",
+        "torch": "2.6.0+cpu",
+        "cpu_capability": "AVX2",
+        "threads": 4,
+        "adapter": "torch.cpu.bfloat16-autocast-1"
+      },
+      "decoder_completion": {
+        "stopped": true,
+        "patches": 45
+      },
+      "transcript": {
+        "text": "Wann sitzen? Rutsch an der Wand hinunter und halte.",
+        "language": "de",
+        "model": "openai/whisper-small",
+        "revision": "973afd24965f72e36ca33b3055d56a652f456b4d",
+        "artifacts_sha256": "965dd063661b4d8a6571691cd377cb5c2a586b986ffac02560a361983cb556dd",
+        "audio_sha256": "ab41f3405fc8a8db6a7ba6e32fce4ba49ae59c2efcffa1860c7ac62e3d5cef1a",
+        "seconds": 3.6,
+        "input_samples": 57600,
+        "truncation": false,
+        "long_form": true
+      },
+      "practices": {
+        "workout": {
+          "cue": "workout_say_wall_sit",
+          "alignment": 0.97561,
+          "maximum_seconds": 40.0
         }
       }
     },
