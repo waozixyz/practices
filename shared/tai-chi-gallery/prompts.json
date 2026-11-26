@@ -1,0 +1,86 @@
+{
+  "generator": "OpenAI ImageGen",
+  "mode": "Built-in image generation; original provider PNG bytes preserved",
+  "lessons": [
+    {
+      "lesson": 1,
+      "title": "Opening",
+      "file": "lesson-1.png",
+      "prompt": "Use case: stylized-concept. Create one polished landscape 4:3 lesson thumbnail for Inner Breeze's Tai Chi gallery, lesson 1, Opening. Full-body adult woman in a relaxed Tai Chi opening stance, feet shoulder width and hands gently raised open, with ample space around hands and feet. Muted rose plain short-sleeve training shirt and slim tapered rose training trousers with natural, flexible fabric width, simple training shoes, brown ponytail. Calm premium painterly 3D illustration, soft warm daylight, an understated mountain garden with a little bamboo, rounded natural forms, muted sage and blue palette. Readable at small app thumbnail sizes. This is the first of eight cohesive lesson thumbnails. No text, letters, numbers, captions, logos, watermarks or UI.",
+      "style_reference": null,
+      "width": 1448,
+      "height": 1086,
+      "sha256": "52df6979d086d336ac9298fa6d8e3809cd63f10e05eaf9cb81f8b65c0433e375"
+    },
+    {
+      "lesson": 2,
+      "title": "Brushing and Repulsing",
+      "file": "lesson-2.png",
+      "prompt": "Use case: stylized-concept. Create Inner Breeze Tai Chi lesson 2, Brushing and Repulsing, as its own landscape 4:3 app gallery thumbnail. Image 1 is the character and style reference. Match the adult woman's face, brown ponytail, plain muted rose short-sleeve shirt, slim tapered rose trousers with natural fabric width, and training shoes. Show one gentle brush-knee forward stance, one hand sweeping near her forward knee and the other extending with open palm facing forward. Both hands and feet fully inside the frame. Match the calm premium painterly 3D illustration, soft warm daylight, muted sage and blue mountain garden, and small bamboo accent. Readable at thumbnail scale. No text, numbers, logos, watermarks, or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "844b5b5dada22725ac9b7a61afe7b79f1ae7b1e0a7b121985375b08c347f8abc"
+    },
+    {
+      "lesson": 3,
+      "title": "Grasp the Bird's Tail",
+      "file": "lesson-3.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app gallery thumbnail for Inner Breeze Tai Chi lesson 3, Grasp the Bird's Tail. Image 1 is the character and style reference. Draw the same full-body adult woman with brown ponytail, plain muted rose short-sleeve training shirt, naturally slim tapered rose training trousers and simple training shoes. Show the soft ward-off posture in a relaxed bow stance, one rounded forearm in front of her chest and the other open hand gently supporting below. Keep all hands and feet comfortably inside the frame. Match the premium painterly 3D art, quiet mountain garden with bamboo, soft warm daylight and muted sage-blue palette. Graceful and clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "8315eaecc0ecb18268ab939f96cd8ceb7c289d78a8c23c243691caa8789b1074"
+    },
+    {
+      "lesson": 4,
+      "title": "Single Whip and Cloud Hands",
+      "file": "lesson-4.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 app gallery thumbnail for Inner Breeze Tai Chi lesson 4, Single Whip and Cloud Hands. Image 1 is the character and style reference. Show the same full-body adult woman with brown ponytail, muted rose plain short-sleeve shirt, naturally slim tapered rose training trousers, and simple training shoes. She demonstrates the graceful Single Whip silhouette in a wide, relaxed bow stance, one open palm extended and the other arm softly bent. Keep hands and feet fully visible. Match the premium painterly 3D art, quiet mountain garden with bamboo, warm soft daylight and muted sage-blue palette. Clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "1a1f5f7d45bc805523c5f2d8f49bc1f801ef592d4e832b599abc4abe6e50d4ec"
+    },
+    {
+      "lesson": 5,
+      "title": "Kicks and Strikes",
+      "file": "lesson-5.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 gallery thumbnail for Inner Breeze Tai Chi lesson 5, Kicks and Strikes. Image 1 is the character and style reference. Show the same full-body adult woman, brown ponytail, muted rose plain short-sleeve shirt, naturally slim tapered rose trousers, and simple training shoes. A balanced, slow, controlled Tai Chi heel kick, with one foot modestly lifted forward, heel gently leading and the arms softly open for balance. Keep the complete hands and feet inside the frame. Calm movement with zero motion blur. Match the premium painterly 3D art, quiet mountain garden with bamboo, warm soft daylight, sage and muted blue palette. Clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "3bf1a5a552b4439b772823a428fa20150f2244df1aaa8ca70d5365f9d58b08ce"
+    },
+    {
+      "lesson": 6,
+      "title": "Snake Creeps Down",
+      "file": "lesson-6.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 gallery thumbnail for Inner Breeze Tai Chi lesson 6, Snake Creeps Down. Image 1 is the character and style reference. Show the same full-body adult woman, brown ponytail, muted rose plain short-sleeve shirt, naturally slim tapered rose trousers, and simple training shoes. In a graceful low Tai Chi side stance, one knee bends as the opposite leg extends softly sideways, open hands balanced, anatomically natural posture. Both hands and feet fully inside frame. Match the premium painterly 3D art, quiet mountain garden with bamboo, warm soft daylight, muted sage and blue palette. Clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "3532736f7c84b4d388ae5a27c5e320c959c65388f271e9a1df1f94757240d5f5"
+    },
+    {
+      "lesson": 7,
+      "title": "Shuttles, Needle and Fan",
+      "file": "lesson-7.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 gallery thumbnail for Inner Breeze Tai Chi lesson 7, Shuttles, Needle and Fan. Image 1 is the character and style reference. Show the same full-body adult woman with brown ponytail, plain muted rose short-sleeve shirt, naturally slim tapered rose trousers and simple training shoes. Calm, graceful Tai Chi shuttle posture in a comfortable diagonal bow stance. One forearm curves above her forehead, the other extends with an open palm forward. Entire hands and feet visible. Match the premium painterly 3D illustration, quiet mountain garden with bamboo, warm soft daylight, muted sage and blue palette. Clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "398bf7bd08b253ca8f3120ad1c7dcb492784011968eb5d35fbf08cd4bd225d95"
+    },
+    {
+      "lesson": 8,
+      "title": "Closing",
+      "file": "lesson-8.png",
+      "prompt": "Use case: stylized-concept. Create a separate landscape 4:3 gallery thumbnail for Inner Breeze Tai Chi lesson 8, Closing. Image 1 is the character and style reference. Show the same full-body adult woman with brown ponytail, plain muted rose short-sleeve shirt, naturally slim tapered rose trousers and simple training shoes. Peaceful final Tai Chi posture: comfortably parallel feet, relaxed knees, natural upright body, and both open hands gently lowering in front of her abdomen. Both hands and feet fully inside the frame. Match the premium painterly 3D illustration, quiet mountain garden with bamboo, warm soft daylight, and muted sage-blue palette. Clear at thumbnail size. No text, numbers, logos, watermarks or UI.",
+      "style_reference": "lesson-1.png",
+      "width": 1448,
+      "height": 1086,
+      "sha256": "08a70e34b5515911b9fd0498c5ae3f1ec1d1f8ffbcbb2448a708787a86e75e9f"
+    }
+  ]
+}
