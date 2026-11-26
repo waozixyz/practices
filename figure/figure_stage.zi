@@ -17,9 +17,17 @@ FigureStage :: struct {
     scene: Scene
     model: FigureModel
     pixels: Raster.Image
+    pending: bool
     #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
         gpu: GPU.SceneGpuContext
     }
+}
+
+FigureStageTransfer :: struct {
+    ok: bool
+    queued: bool
+    completed: bool
+    request_id: u64
 }
 
 FigureCamera :: (center: Vector3, yaw: float64, pitch: float64,
@@ -60,26 +68,14 @@ FigureStageFree :: (stage: *FigureStage) {
     VecFree(stage.pixels.pixels)
     stage.pixels.width = 0
     stage.pixels.height = 0
+    stage.pending = false
 }
 
 FigureStageRender :: (stage: *FigureStage, joints: *FigureJoints,
     camera: SceneCamera, width: s32, height: s32, seconds: float64) -> bool {
-    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
-        unused FigureModelGpuSkinning(*stage.model, *stage.scene, GPU.SceneGpuSkinningAvailable(*stage.gpu))
-    }
-    if !FigureModelPose(*stage.model, *stage.scene, joints, seconds, true) {
+    FigureStageCancel(stage)
+    if !FigureStagePrepare(stage, joints, camera, width, height, seconds) {
         return false
-    }
-    toward := FigureNormalize(FigureSub(camera.position, camera.target))
-    yaw := Atan2(toward.x, toward.z)
-    light := FigureRotate(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), .{-0.45, 0.75, 0.55})
-    FigureModelLight(*stage.model, light, toward)
-    if stage.pixels.width != width || stage.pixels.height != height {
-        if !VecResize(stage.pixels.pixels, cast(s64)width * height * 4) {
-            return false
-        }
-        stage.pixels.width = width
-        stage.pixels.height = height
     }
     #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
         result := GPU.SceneGpuRender(*stage.gpu, *stage.scene, camera, *stage.pixels)
@@ -97,6 +93,90 @@ FigureStageRender :: (stage: *FigureStage, joints: *FigureJoints,
     return RenderScene(*stage.scene, camera, *stage.pixels)
 }
 
+// At most one frame belongs to this stage while the host presents its last
+// completed image. Poll never waits for the GPU, and cancellation discards it.
+FigureStageAsyncAvailable :: (stage: *FigureStage) -> bool {
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        return GPU.SceneGpuProbe(*stage.gpu).async_available
+    } else {
+        unused stage
+        return false
+    }
+}
+
+FigureStageCancel :: (stage: *FigureStage) {
+    if !stage.pending {
+        return
+    }
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        GPU.SceneGpuCancel(*stage.gpu)
+    }
+    stage.pending = false
+}
+
+FigureStagePoll :: (stage: *FigureStage) -> FigureStageTransfer {
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        result := GPU.SceneGpuPoll(*stage.gpu, *stage.pixels)
+        if result.completed {
+            stage.pending = false
+        } else if !result.ok {
+            FigureStageCancel(stage)
+        }
+        return .{.ok = result.ok, .completed = result.completed, .request_id = result.request_id}
+    } else {
+        unused stage
+        return .{}
+    }
+}
+
+FigureStageSubmit :: (stage: *FigureStage, joints: *FigureJoints, center: Vector3,
+    yaw: float64, pitch: float64, span: float64, width: s32, height: s32, seconds: float64,
+    offset: Vector3, pivot: Vector3, roll: float64, request_id: u64) -> FigureStageTransfer {
+    if stage.pending || width <= 0 || height <= 0 || !FigureStageAsyncAvailable(stage) {
+        return .{}
+    }
+    camera := FigureCamera(center, yaw, pitch, span, cast(float64)width / cast(float64)height)
+    placed := FigureCameraPlaced(camera, offset, pivot, roll)
+    if !FigureStagePrepare(stage, joints, placed, width, height, seconds) {
+        return .{}
+    }
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        result := GPU.SceneGpuSubmit(*stage.gpu, *stage.scene, placed, width, height, request_id)
+        stage.pending = result.ok && result.queued
+        return .{.ok = result.ok, .queued = result.queued, .request_id = result.request_id}
+    } else {
+        unused request_id
+        return .{}
+    }
+}
+
+#scope_file
+FigureStagePrepare :: (stage: *FigureStage, joints: *FigureJoints,
+    camera: SceneCamera, width: s32, height: s32, seconds: float64) -> bool {
+    if width <= 0 || height <= 0 {
+        return false
+    }
+    #if OS == .LINUX || OS == .ANDROID || OS == .WEB {
+        unused FigureModelGpuSkinning(*stage.model, *stage.scene, GPU.SceneGpuSkinningAvailable(*stage.gpu))
+    }
+    if !FigureModelPose(*stage.model, *stage.scene, joints, seconds, true) {
+        return false
+    }
+    toward := FigureNormalize(FigureSub(camera.position, camera.target))
+    yaw := Atan2(toward.x, toward.z)
+    light := FigureRotate(FigureAxisAngle(.{0.0, 1.0, 0.0}, yaw), .{-0.45, 0.75, 0.55})
+    FigureModelLight(*stage.model, light, toward)
+    if stage.pixels.width != width || stage.pixels.height != height {
+        if !VecResize(stage.pixels.pixels, cast(s64)width * height * 4) {
+            return false
+        }
+        stage.pixels.width = width
+        stage.pixels.height = height
+    }
+    return true
+}
+
+#scope_export
 FigureStageLoadBytes :: (stage: *FigureStage, bytes: []u8) -> bool {
     FigureStageInit(stage)
     if !FigureModelLoadBytes(*stage.model, *stage.scene, bytes) || !FigureModelToon(*stage.model, *stage.scene) {

@@ -489,8 +489,25 @@ def tai_chi_trousers(asset, body_node, skin_parts):
     x, y, z = positions[used].T.copy()
     seat = np.clip((y - .76) / .15, 0, 1)
     seat *= seat * (3 - 2 * seat)
-    center_x = np.sign(x) * .078 * (1 - seat)
-    dx, dz = x - center_x, z - .006
+    skin = asset.doc['skins'][asset.doc['nodes'][body_node]['skin']]
+    inverse_bind = asset.read(skin['inverseBindMatrices'])
+    centers = np.zeros((len(used), 2))
+    for side, sign in (('L', -1), ('R', 1)):
+        leg = []
+        for joint_name in ('Foot', 'LowerLeg', 'UpperLeg'):
+            node = next(i for i, node in enumerate(asset.doc['nodes'])
+                        if node.get('name') == f'J_Bip_{side}_{joint_name}')
+            joint = skin['joints'].index(node)
+            leg.append(np.linalg.inv(inverse_bind[joint].reshape(4, 4, order='F'))[:3, 3])
+        leg = np.asarray(leg)
+        selected = x * sign > 0
+        centers[selected, 0] = np.interp(y[selected], leg[:, 1], leg[:, 0])
+        centers[selected, 1] = np.interp(y[selected], leg[:, 1], leg[:, 2])
+    # Expand around the rig's bent shin, not the world origin: its forward
+    # wall otherwise moves into the calf instead of opening away from it.
+    center_x = centers[:, 0] * (1 - seat)
+    center_z = centers[:, 1] * (1 - seat) + .006 * seat
+    dx, dz = x - center_x, z - center_z
     radius = np.maximum(np.hypot(dx, dz), 1e-6)
     # A narrow cuff opens into full legs, then tucks below the wrap's sash.
     fullness = .022 + .045 * np.sin(np.pi * np.clip((y - .157) / .858, 0, 1))

@@ -41,6 +41,11 @@ The modules:
   hidden outfits and poses eligible surfaces on the GPU, retaining CPU
   vertices for foot contacts, wrap clearances and cloth corrections. A failed
   GPU frame reposes those skins on the CPU before the CPU renderer draws.
+  For live playback, `FigureStageSubmit` queues one frame and
+  `FigureStagePoll` publishes it only when ready, without waiting for a GPU
+  fence. `FigureStageCancel` discards it on a seek or size change; synchronous
+  rendering also cancels pending work. Request IDs increase for the stage's
+  lifetime, so hosts can associate completed pixels with the submitted pose.
 
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.
