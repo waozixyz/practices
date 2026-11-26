@@ -12,6 +12,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'figure/tools'))
 from prepare_attire import ARTICULATED_SOLE_BAND, Asset, ORIGINAL, is_foot_skin, sha
 
 
+def same_primitive(old, new, before, after):
+    """Compare drawn corners and expression deltas after index compaction."""
+    storage = ('attributes', 'indices', 'targets')
+    assert {k: v for k, v in before.items() if k not in storage} == {
+        k: v for k, v in after.items() if k not in storage}
+    a, b = old.read(before['indices']).ravel(), new.read(after['indices']).ravel()
+    assert len(a) == len(b)
+    pairs = [(before['attributes'], after['attributes'])]
+    assert len(before.get('targets', [])) == len(after.get('targets', []))
+    pairs.extend(zip(before.get('targets', []), after.get('targets', [])))
+    for source, output in pairs:
+        assert source.keys() == output.keys()
+        for name in source:
+            assert np.array_equal(old.read(source[name])[a], new.read(output[name])[b]), name
+
+
 def verify_feet(old, new, receipts, person):
     original = next(p for mesh in old.doc['meshes'] for p in mesh['primitives'] if is_foot_skin(old, p))
     source = {name: old.read(accessor) for name, accessor in original['attributes'].items()}
@@ -232,11 +248,12 @@ def verify_woman_hair(old, new, authored, styled):
     original, updated = authored['primitives'], styled['primitives']
     assert len(updated) == len(original) - 22 + 3
     assert new.doc['extensions']['VRM']['secondaryAnimation'] == old.doc['extensions']['VRM']['secondaryAnimation']
-    assert updated[:8] == original[6:14]
-    assert updated[16:44] == original[22:50]
-    assert updated[44:55] == original[66:77]
-    assert updated[64:76] == original[86:98]
-    assert updated[-4] == original[-1]
+    for before, after in [*zip(original[6:14], updated[:8]),
+                          *zip(original[22:50], updated[16:44]),
+                          *zip(original[66:77], updated[44:55]),
+                          *zip(original[86:98], updated[64:76]),
+                          (original[-1], updated[-4])]:
+        same_primitive(old, new, before, after)
     for old_part, new_part in [*zip(original[14:22], updated[8:16]),
                               *zip(original[77:86], updated[55:64]),
                               *zip(original[98:107], updated[76:85])]:
@@ -300,7 +317,9 @@ def main():
             expected = [p for p in mesh['primitives']
                         if 'CLOTH' not in o['materials'][p['material']]['name'] and not is_foot_skin(old, p)]
             actual = [p for p in d['meshes'][i]['primitives'] if not d['materials'][p['material']]['name'].startswith('Practice_')]
-            assert actual == expected, (person, mesh.get('name'))
+            assert len(actual) == len(expected), (person, mesh.get('name'))
+            for before, after in zip(expected, actual):
+                same_primitive(old, new, before, after)
         verify_feet(old, new, receipts[person]['bare_feet'], person)
         garments = []
         for mesh in d['meshes']:

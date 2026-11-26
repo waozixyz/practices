@@ -99,6 +99,37 @@ class Asset:
                 if parent_node in scene['nodes']:
                     scene['nodes'].append(new)
 
+    def compact(self):
+        """Keep only indexed vertices, including every matching morph delta."""
+        before = after = 0
+        for mesh in self.doc['meshes']:
+            for primitive in mesh['primitives']:
+                if 'indices' not in primitive:
+                    continue
+                indices = self.read(primitive['indices'])
+                used, remapped = np.unique(indices.reshape(-1), return_inverse=True)
+                count = self.doc['accessors'][primitive['attributes']['POSITION']]['count']
+                before += count
+                after += len(used)
+                if len(used) == count:
+                    continue
+
+                def compact_accessor(index):
+                    source = self.doc['accessors'][index]
+                    output = self.append(self.read(index)[used], source['componentType'], source['type'])
+                    if 'normalized' in source:
+                        self.doc['accessors'][output]['normalized'] = source['normalized']
+                    return output
+
+                primitive['attributes'] = {name: compact_accessor(index)
+                                           for name, index in primitive['attributes'].items()}
+                if 'targets' in primitive:
+                    primitive['targets'] = [{name: compact_accessor(index) for name, index in target.items()}
+                                            for target in primitive['targets']]
+                component = self.doc['accessors'][primitive['indices']]['componentType']
+                primitive['indices'] = self.append(remapped.reshape(-1, 1), component, 'SCALAR')
+        return {'geometry_vertices_before': before, 'geometry_vertices': after}
+
     def save(self, path):
         self.binary.extend(b'\0' * (-len(self.binary) % 4))
         self.doc['buffers'][0]['byteLength'] = len(self.binary)
@@ -929,6 +960,7 @@ def dress(source, target, person):
         trouser_attrs, trouser_faces = training_trousers(asset, body_node, trousers)
         training_tshirt(asset, body_node, skin_parts, skin, trouser_attrs, trouser_faces)
     # Removed hood springs have no visible geometry; keep skeleton compatibility.
+    compacted = asset.compact()
     asset.save(target)
     return {'source_sha256': ORIGINAL[person], 'output_sha256': sha(target),
                        'bare_feet': measurements,
@@ -937,6 +969,7 @@ def dress(source, target, person):
                        else 'Original face, hair, body, skeleton and bare feet retained',
                        'style': 'Matte linen cross-collar wrap, plain sash and flared skirt' if person == 'woman'
                        else 'Matte linen cross-collar tunic and relaxed trousers; hood/cord meshes removed',
+                       **compacted,
                        **({'training_top': 'Short-sleeved crew-neck T-shirt',
                            'training_bottom': 'Tapered, ankle-length athletic trousers'} if person == 'man'
                           else {'hair': 'High layered ponytail on the original hair rig and texture',

@@ -47,6 +47,10 @@ The modules:
   rendering also cancels pending work. Request IDs increase for the stage's
   lifetime, so hosts can associate completed pixels with the submitted pose.
 
+The prepared models compact each primitive to the vertices its indices use,
+including matching facial-expression deltas. Triangle order, skin weights,
+normals and UVs stay the same; unreferenced vertices are never posed or uploaded.
+
 The practices' backdrops are in `shared/figure/backdrops/`. The owner's
 references for the render quality are in `design/reference/`.
 
