@@ -150,9 +150,9 @@ FigureModelGpuSkinning :: (figure: *FigureModel, scene: *Scene, enabled: bool) -
         source := *figure.model.meshes[inst.mesh_index]
         name := TextView(source.name[:])
         contact := index == figure.wrap_body || name == "PracticeBareFeet" || FigureSoleUsesRig(name) ||
-            name == "PracticeSkirt" || name == "PracticeClothing" ||
-            name == "PracticeWrapFacings" || name == "PracticeTrainingSkirt" ||
-            name == "PracticeTrainingTrousers"
+        name == "PracticeSkirt" || name == "PracticeClothing" ||
+        name == "PracticeWrapFacings" || name == "PracticeTrainingSkirt" ||
+        name == "PracticeTrainingTrousers"
         if contact {
             continue
         }
@@ -266,8 +266,8 @@ FigureModelUse :: (figure: *FigureModel, scene: *Scene, loaded: *GltfModel) -> b
         }
     }
     needed: [9]s32 = .[FIGURE_HIPS, FIGURE_HEAD, FigureSideRole(0, FIGURE_UPPER_ARM), FigureSideRole(1, FIGURE_UPPER_ARM),
-        FigureSideRole(0, FIGURE_LOWER_ARM), FigureSideRole(0, FIGURE_UPPER_LEG), FigureSideRole(1, FIGURE_UPPER_LEG),
-        FigureSideRole(0, FIGURE_FOOT), FigureSideRole(1, FIGURE_FOOT)]
+    FigureSideRole(0, FIGURE_LOWER_ARM), FigureSideRole(0, FIGURE_UPPER_LEG), FigureSideRole(1, FIGURE_UPPER_LEG),
+    FigureSideRole(0, FIGURE_FOOT), FigureSideRole(1, FIGURE_FOOT)]
     for role: needed {
         if figure.bones[role] < 0 {
             return false
@@ -463,7 +463,7 @@ FigureModelRelaxWrap :: (figure: *FigureModel, positions: []Vector3) -> bool {
 
 FigureModelWrapContact :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints) {
     if figure.training || figure.wrap_contact.count == 0 || figure.wrap_body < 0 ||
-        !figure.instance.meshes[figure.wrap_body].has_skin { return }
+    !figure.instance.meshes[figure.wrap_body].has_skin { return }
     pelvis := FigureQuatNormalize(joints.pelvis_turn)
     chest := FigureQuatNormalize(joints.chest_turn)
     tilt := FigureRotate(chest, .{0.0, 1.0, 0.0})
@@ -626,7 +626,7 @@ FigureModelPose :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints,
     for side: cast(s32)0..1 {
         model_leg += FigureDistance(FigureModelRest(figure, FigureSideRole(side, FIGURE_UPPER_LEG), -1),
             FigureModelRest(figure, FigureSideRole(side, FIGURE_LOWER_LEG), -1)) +
-            FigureDistance(FigureModelRest(figure, FigureSideRole(side, FIGURE_LOWER_LEG), -1),
+        FigureDistance(FigureModelRest(figure, FigureSideRole(side, FIGURE_LOWER_LEG), -1),
             FigureModelRest(figure, FigureSideRole(side, FIGURE_FOOT), -1))
         solver_leg += FigureDistance(joints.hips[side], joints.knees[side]) + FigureDistance(joints.knees[side], joints.ankles[side])
     }
@@ -807,7 +807,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints,
     // Only near-horizontal floor poses let the hem trail along the legs.
     // Deep standing and kneeling forms still drape around raised thighs.
     prone := (1.0 - FigureSmooth(hip_world.y, 0.16, 0.33)) *
-        (1.0 - FigureSmooth(FigureAbs(down.y), 0.28, 0.55))
+    (1.0 - FigureSmooth(FigureAbs(down.y), 0.28, 0.55))
     legward := FigureV3(down.x * prone, 0.0, down.z * prone)
     thigh_lift := 1.0 - prone
     // In a deep hinge the chest occupies the space above the front skirt.
@@ -822,7 +822,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints,
     // Opening the legs carries the airborne fabric further. The motion fades
     // into the ordinary drape as the soles land.
     flutter := FigureSmooth(airborne, 0.002, 0.09) *
-        (0.65 + 0.35 * FigureSmooth(foot_span, 0.24, 0.64))
+    (0.65 + 0.35 * FigureSmooth(foot_span, 0.24, 0.64))
     legs: [6]Vector3
     arms: [6]Vector3
     sleeves: [2]bool
@@ -858,7 +858,7 @@ FigureModelCloth :: (figure: *FigureModel, scene: *Scene, joints: *FigureJoints,
         name := TextView(source.name[:])
         skirt := name == "PracticeSkirt"
         tailored := name == "PracticeClothing" || name == "PracticeWrapFacings" ||
-            (figure.training && name == "PracticeTrainingTrousers")
+        (figure.training && name == "PracticeTrainingTrousers")
         if !skirt && !tailored {
             continue
         }
@@ -1028,7 +1028,7 @@ FigureModelTrainingDrape :: (figure: *FigureModel, scene: *Scene) {
     split := FigureSmooth(1.0 - FigureDot(right_thigh, left_thigh), 0.12, 0.8)
     gather := FigureMax(bent, split)
     lap := FigureSmooth(knee.y - hip.y, -0.10, 0.04) * FigureSmooth(-down.y, 0.58, 0.77) *
-        (1.0 - FigureSmooth(FigureAbs(knee_span.y), 0.06, 0.20))
+    (1.0 - FigureSmooth(FigureAbs(knee_span.y), 0.06, 0.20))
     lap_forward := FigureNormalize(.{away.x, 0.0, away.z})
     root := scene.nodes[figure.instance.root_node]
     floor := (0.006 - root.position.y) / root.scale.x
@@ -1289,7 +1289,7 @@ FigureBlink :: (seconds: float64) -> float64 {
             break
         }
         start := cast(float64)cell * FIGURE_BLINK_EVERY + 0.3 + FigureHash(cast(float64)cell + 0.5) * 2.4 +
-            cast(float64)twice * 0.32
+        cast(float64)twice * 0.32
         t := seconds - start
         if t >= 0.0 && t < 0.07 {
             closed = FigureMax(closed, FigureSmooth(t, 0.0, 0.07))
@@ -1696,11 +1696,11 @@ FigureModelPosed :: (figure: *FigureModel, node: s32) -> Vector3 {
 // Blender (upper_arm.L, forearm.L, thigh.L, shin.L) names.
 FigureRoleOfName :: (name: string) -> s32 {
     centre: [30]string = .["J_Bip_C_Hips", "mixamorig:Hips", "mixamorig_Hips", "Hips", "pelvis",
-        "J_Bip_C_Spine", "mixamorig:Spine", "mixamorig_Spine", "Spine", "spine",
-        "J_Bip_C_Chest", "mixamorig:Spine1", "mixamorig_Spine1", "Chest", "spine.001",
-        "J_Bip_C_UpperChest", "mixamorig:Spine2", "mixamorig_Spine2", "UpperChest", "spine.002",
-        "J_Bip_C_Neck", "mixamorig:Neck", "mixamorig_Neck", "Neck", "neck",
-        "J_Bip_C_Head", "mixamorig:Head", "mixamorig_Head", "Head", "head"]
+    "J_Bip_C_Spine", "mixamorig:Spine", "mixamorig_Spine", "Spine", "spine",
+    "J_Bip_C_Chest", "mixamorig:Spine1", "mixamorig_Spine1", "Chest", "spine.001",
+    "J_Bip_C_UpperChest", "mixamorig:Spine2", "mixamorig_Spine2", "UpperChest", "spine.002",
+    "J_Bip_C_Neck", "mixamorig:Neck", "mixamorig_Neck", "Neck", "neck",
+    "J_Bip_C_Head", "mixamorig:Head", "mixamorig_Head", "Head", "head"]
     for at: 0..29 {
         if name == centre[at] {
             return cast(s32)(at / 5)
@@ -1741,7 +1741,7 @@ FigureNamed :: (name: string, before: string, middle: string, after: string) -> 
         return false
     }
     return name[0:before.count] == before && name[before.count:before.count + middle.count] == middle &&
-        name[before.count + middle.count:name.count] == after
+    name[before.count + middle.count:name.count] == after
 }
 
 FigureNamed2 :: (name: string, before: string, middle: string, digit: string) -> bool {
