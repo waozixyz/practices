@@ -481,7 +481,7 @@ def tai_chi_trousers(asset, body_node, skin_parts):
     attrs = {key: asset.read(index) for key, index in primary['attributes'].items()}
     faces = asset.read(primary['indices']).reshape(-1, 3)
     y = attrs['POSITION'][:, 1]
-    attrs, polygons = cut_surface(attrs, faces, np.column_stack((y - .170, 1.015 - y)))
+    attrs, polygons = cut_surface(attrs, faces, np.column_stack((y - .157, 1.015 - y)))
     faces = np.array([(poly[0], a, b) for poly, bits in polygons if bits == 3
                       for a, b in zip(poly[1:-1], poly[2:])])
     positions = attrs['POSITION']
@@ -493,7 +493,7 @@ def tai_chi_trousers(asset, body_node, skin_parts):
     dx, dz = x - center_x, z - .006
     radius = np.maximum(np.hypot(dx, dz), 1e-6)
     # A narrow cuff opens into full legs, then tucks below the wrap's sash.
-    fullness = .010 + .026 * np.sin(np.pi * np.clip((y - .17) / .845, 0, 1))
+    fullness = .022 + .045 * np.sin(np.pi * np.clip((y - .157) / .858, 0, 1))
     positions[used, 0] += dx / radius * fullness
     positions[used, 2] += dz / radius * fullness
     _, welded = np.unique(np.round(positions, 5), axis=0, return_inverse=True)
